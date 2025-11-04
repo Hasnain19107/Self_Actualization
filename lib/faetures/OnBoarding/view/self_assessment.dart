@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:pixsa_petrol_pump/faetures/OnBoarding/view/profileSetup_screen.dart';
 import '../../../core/Const/app_colors.dart';
 import '../../../core/utils/app_sizes.dart';
 import '../../../core/widgets/custom_elevated_button.dart';
@@ -187,9 +188,7 @@ class SelfAssessmentScreen extends StatelessWidget {
                   backgroundColor: AppColors.blue,
                   textColor: AppColors.white,
                   onPress: () {
-                    // Navigate to next question or screen
-                    // You can increment currentQuestionIndex here
-                    // Get.toNamed(AppRoutes.NEXTSCREEN);
+                    Get.to(ProfileSetupScreen());
                   },
                   hasRightIcon: true,
                   iconColor: AppColors.white,

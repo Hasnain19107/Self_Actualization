@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class OnboardingController extends GetxController {
@@ -83,4 +84,95 @@ class OnboardingController extends GetxController {
 
   String get progressText =>
       '${currentQuestionIndex.value + 1} of $totalQuestions';
+
+  // Profile Setup variables
+  final TextEditingController fullNameController = TextEditingController();
+  final RxInt age = 45.obs;
+  final RxSet<String> selectedFocusAreas = <String>{}.obs;
+  final RxString selectedAvatar = ''.obs;
+
+  // Focus Areas options
+  final List<String> focusAreas = [
+    'Career',
+    'Health',
+    'Creativity',
+    'Spirituality',
+    'Motivation',
+  ];
+
+  // Avatar options (you can replace these with actual image paths)
+  final List<String> avatarOptions = [
+    'avatar1',
+    'avatar2',
+    'avatar3',
+    'avatar4',
+    'avatar5',
+  ];
+
+  // Toggle Focus Area selection (multiple selection allowed)
+  void toggleFocusArea(String focusArea) {
+    if (selectedFocusAreas.contains(focusArea)) {
+      selectedFocusAreas.remove(focusArea);
+    } else {
+      selectedFocusAreas.add(focusArea);
+    }
+  }
+
+  // Check if Focus Area is selected
+  bool isFocusAreaSelected(String focusArea) {
+    return selectedFocusAreas.contains(focusArea);
+  }
+
+  // Remove Focus Area from selected
+  void removeFocusArea(String focusArea) {
+    selectedFocusAreas.remove(focusArea);
+  }
+
+  // Select Avatar (single selection)
+  void selectAvatar(String avatar) {
+    selectedAvatar.value = avatar;
+  }
+
+  // Check if Avatar is selected
+  bool isAvatarSelected(String avatar) {
+    return selectedAvatar.value == avatar;
+  }
+
+  // Increment age
+  void incrementAge() {
+    age.value++;
+  }
+
+  // Decrement age
+  void decrementAge() {
+    if (age.value > 1) {
+      age.value--;
+    }
+  }
+
+  // Submit Profile Setup
+  void submitProfileSetup() {
+    if (fullNameController.text.isEmpty) {
+      Get.snackbar('Error', 'Please enter your full name');
+      return;
+    }
+    if (selectedFocusAreas.isEmpty) {
+      Get.snackbar('Error', 'Please select at least one focus area');
+      return;
+    }
+    if (selectedAvatar.value.isEmpty) {
+      Get.snackbar('Error', 'Please select an avatar');
+      return;
+    }
+    // Handle submit logic here
+    Get.snackbar('Success', 'Profile setup completed');
+    // Navigate to next screen if needed
+    // Get.toNamed(AppRoutes.NEXTSCREEN);
+  }
+
+  @override
+  void onClose() {
+    fullNameController.dispose();
+    super.onClose();
+  }
 }
