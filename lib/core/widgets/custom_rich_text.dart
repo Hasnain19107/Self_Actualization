@@ -5,7 +5,10 @@ import 'custom_text_widget.dart';
 
 class CustomRichText extends StatelessWidget {
   const CustomRichText({
-    super.key, required this.text1, required this.text2, this.onPress,
+    super.key,
+    required this.text1,
+    required this.text2,
+    this.onPress,
   });
   final String text1;
   final String text2;
@@ -27,10 +30,10 @@ class CustomRichText extends StatelessWidget {
         InkWell(
           onTap: onPress,
           child: CustomTextWidget(
-            text:text2,
+            text: text2,
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            textColor: AppColors.black,
+            textColor: AppColors.blue,
           ),
         ),
       ],

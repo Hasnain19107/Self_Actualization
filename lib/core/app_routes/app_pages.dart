@@ -1,8 +1,10 @@
+import 'package:pixsa_petrol_pump/faetures/OnBoarding/view/selectCategory_level.dart';
 import 'package:pixsa_petrol_pump/faetures/auth/bindings/auth_binding.dart';
 import 'package:pixsa_petrol_pump/faetures/auth/view/sign_in_screen.dart';
 import 'package:pixsa_petrol_pump/faetures/auth/view/sign_up_screen.dart';
-import 'package:pixsa_petrol_pump/faetures/home/bindings/home_binding.dart';
-import 'package:pixsa_petrol_pump/faetures/home/view/home_screen.dart';
+import 'package:pixsa_petrol_pump/faetures/auth/view/welcome_screen.dart';
+import 'package:pixsa_petrol_pump/faetures/OnBoarding/bindings/onBoarding_binding.dart';
+
 import '../../faetures/splash/bindings/splash_binding.dart';
 import '../../faetures/splash/view/splash_screen.dart';
 import 'package:get/get.dart';
@@ -33,11 +35,18 @@ class AppPages {
       transition: Transition.downToUp,
       transitionDuration: const Duration(microseconds: 300),
     ),
+    GetPage(
+      name: AppRoutes.WELCOMESCREEN,
+      page: () => WelcomeScreen(),
+
+      transition: Transition.downToUp,
+      transitionDuration: const Duration(microseconds: 300),
+    ),
 
     GetPage(
-      name: AppRoutes.HOMESCREEN,
-      page: () => HomeScreen(),
-      binding: HomeBinding(),
+      name: AppRoutes.Category_level_SCREEN,
+      page: () => SelectCategoryLevelScreen(),
+      binding: OnboardingBinding(),
       transition: Transition.downToUp,
       transitionDuration: const Duration(microseconds: 300),
     ),

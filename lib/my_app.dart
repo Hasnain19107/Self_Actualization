@@ -5,7 +5,7 @@ import 'core/Const/app_colors.dart';
 import 'core/app_routes/app_pages.dart';
 import 'core/app_routes/app_routes.dart';
 import 'core/const/app_strings.dart';
-import 'core/theme/app_theme.dart';
+import 'data/exception/theme/app_theme.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

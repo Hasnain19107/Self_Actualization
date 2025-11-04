@@ -12,6 +12,10 @@ class CustomInputTextField extends StatefulWidget {
     this.numberKeyboard = false,
     this.decimal = false,
     this.prefixIcon = false,
+    this.customPrefixIcon,
+    this.prefixIconColor,
+    this.labelText,
+    this.labelColor,
     required this.textEditingController,
     this.emptyValueErrorText = "Please fill this field",
     this.isValidator = true,
@@ -37,6 +41,10 @@ class CustomInputTextField extends StatefulWidget {
   final bool numberKeyboard;
   final bool decimal;
   final bool prefixIcon;
+  final IconData? customPrefixIcon;
+  final Color? prefixIconColor;
+  final String? labelText;
+  final Color? labelColor;
   final int maxLines;
   final int? maxLength;
   final TextEditingController textEditingController;
@@ -67,7 +75,7 @@ class _CustomInputTextFieldState extends State<CustomInputTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    final textField = TextFormField(
       autofocus: false,
       onChanged: widget.onChange,
       inputFormatters: widget.inputFormatters,
@@ -76,13 +84,14 @@ class _CustomInputTextFieldState extends State<CustomInputTextField> {
       maxLines: widget.maxLines,
       keyboardType: widget.numberKeyboard
           ? widget.decimal
-              ? TextInputType.numberWithOptions(decimal: true)
-              : TextInputType.number
+                ? TextInputType.numberWithOptions(decimal: true)
+                : TextInputType.number
           : TextInputType.text,
       style: TextStyle(
         fontWeight: FontWeight.w400,
-        fontFamily:
-            isArabic(widget.textEditingController.text) ? 'Cairo' : 'Poppins',
+        fontFamily: isArabic(widget.textEditingController.text)
+            ? 'Cairo'
+            : 'Poppins',
         fontSize: widget.haveBorders ? 14 : 17,
         color: !widget.haveWhiteText ? AppColors.black : AppColors.white,
       ),
@@ -90,28 +99,33 @@ class _CustomInputTextFieldState extends State<CustomInputTextField> {
       cursorColor: widget.haveBorders ? AppColors.black : AppColors.white,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(
-            vertical: widget.maxLines > 1 ? 6 : 2,
-            horizontal: widget.maxLines > 1 ? 12 : 18),
+          vertical: widget.maxLines > 1 ? 6 : 2,
+          horizontal: widget.maxLines > 1 ? 12 : 18,
+        ),
         labelText: widget.haveLabelText ? widget.hintText : null,
         labelStyle: TextStyle(
-            fontSize: 14,
-            fontFamily: isArabic(widget.textEditingController.text)
-                ? 'Cairo'
-                : 'Poppins',
-            fontWeight: FontWeight.w400,
-            color: AppColors.brownish),
-        prefixIcon: widget.prefixIcon
+          fontSize: 14,
+          fontFamily: isArabic(widget.textEditingController.text)
+              ? 'Cairo'
+              : 'Poppins',
+          fontWeight: FontWeight.w400,
+          color: AppColors.brownish,
+        ),
+        prefixIcon: widget.customPrefixIcon != null
             ? Icon(
-                Icons.search,
-                color: AppColors.black,
+                widget.customPrefixIcon,
+                color: widget.prefixIconColor ?? AppColors.blue,
               )
+            : widget.prefixIcon
+            ? Icon(Icons.search, color: AppColors.black)
             : null,
         hintText: widget.hintText,
         suffixIcon: widget.hasSuffixIcon
             ? IconButton(
                 icon: Icon(
-                    isObscured ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
-                    color: AppColors.grey),
+                  isObscured ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
+                  color: AppColors.grey,
+                ),
                 onPressed: () {
                   setState(() {
                     isObscured = !isObscured;
@@ -120,29 +134,29 @@ class _CustomInputTextFieldState extends State<CustomInputTextField> {
               )
             : null,
         hintStyle: TextStyle(
-            fontSize: widget.haveBorders ? 14 : 17,
-            fontFamily: isArabic(widget.textEditingController.text)
-                ? 'Cairo'
-                : 'Poppins',
-            fontWeight: FontWeight.w400,
-            color: widget.hintColor),
+          fontSize: widget.haveBorders ? 14 : 17,
+          fontFamily: isArabic(widget.textEditingController.text)
+              ? 'Cairo'
+              : 'Poppins',
+          fontWeight: FontWeight.w400,
+          color: widget.hintColor,
+        ),
         border: widget.haveBorders
             ? OutlineInputBorder(
                 borderRadius: BorderRadius.circular(widget.borderRadius),
-                borderSide: BorderSide(color: AppColors.brownish, width: 1),
+                borderSide: BorderSide(color: AppColors.grey, width: 1),
               )
             : InputBorder.none,
         enabledBorder: widget.haveBorders
             ? OutlineInputBorder(
                 borderRadius: BorderRadius.circular(widget.borderRadius),
-                borderSide: BorderSide(color: AppColors.brownish, width: 1),
+                borderSide: BorderSide(color: AppColors.grey, width: 1),
               )
             : InputBorder.none,
         focusedBorder: widget.haveBorders
             ? OutlineInputBorder(
                 borderRadius: BorderRadius.circular(widget.borderRadius),
-                borderSide: BorderSide(
-                    color: AppColors.black.withOpacity(0.6), width: 1),
+                borderSide: BorderSide(color: AppColors.blue, width: 1),
               )
             : InputBorder.none,
         errorBorder: widget.haveBorders
@@ -168,5 +182,27 @@ class _CustomInputTextFieldState extends State<CustomInputTextField> {
             }
           : null,
     );
+
+    if (widget.labelText != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.labelText!,
+            style: TextStyle(
+              fontSize: 14,
+              fontFamily: isArabic(widget.textEditingController.text)
+                  ? 'Cairo'
+                  : 'Poppins',
+              fontWeight: FontWeight.w400,
+              color: widget.labelColor ?? AppColors.black,
+            ),
+          ),
+          const SizedBox(height: 8),
+          textField,
+        ],
+      );
+    }
+    return textField;
   }
 }

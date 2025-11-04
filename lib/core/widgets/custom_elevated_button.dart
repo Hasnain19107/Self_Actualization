@@ -10,9 +10,11 @@ class CustomElevatedButton extends StatelessWidget {
     required this.onPress,
     this.text = '',
     this.svgIconPath,
+    this.iconData,
     this.height = 56,
-    this.width = double.infinity,
-    this.borderRadius = 16,
+    this.width,
+    this.borderRadius =
+        1000, // Fully rounded (1000px is equivalent to fully rounded)
     this.backgroundColor = AppColors.primaryColor,
     this.textColor = AppColors.white,
     this.isLoading = false,
@@ -21,9 +23,10 @@ class CustomElevatedButton extends StatelessWidget {
     this.centerSvgOnly = false,
     this.bottomOnlyElevation = false,
     this.textFontWeight = FontWeight.w600,
-    this.padding = const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     this.hasRightIcon = false,
-    this.borderColor, this.iconColor,
+    this.borderColor,
+    this.iconColor,
   });
 
   final VoidCallback onPress;
@@ -32,8 +35,9 @@ class CustomElevatedButton extends StatelessWidget {
   final Color? borderColor;
   final bool hasRightIcon;
   final String? svgIconPath;
+  final IconData? iconData;
   final double height;
-  final double width;
+  final double? width;
   final double borderRadius;
   final FontWeight textFontWeight;
   final double textSize;
@@ -49,10 +53,13 @@ class CustomElevatedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Use 343 as default width if not specified
+    final buttonWidth = width ?? 343.0;
+
     return GestureDetector(
       onTap: isLoading ? null : onPress,
       child: Container(
-        width: width,
+        width: buttonWidth,
         height: height,
         decoration: BoxDecoration(
           color: backgroundColor,
@@ -88,7 +95,7 @@ class CustomElevatedButton extends StatelessWidget {
 
   Widget buildContent() {
     if (centerSvgOnly && svgIconPath != null) {
-      return buildImage(svgIconPath!, iconSize, iconSize,iconColor);
+      return buildImage(svgIconPath!, iconSize, iconSize, iconColor);
     }
 
     return Row(
@@ -100,8 +107,11 @@ class CustomElevatedButton extends StatelessWidget {
           Gap(appSizes.getWidthPercentage(11))
         else
           const Spacer(),
-        if (hasRightIcon) ...[
-          buildImage(svgIconPath!, iconSize, iconSize,iconColor),
+        if (hasRightIcon && (svgIconPath != null || iconData != null)) ...[
+          if (iconData != null)
+            Icon(iconData, color: iconColor ?? textColor, size: iconSize)
+          else if (svgIconPath != null)
+            buildImage(svgIconPath!, iconSize, iconSize, iconColor),
           Gap(6),
         ],
         CustomTextWidget(
@@ -120,7 +130,7 @@ class CustomElevatedButton extends StatelessWidget {
               color: AppColors.white,
               shape: BoxShape.circle,
             ),
-            child: buildImage(svgIconPath!, iconSize, iconSize,iconColor),
+            child: buildImage(svgIconPath!, iconSize, iconSize, iconColor),
           )
         else
           const Spacer(),
@@ -128,12 +138,12 @@ class CustomElevatedButton extends StatelessWidget {
     );
   }
 
-  Widget buildImage(String path, double height, double width, Color? iconColor) {
-      return Image.asset(
-        path,
-        height: height,
-        width: width,
-        fit: BoxFit.contain,
-      );
+  Widget buildImage(
+    String path,
+    double height,
+    double width,
+    Color? iconColor,
+  ) {
+    return Image.asset(path, height: height, width: width, fit: BoxFit.contain);
   }
 }

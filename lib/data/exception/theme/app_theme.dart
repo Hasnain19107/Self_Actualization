@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../Const/app_colors.dart';
+import '../../../core/Const/app_colors.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
@@ -10,7 +10,8 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
-    return ThemeData(useMaterial3: true,
+    return ThemeData(
+      useMaterial3: true,
       scaffoldBackgroundColor: AppColors.black,
     );
   }
