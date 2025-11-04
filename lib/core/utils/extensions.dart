@@ -12,5 +12,5 @@ extension ImagePathExtensions on String {
   String get toGif => 'assets/images/$this.gif';
 
   /// Converts the string to an SVG image path.
-  String get toSvg => 'assets/icons/$this.svg';
+  String get toSvg => 'assets/images/$this.svg';
 }

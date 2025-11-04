@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:pixsa_petrol_pump/faetures/OnBoarding/view/self_Assessment.dart';
+import 'package:pixsa_petrol_pump/faetures/On_boarding/view/self_assessment.dart';
 import '../../../core/Const/app_colors.dart';
 import '../../../core/utils/app_sizes.dart';
 import '../../../core/widgets/custom_elevated_button.dart';
@@ -200,7 +200,6 @@ class SelectCategoryLevelScreen extends StatelessWidget {
                       ),
 
                       Gap(24),
-                      // Other Categories
                       Obx(
                         () => Column(
                           children: controller.categories.map((category) {
@@ -272,8 +271,6 @@ class SelectCategoryLevelScreen extends StatelessWidget {
                           textColor: AppColors.white,
                           onPress: () {
                             Get.to(SelfAssessmentScreen());
-                            // Navigate to next screen if needed
-                            // Get.toNamed(AppRoutes.HOMESCREEN);
                           },
                           hasRightIcon: true,
                           iconColor: AppColors.white,

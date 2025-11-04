@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../bottom_navigation bar/view/main_nav_screen.dart';
+
+import '../../bottom_navigation_bar/view/main_nav_screen.dart';
 
 class OnboardingController extends GetxController {
-  // Meta Needs options
   final List<String> metaNeedsOptions = [
     'Cognitive needs: to know, understand, learn',
     'Contribution needs: to make a difference',

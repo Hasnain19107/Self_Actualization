@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:pixsa_petrol_pump/faetures/OnBoarding/view/profileSetup_screen.dart';
+import 'package:pixsa_petrol_pump/faetures/On_boarding/view/profileSetup_screen.dart';
 import '../../../core/Const/app_colors.dart';
 import '../../../core/utils/app_sizes.dart';
 import '../../../core/widgets/custom_elevated_button.dart';

@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="pixsa_petrol_pump"
+        android:label="Self Actualisation"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

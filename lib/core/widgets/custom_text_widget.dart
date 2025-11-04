@@ -26,11 +26,6 @@ class CustomTextWidget extends StatelessWidget {
   final TextOverflow textOverflow;
   final double latterSpacing;
 
-  /// Helper to check if text contains Arabic characters
-  bool isArabic(String input) {
-    return RegExp(r'[\u0600-\u06FF]').hasMatch(input);
-  }
-
   @override
   Widget build(BuildContext context) {
     final displayText = limitedCharacters
@@ -43,7 +38,7 @@ class CustomTextWidget extends StatelessWidget {
       overflow: textOverflow,
       textAlign: textAlign,
       style: TextStyle(
-        fontFamily: isArabic(text)?'Cairo':'Poppins',
+        fontFamily:'Poppins',
         height: 0,
         fontSize: fontSize,
         color: textColor,

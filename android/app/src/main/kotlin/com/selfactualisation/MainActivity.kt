@@ -1,5 +1,6 @@
-package com.pixapetrolpump.pixsa_petrol_pump
+package com.selfactualisation
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()
+

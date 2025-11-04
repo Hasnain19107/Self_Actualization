@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import '../Const/app_colors.dart';
 
 class CustomInputTextField extends StatefulWidget {
@@ -63,10 +62,6 @@ class CustomInputTextField extends StatefulWidget {
 class _CustomInputTextFieldState extends State<CustomInputTextField> {
   bool isObscured = false;
 
-  bool isArabic(String input) {
-    return RegExp(r'[\u0600-\u06FF]').hasMatch(input);
-  }
-
   @override
   void initState() {
     isObscured = widget.isObscure;
@@ -89,9 +84,7 @@ class _CustomInputTextFieldState extends State<CustomInputTextField> {
           : TextInputType.text,
       style: TextStyle(
         fontWeight: FontWeight.w400,
-        fontFamily: isArabic(widget.textEditingController.text)
-            ? 'Cairo'
-            : 'Poppins',
+        fontFamily: 'Poppins',
         fontSize: widget.haveBorders ? 14 : 17,
         color: !widget.haveWhiteText ? AppColors.black : AppColors.white,
       ),
@@ -105,9 +98,7 @@ class _CustomInputTextFieldState extends State<CustomInputTextField> {
         labelText: widget.haveLabelText ? widget.hintText : null,
         labelStyle: TextStyle(
           fontSize: 14,
-          fontFamily: isArabic(widget.textEditingController.text)
-              ? 'Cairo'
-              : 'Poppins',
+          fontFamily: 'Poppins',
           fontWeight: FontWeight.w400,
           color: AppColors.brownish,
         ),
@@ -135,9 +126,7 @@ class _CustomInputTextFieldState extends State<CustomInputTextField> {
             : null,
         hintStyle: TextStyle(
           fontSize: widget.haveBorders ? 14 : 17,
-          fontFamily: isArabic(widget.textEditingController.text)
-              ? 'Cairo'
-              : 'Poppins',
+          fontFamily: 'Poppins',
           fontWeight: FontWeight.w400,
           color: widget.hintColor,
         ),
@@ -191,9 +180,7 @@ class _CustomInputTextFieldState extends State<CustomInputTextField> {
             widget.labelText!,
             style: TextStyle(
               fontSize: 14,
-              fontFamily: isArabic(widget.textEditingController.text)
-                  ? 'Cairo'
-                  : 'Poppins',
+              fontFamily: 'Poppins',
               fontWeight: FontWeight.w400,
               color: widget.labelColor ?? AppColors.black,
             ),

@@ -13,8 +13,7 @@ class CustomElevatedButton extends StatelessWidget {
     this.iconData,
     this.height = 56,
     this.width,
-    this.borderRadius =
-        1000, // Fully rounded (1000px is equivalent to fully rounded)
+    this.borderRadius = 1000,
     this.backgroundColor = AppColors.primaryColor,
     this.textColor = AppColors.white,
     this.isLoading = false,
@@ -53,9 +52,7 @@ class CustomElevatedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use 343 as default width if not specified
     final buttonWidth = width ?? 343.0;
-
     return GestureDetector(
       onTap: isLoading ? null : onPress,
       child: Container(

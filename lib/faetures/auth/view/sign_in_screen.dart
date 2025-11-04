@@ -10,6 +10,8 @@ import '../../../core/Const/app_colors.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
 import '../../../core/widgets/curved_background.dart';
+import '../../../core/const/app_images.dart';
+import '../../../core/widgets/custom_svg_icon.dart';
 
 class SignInScreen extends StatelessWidget {
   SignInScreen({super.key});
@@ -43,7 +45,6 @@ class SignInScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       Gap(20),
-                      // Sign In Title
                       CustomTextWidget(
                         text: "Sign In",
                         fontWeight: FontWeight.w700,
@@ -108,11 +109,10 @@ class SignInScreen extends StatelessWidget {
                                 ),
                               ),
                               child: Center(
-                                child: CustomTextWidget(
-                                  text: "f",
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  textColor: AppColors.blue,
+                                child: CustomSvgIcon(
+                                  path: AppImages.facebook,
+                                  width: 24,
+                                  height: 24,
                                 ),
                               ),
                             ),
@@ -135,36 +135,10 @@ class SignInScreen extends StatelessWidget {
                                 ),
                               ),
                               child: Center(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 20,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: [
-                                            Color(0xFF4285F4),
-                                            Color(0xFF34A853),
-                                            Color(0xFFFBBC05),
-                                            Color(0xFFEA4335),
-                                          ],
-                                          stops: [0.0, 0.33, 0.66, 1.0],
-                                        ),
-                                        borderRadius: BorderRadius.circular(3),
-                                      ),
-                                      child: Center(
-                                        child: CustomTextWidget(
-                                          text: "G",
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          textColor: AppColors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                child: CustomSvgIcon(
+                                  path: AppImages.google,
+                                  width: 24,
+                                  height: 24,
                                 ),
                               ),
                             ),

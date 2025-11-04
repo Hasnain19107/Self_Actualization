@@ -1,10 +1,9 @@
-import 'package:pixsa_petrol_pump/faetures/OnBoarding/view/selectCategory_level.dart';
 import 'package:pixsa_petrol_pump/faetures/auth/bindings/auth_binding.dart';
 import 'package:pixsa_petrol_pump/faetures/auth/view/sign_in_screen.dart';
 import 'package:pixsa_petrol_pump/faetures/auth/view/sign_up_screen.dart';
 import 'package:pixsa_petrol_pump/faetures/auth/view/welcome_screen.dart';
-import 'package:pixsa_petrol_pump/faetures/OnBoarding/bindings/onBoarding_binding.dart';
-
+import '../../faetures/On_boarding/bindings/onBoarding_binding.dart';
+import '../../faetures/On_boarding/view/selectCategory_level.dart';
 import '../../faetures/splash/bindings/splash_binding.dart';
 import '../../faetures/splash/view/splash_screen.dart';
 import 'package:get/get.dart';

@@ -1,3 +1,3 @@
 class AppStrings{
-  static  get appName => 'Pixsa Petrol-Pump';
+  static  get appName => 'Self Actualisation';
 }

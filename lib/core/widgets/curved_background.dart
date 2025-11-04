@@ -29,18 +29,9 @@ class CurvedPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final path = Path();
-
-    // Start from top-left
     path.moveTo(0, 0);
-
-    // Draw top edge
     path.lineTo(size.width, 0);
-
-    // Draw right edge down
     path.lineTo(size.width, size.height * 0.40);
-
-    // Create a very smooth, rounded wave using cubic bezier
-    // More rounded control points for a gentler curve
     path.cubicTo(
       size.width * 0.98,
       size.height * 0.45,
@@ -76,8 +67,6 @@ class CurvedPainter extends CustomPainter {
       0,
       size.height * 0.40,
     );
-
-    // Close the path back to start
     path.lineTo(0, 0);
     path.close();
 
