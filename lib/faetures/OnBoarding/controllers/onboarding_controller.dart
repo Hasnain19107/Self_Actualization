@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../bottom_navigation bar/view/main_nav_screen.dart';
 
 class OnboardingController extends GetxController {
   // Meta Needs options
@@ -166,8 +167,8 @@ class OnboardingController extends GetxController {
     }
     // Handle submit logic here
     Get.snackbar('Success', 'Profile setup completed');
-    // Navigate to next screen if needed
-    // Get.toNamed(AppRoutes.NEXTSCREEN);
+    // Navigate to main navigation screen
+    Get.offAll(() => const MainNavScreen());
   }
 
   @override
