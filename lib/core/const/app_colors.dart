@@ -27,10 +27,12 @@ class AppColors {
   static const lightGray = Color(0xFF9E9E9E);
   static const vibrantBlue = Color(0xFF2196F3);
   static const keypadBlue = Color(0xFF1976D2);
-  static const signInBlue = Color(
-    0xFF4285F4,
-  );
+  static const signInBlue = Color(0xFF4285F4);
   static const inputBorderGrey = Color(0xFFE0E0E0);
   static const placeholderGrey = Color(0xFF9E9E9E);
   static const facebookBlue = Color(0xFF1877F2);
+
+  // Video card overlay colors
+  static const videoOverlay70 = Color(0xB2F9CFFD); // #F9CFFDB2 - 70% opacity
+  static const videoOverlay30 = Color(0x4DF9CFFD); // #F9CFFD4D - 30% opacity
 }

@@ -14,63 +14,30 @@ class HeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // User profile section
-          Expanded(
-            child: Row(
-              children: [
-                // Avatar
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.lightGray,
-                  ),
-                  child: const Icon(
-                    Icons.person,
-                    size: 30,
-                    color: AppColors.black,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Greeting
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CustomTextWidget(
-                        text: '$greeting $userName',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        textColor: AppColors.black,
-                        textAlign: TextAlign.left,
-                        textOverflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      const Text('☀️', style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // User profile section
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.lightGray,
           ),
-          // Notification bell
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_outlined,
-              color: AppColors.black,
-              size: 24,
-            ),
+          child: const Icon(Icons.person, size: 30, color: AppColors.black),
+        ),
+
+        // Notification bell
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(
+            Icons.notifications_outlined,
+            color: AppColors.black,
+            size: 24,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../view/learn_grow_screen.dart';
 
 // Needs data structure
 class NeedData {
@@ -94,6 +95,10 @@ class HomeController extends GetxController {
 
   void onActionCardTap(String title) {
     // Handle action card tap
-    Get.snackbar('Action', 'Tapped on $title');
+    if (title == 'Learn & Grow') {
+      Get.to(() => LearnGrowScreen());
+    } else {
+      Get.snackbar('Action', 'Tapped on $title');
+    }
   }
 }

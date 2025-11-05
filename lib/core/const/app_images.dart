@@ -7,4 +7,5 @@ class AppImages {
   /// SVG Images
   static get google => 'google'.toSvg;
   static get facebook => 'facebook'.toSvg;
+  static get videocardimage => 'videocardimage'.toJpg;
 }

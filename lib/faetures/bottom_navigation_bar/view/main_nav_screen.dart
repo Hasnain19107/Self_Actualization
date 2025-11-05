@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pixsa_petrol_pump/faetures/activity/view/your_activity_screen.dart';
 import '../../../core/widgets/custom_text_widget.dart';
 import '../../home/view/home_screen.dart';
 import '../bindings/bottom_nav_binding.dart';
@@ -28,7 +29,7 @@ class MainNavScreen extends StatelessWidget {
         case 0:
           return const HomeScreen();
         case 1:
-          return _buildFlameScreen();
+          return YourActivityScreen();
         case 2:
           return _buildTrophyScreen();
         case 3:
