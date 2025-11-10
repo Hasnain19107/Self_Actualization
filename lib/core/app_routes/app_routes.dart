@@ -1,9 +1,35 @@
 class AppRoutes {
   /// Auth
-  static const String SPLASHSCREEN = "/";
-  static const String LOGINSCREEN = "/loginScreen";
-  static const String SIGNUPSCREEN = "/signUpScreen";
+  static const String splashScreen = "/";
+  static const String loginScreen = "/loginScreen";
+  static const String signUpScreen = "/signUpScreen";
+  static const String welcomeScreen = "/welcomeScreen";
 
-  static const String Category_level_SCREEN = "/category_leve;_Screen";
-  static const String WELCOMESCREEN = "/welcomeScreen";
+  /// Onboarding
+  static const String categoryLevelScreen = "/categoryLevelScreen";
+  static const String selfAssessmentScreen = "/selfAssessmentScreen";
+  static const String reviewResultScreen = "/reviewResultScreen";
+  static const String profileSetupScreen = "/profileSetupScreen";
+
+  /// Main Navigation
+  static const String mainNavScreen = "/mainNavScreen";
+
+  /// Home
+  static const String homeScreen = "/homeScreen";
+
+  /// Activity
+  static const String yourActivityScreen = "/yourActivityScreen";
+  static const String dailyReflectionScreen = "/dailyReflectionScreen";
+  static const String addReflectionScreen = "/addReflectionScreen";
+
+  /// Goal
+  static const String goalScreen = "/goalScreen";
+  static const String achievementScreen = "/achievementScreen";
+  static const String addGoalScreen = "/addGoalScreen";
+
+  /// Learn & Grow
+  static const String learnGrowScreen = "/learnGrowScreen";
+
+  /// Notification
+  static const String notificationScreen = "/notificationScreen";
 }

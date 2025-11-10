@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../../bottom_navigation_bar/view/main_nav_screen.dart';
+import '../../../core/const/app_exports.dart';
 
 class OnboardingController extends GetxController {
   final List<String> metaNeedsOptions = [
@@ -21,9 +20,18 @@ class OnboardingController extends GetxController {
     {'name': 'Survival', 'emoji': '😊'},
   ];
 
+  // Levels for each category
+  final Map<String, List<String>> categoryLevels = {
+    'Self': ['Beginner', 'Intermediate', 'Advanced'],
+    'Social': ['Beginner', 'Intermediate', 'Advanced'],
+    'Safety': ['Beginner', 'Intermediate', 'Advanced'],
+    'Survival': ['Beginner', 'Intermediate', 'Advanced'],
+  };
+
   // Reactive variables for selections
   final RxSet<String> selectedMetaNeeds = <String>{}.obs;
   final RxString selectedCategory = ''.obs;
+  final RxString selectedLevel = ''.obs;
 
   // Toggle Meta Needs selection (multiple selection allowed)
   void toggleMetaNeed(String option) {
@@ -47,6 +55,24 @@ class OnboardingController extends GetxController {
   // Check if category is selected
   bool isCategorySelected(String category) {
     return selectedCategory.value == category;
+  }
+
+  // Get levels for selected category
+  List<String> getLevelsForSelectedCategory() {
+    if (selectedCategory.value.isEmpty) {
+      return [];
+    }
+    return categoryLevels[selectedCategory.value] ?? [];
+  }
+
+  // Select level (single selection)
+  void selectLevel(String level) {
+    selectedLevel.value = level;
+  }
+
+  // Check if level is selected
+  bool isLevelSelected(String level) {
+    return selectedLevel.value == level;
   }
 
   // Submit selection
@@ -168,7 +194,7 @@ class OnboardingController extends GetxController {
     // Handle submit logic here
     Get.snackbar('Success', 'Profile setup completed');
     // Navigate to main navigation screen
-    Get.offAll(() => const MainNavScreen());
+    Get.offAllNamed(AppRoutes.mainNavScreen);
   }
 
   @override

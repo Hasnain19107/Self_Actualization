@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import '../../../core/const/app_colors.dart';
-import '../../../core/widgets/custom_text_widget.dart';
+import '../../../core/const/app_exports.dart';
 
 class GoalItemWidget extends StatelessWidget {
   final Color barColor;
@@ -27,7 +26,7 @@ class GoalItemWidget extends StatelessWidget {
             height: 30,
             decoration: BoxDecoration(
               color: barColor,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(20),
             ),
           ),
           const Gap(8),
@@ -44,7 +43,7 @@ class GoalItemWidget extends StatelessWidget {
                 ),
                 CustomTextWidget(
                   text: subtitle,
-                  fontSize: 12,
+                  fontSize: 10,
                   fontWeight: FontWeight.w400,
                   textColor: AppColors.mediumGray,
                   textAlign: TextAlign.left,

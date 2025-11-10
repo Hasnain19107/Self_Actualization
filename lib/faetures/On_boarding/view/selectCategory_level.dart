@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:pixsa_petrol_pump/faetures/On_boarding/view/self_assessment.dart';
-import '../../../core/Const/app_colors.dart';
-import '../../../core/utils/app_sizes.dart';
-import '../../../core/widgets/custom_elevated_button.dart';
-import '../../../core/widgets/custom_text_widget.dart';
 import '../controllers/onboarding_controller.dart';
+import '../../../core/const/app_exports.dart';
 
 class SelectCategoryLevelScreen extends StatelessWidget {
   SelectCategoryLevelScreen({super.key});
@@ -21,7 +17,8 @@ class SelectCategoryLevelScreen extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: appSizes.getWidthPercentage(4),
+            horizontal: appSizes.getWidthPercentage(3),
+            vertical: appSizes.getHeightPercentage(2),
           ),
           child: Column(
             children: [
@@ -49,7 +46,7 @@ class SelectCategoryLevelScreen extends StatelessWidget {
                         textColor: AppColors.mediumGray,
                       ),
                       Gap(32),
-                      // Categories Section Heading
+                      // Meta Needs Section Heading
                       CustomTextWidget(
                         text: 'Categories',
                         fontSize: 14,
@@ -199,67 +196,95 @@ class SelectCategoryLevelScreen extends StatelessWidget {
                         ),
                       ),
 
-                      Gap(24),
+                      // Categories Section - Only show when Meta Needs are selected
                       Obx(
-                        () => Column(
-                          children: controller.categories.map((category) {
-                            final isSelected = controller.isCategorySelected(
-                              category['name']!,
-                            );
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              child: GestureDetector(
-                                onTap: () => controller.selectCategory(
-                                  category['name']!,
-                                ),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 14,
+                        () => controller.selectedMetaNeeds.isNotEmpty
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Gap(24),
+                                  // Categories Section Heading
+                                  CustomTextWidget(
+                                    text: 'Categories',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    textColor: AppColors.black,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.blue
-                                        : AppColors.lightBlue,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? AppColors.blue
-                                          : AppColors.inputBorderGrey,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        width: 40,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          color: AppColors.white,
-                                          shape: BoxShape.circle,
+                                  Gap(16),
+                                  Column(
+                                    children: controller.categories.map((
+                                      category,
+                                    ) {
+                                      final isSelected = controller
+                                          .isCategorySelected(
+                                            category['name']!,
+                                          );
+                                      return Container(
+                                        margin: const EdgeInsets.only(
+                                          bottom: 12,
                                         ),
-                                        child: Text(
-                                          category['emoji']!,
-                                          style: const TextStyle(fontSize: 15),
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            controller.selectCategory(
+                                              category['name']!,
+                                            );
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 14,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? AppColors.blue
+                                                  : AppColors.lightBlue,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: isSelected
+                                                    ? AppColors.blue
+                                                    : AppColors.inputBorderGrey,
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(
+                                                    8,
+                                                  ),
+                                                  width: 40,
+                                                  height: 40,
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.white,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: Text(
+                                                    category['emoji']!,
+                                                    style: const TextStyle(
+                                                      fontSize: 15,
+                                                    ),
+                                                  ),
+                                                ),
+                                                Gap(12),
+                                                CustomTextWidget(
+                                                  text: category['name']!,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                  textColor: isSelected
+                                                      ? AppColors.white
+                                                      : AppColors.black,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                      Gap(12),
-                                      CustomTextWidget(
-                                        text: category['name']!,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        textColor: isSelected
-                                            ? AppColors.white
-                                            : AppColors.black,
-                                      ),
-                                    ],
+                                      );
+                                    }).toList(),
                                   ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
+                                ],
+                              )
+                            : const SizedBox.shrink(),
                       ),
                       Gap(32),
                       Gap(24),
@@ -270,7 +295,7 @@ class SelectCategoryLevelScreen extends StatelessWidget {
                           backgroundColor: AppColors.blue,
                           textColor: AppColors.white,
                           onPress: () {
-                            Get.to(SelfAssessmentScreen());
+                            Get.toNamed(AppRoutes.selfAssessmentScreen);
                           },
                           hasRightIcon: true,
                           iconColor: AppColors.white,

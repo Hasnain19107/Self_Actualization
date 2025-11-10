@@ -1,70 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../core/Const/app_colors.dart';
 import '../controller/bottom_nav_controller.dart';
+import '../../../core/const/app_exports.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
-  const CustomBottomNavBar({super.key});
+  final int? initialIndex;
+
+  const CustomBottomNavBar({super.key, this.initialIndex});
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<BottomNavController>();
 
-    return Container(
-      width: double.infinity,
-      height: 100,
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 4,
-            offset: Offset(0, -2),
+    // Set initial index if provided
+    if (initialIndex != null && controller.currentIndex.value != initialIndex) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.changeIndex(initialIndex!);
+      });
+    }
+
+    return SafeArea(
+      child: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(color: AppColors.white),
+        child: Padding(
+          padding: const EdgeInsets.only(right: 30, left: 30),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildNavItem(
+                controller: controller,
+                index: 0,
+                activeIcon: AppImages.homeIcon,
+                inactiveIcon: AppImages.homeIcon,
+                hasInfoIcon: true,
+              ),
+              _buildNavItem(
+                controller: controller,
+                index: 1,
+                activeIcon: AppImages.activityIcon,
+                inactiveIcon: AppImages.activityIcon,
+              ),
+              _buildNavItem(
+                controller: controller,
+                index: 2,
+                activeIcon: Icons.emoji_events,
+                inactiveIcon: Icons.emoji_events_outlined,
+              ),
+              _buildNavItem(
+                controller: controller,
+                index: 3,
+                activeIcon: Icons.list_outlined,
+                inactiveIcon: Icons.list_outlined,
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.only(
-          top: 20,
-          right: 30,
-          bottom: 40,
-          left: 30,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildNavItem(
-              controller: controller,
-              index: 0,
-              activeIcon: Icons.home,
-              inactiveIcon: Icons.home_outlined,
-              hasInfoIcon: true,
-            ),
-            _buildNavItem(
-              controller: controller,
-              index: 1,
-              activeIcon: Icons.local_fire_department,
-              inactiveIcon: Icons.local_fire_department_outlined,
-            ),
-            _buildNavItem(
-              controller: controller,
-              index: 2,
-              activeIcon: Icons.emoji_events,
-              inactiveIcon: Icons.emoji_events_outlined,
-            ),
-            _buildNavItem(
-              controller: controller,
-              index: 3,
-              activeIcon: Icons.music_note,
-              inactiveIcon: Icons.music_note_outlined,
-            ),
-            _buildNavItem(
-              controller: controller,
-              index: 4,
-              activeIcon: Icons.list,
-              inactiveIcon: Icons.list_outlined,
-            ),
-          ],
         ),
       ),
     );
@@ -73,12 +63,44 @@ class CustomBottomNavBar extends StatelessWidget {
   Widget _buildNavItem({
     required BottomNavController controller,
     required int index,
-    required IconData activeIcon,
-    required IconData inactiveIcon,
+    dynamic activeIcon,
+    dynamic inactiveIcon,
     bool hasInfoIcon = false,
   }) {
     return Obx(() {
       final isActive = controller.currentIndex.value == index;
+      final icon = isActive ? activeIcon : inactiveIcon;
+
+      Widget iconWidget;
+      if (icon is String) {
+        // It's an image path (PNG)
+        iconWidget = ColorFiltered(
+          colorFilter: ColorFilter.mode(
+            isActive ? AppColors.white : AppColors.black,
+            BlendMode.srcIn,
+          ),
+          child: Image.asset(
+            icon,
+            width: 24,
+            height: 24,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return const SizedBox.shrink();
+            },
+          ),
+        );
+      } else if (icon is IconData) {
+        // It's an IconData
+        iconWidget = Icon(
+          icon,
+          color: isActive ? AppColors.white : AppColors.black,
+          size: 24,
+        );
+      } else {
+        // Fallback
+        iconWidget = const SizedBox.shrink();
+      }
+
       return GestureDetector(
         onTap: () => controller.changeIndex(index),
         child: Container(
@@ -99,26 +121,10 @@ class CustomBottomNavBar extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               // Main icon
-              Icon(
-                isActive ? activeIcon : inactiveIcon,
-                color: isActive ? AppColors.white : AppColors.black,
-                size: 24,
-              ),
+              iconWidget,
+
               // Info icon overlay (only for home icon when active)
               // Positioned inside the home icon - white 'i' inside white home outline
-              if (isActive && hasInfoIcon)
-                Positioned(
-                  bottom: 8,
-                  child: const Text(
-                    'i',
-                    style: TextStyle(
-                      color: AppColors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
             ],
           ),
         ),

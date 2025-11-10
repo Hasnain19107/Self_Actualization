@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../../core/const/app_colors.dart';
+import '../const/app_colors.dart';
 
 class CircularProgressChartWidget extends StatelessWidget {
   const CircularProgressChartWidget({super.key});

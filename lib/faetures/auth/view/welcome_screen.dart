@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import '../../../core/Const/app_colors.dart';
-import '../../../core/Const/app_images.dart';
-import '../../../core/app_routes/app_routes.dart';
-import '../../../core/utils/app_sizes.dart';
-import '../../../core/widgets/custom_elevated_button.dart';
-import '../../../core/widgets/custom_text_widget.dart';
+import '../../../core/const/app_exports.dart';
 
 class WelcomeScreen extends StatelessWidget {
   WelcomeScreen({super.key});
@@ -22,7 +17,8 @@ class WelcomeScreen extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: appSizes.getWidthPercentage(4),
+            horizontal: appSizes.getWidthPercentage(3),
+            vertical: appSizes.getHeightPercentage(2),
           ),
           child: Column(
             children: [
@@ -77,7 +73,7 @@ class WelcomeScreen extends StatelessWidget {
                   backgroundColor: AppColors.blue,
                   textColor: AppColors.white,
                   onPress: () {
-                    Get.toNamed(AppRoutes.Category_level_SCREEN);
+                    Get.toNamed(AppRoutes.categoryLevelScreen);
                   },
                   hasRightIcon: true,
                   iconColor: AppColors.white,

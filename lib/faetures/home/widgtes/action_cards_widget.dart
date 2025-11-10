@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import '../../../core/Const/app_colors.dart';
-import '../../../core/widgets/custom_text_widget.dart';
+import '../../../core/const/app_exports.dart';
 
 class ActionCardsWidget extends StatelessWidget {
   final List<Map<String, dynamic>> actionCards;

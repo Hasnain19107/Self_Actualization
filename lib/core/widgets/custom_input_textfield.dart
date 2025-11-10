@@ -29,6 +29,7 @@ class CustomInputTextField extends StatefulWidget {
     this.inputFormatters,
     this.hintColor = Colors.white54,
     this.maxLength = 0,
+    this.validator,
   });
 
   final String hintText;
@@ -54,6 +55,7 @@ class CustomInputTextField extends StatefulWidget {
   final bool haveLabelText;
   final double borderRadius;
   final void Function(String)? onChange;
+  final String? Function(String?)? validator;
 
   @override
   State<CustomInputTextField> createState() => _CustomInputTextFieldState();
@@ -161,15 +163,17 @@ class _CustomInputTextFieldState extends State<CustomInputTextField> {
               )
             : InputBorder.none,
       ),
-      validator: widget.isValidator
-          ? (value) {
-              if (value!.isEmpty) {
-                return widget.emptyValueErrorText;
-              } else {
-                return null;
-              }
-            }
-          : null,
+      validator:
+          widget.validator ??
+          (widget.isValidator
+              ? (value) {
+                  if (value == null || value.isEmpty) {
+                    return widget.emptyValueErrorText;
+                  } else {
+                    return null;
+                  }
+                }
+              : null),
     );
 
     if (widget.labelText != null) {

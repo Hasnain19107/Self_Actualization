@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
-      initialRoute: AppRoutes.SPLASHSCREEN,
+      initialRoute: AppRoutes.splashScreen,
       getPages: AppPages.routes,
       theme: AppTheme.lightTheme,
     );

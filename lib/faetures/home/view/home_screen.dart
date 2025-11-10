@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:pixsa_petrol_pump/core/const/app_colors.dart';
-import 'package:pixsa_petrol_pump/core/utils/app_sizes.dart';
-import 'package:pixsa_petrol_pump/core/widgets/custom_text_widget.dart';
 import '../binding/home_binding.dart';
+import '../../../core/const/app_exports.dart';
 import '../controller/home_controller.dart';
 import '../widgtes/action_cards_widget.dart';
-import '../widgtes/header_widget.dart';
+
 import '../widgtes/needs_slider_widget.dart';
-import '../../../core/widgets/custom_text_widget.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -22,7 +19,7 @@ class HomeScreen extends StatelessWidget {
     final controller = Get.find<HomeController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: AppColors.white,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -32,11 +29,8 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             children: [
               // Header
-              HeaderWidget(
-                userName: controller.userName.value,
-                greeting: controller.greeting.value,
-              ),
-              const Gap(24),
+              AppHeaderWidget(),
+
               Row(
                 children: [
                   CustomTextWidget(

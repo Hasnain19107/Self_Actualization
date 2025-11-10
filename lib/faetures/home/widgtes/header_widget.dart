@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/Const/app_colors.dart';
-import '../../../core/widgets/custom_text_widget.dart';
+import 'package:get/get.dart';
+import '../../../core/const/app_exports.dart';
 
 class HeaderWidget extends StatelessWidget {
   final String userName;
@@ -30,7 +30,9 @@ class HeaderWidget extends StatelessWidget {
 
         // Notification bell
         IconButton(
-          onPressed: () {},
+          onPressed: () {
+            Get.toNamed(AppRoutes.notificationScreen);
+          },
           icon: const Icon(
             Icons.notifications_outlined,
             color: AppColors.black,

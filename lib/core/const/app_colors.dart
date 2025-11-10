@@ -31,6 +31,7 @@ class AppColors {
   static const inputBorderGrey = Color(0xFFE0E0E0);
   static const placeholderGrey = Color(0xFF9E9E9E);
   static const facebookBlue = Color(0xFF1877F2);
+  static const darkwhite = Color(0xFFF5F5F7);
 
   // Video card overlay colors
   static const videoOverlay70 = Color(0xB2F9CFFD); // #F9CFFDB2 - 70% opacity

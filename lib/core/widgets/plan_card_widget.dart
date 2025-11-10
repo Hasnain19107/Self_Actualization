@@ -21,7 +21,7 @@ class PlanCardWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 146,
+        constraints: const BoxConstraints(minWidth: 80),
         height: 56,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
@@ -33,10 +33,11 @@ class PlanCardWidget extends StatelessWidget {
           ),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Expanded(
+            Flexible(
               child: CustomTextWidget(
                 text: "$planName $price",
                 fontSize: 14,

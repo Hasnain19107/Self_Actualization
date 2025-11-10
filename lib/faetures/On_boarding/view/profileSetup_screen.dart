@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import '../../../core/Const/app_colors.dart';
-import '../../../core/utils/app_sizes.dart';
-import '../../../core/widgets/custom_elevated_button.dart';
-import '../../../core/widgets/custom_input_textfield.dart';
-import '../../../core/widgets/custom_text_widget.dart';
 import '../controllers/onboarding_controller.dart';
+import '../../../core/const/app_exports.dart';
 
 class ProfileSetupScreen extends StatelessWidget {
   ProfileSetupScreen({super.key});
@@ -21,7 +17,8 @@ class ProfileSetupScreen extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: appSizes.getWidthPercentage(4),
+            horizontal: appSizes.getWidthPercentage(3),
+            vertical: appSizes.getHeightPercentage(2),
           ),
           child: Column(
             children: [
@@ -164,31 +161,7 @@ class ProfileSetupScreen extends StatelessWidget {
                                       textAlign: TextAlign.left,
                                     ),
                                     Gap(8),
-                                    Container(
-                                      width: 20,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? AppColors.blue
-                                              : AppColors.inputBorderGrey,
-                                          width: 2,
-                                        ),
-                                        color: isSelected
-                                            ? AppColors.blue
-                                            : AppColors.white,
-                                      ),
-                                      child: isSelected
-                                          ? const Center(
-                                              child: Icon(
-                                                Icons.circle,
-                                                size: 10,
-                                                color: AppColors.white,
-                                              ),
-                                            )
-                                          : null,
-                                    ),
+                                    CustomRadioButton(isSelected: isSelected),
                                   ],
                                 ),
                               ),
@@ -270,11 +243,7 @@ class ProfileSetupScreen extends StatelessWidget {
                       Obx(
                         () => Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: controller.avatarOptions.asMap().entries.map((
-                            entry,
-                          ) {
-                            final index = entry.key;
-                            final avatar = entry.value;
+                          children: controller.avatarOptions.map((avatar) {
                             final isSelected = controller.isAvatarSelected(
                               avatar,
                             );
@@ -295,22 +264,7 @@ class ProfileSetupScreen extends StatelessWidget {
                                 ),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(10),
-                                  child: Container(
-                                    color: AppColors.lightGray,
-                                    child: Center(
-                                      child: CustomTextWidget(
-                                        text: '${index + 1}',
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w600,
-                                        textColor: AppColors.black,
-                                      ),
-                                    ),
-                                    // Replace with actual image when available:
-                                    // Image.asset(
-                                    //   'assets/images/avatars/$avatar.png',
-                                    //   fit: BoxFit.cover,
-                                    // ),
-                                  ),
+                                  child: _getAvatarImage(avatar),
                                 ),
                               ),
                             );
@@ -318,26 +272,66 @@ class ProfileSetupScreen extends StatelessWidget {
                         ),
                       ),
                       Gap(32),
+                      CustomElevatedButton(
+                        text: 'Finish Setup',
+                        backgroundColor: AppColors.blue,
+                        textColor: AppColors.white,
+                        onPress: controller.submitProfileSetup,
+                        width: double.infinity,
+                      ),
                     ],
                   ),
                 ),
               ),
+
               // Finish Setup Button
-              Padding(
-                padding: EdgeInsets.only(bottom: Get.height * 0.02),
-                child: CustomElevatedButton(
-                  text: 'Finish Setup',
-                  backgroundColor: AppColors.blue,
-                  textColor: AppColors.white,
-                  onPress: controller.submitProfileSetup,
-                  width: double.infinity,
-                  borderRadius: 12,
-                ),
-              ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _getAvatarImage(String avatar) {
+    String imagePath;
+    switch (avatar) {
+      case 'avatar1':
+        imagePath = AppImages.avatar1;
+        break;
+      case 'avatar2':
+        imagePath = AppImages.avatar2;
+        break;
+      case 'avatar3':
+        imagePath = AppImages.avatar3;
+        break;
+      case 'avatar4':
+        imagePath = AppImages.avatar4;
+        break;
+      case 'avatar5':
+        imagePath = AppImages.avatar5;
+        break;
+      default:
+        imagePath = AppImages.avatar1; // Default fallback
+    }
+
+    return Image.asset(
+      imagePath,
+      width: 60,
+      height: 60,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: AppColors.lightGray,
+          child: Center(
+            child: CustomTextWidget(
+              text: avatar.replaceAll('avatar', ''),
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              textColor: AppColors.black,
+            ),
+          ),
+        );
+      },
     );
   }
 }

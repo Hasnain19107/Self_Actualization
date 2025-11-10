@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import '../../../core/const/app_colors.dart';
-import '../../../core/utils/app_sizes.dart';
-import '../../../core/widgets/custom_text_widget.dart';
-import '../../learn_grow/widgets/search_bar_widget.dart';
 import '../binding/your_activity_binding.dart';
 import '../controller/your_activity_controller.dart';
 import '../widgets/activity_card_widget.dart';
-import '../widgets/circular_progress_chart_widget.dart';
-import '../widgets/goal_item_widget.dart';
-import '../widgets/mood_emoji_widget.dart';
+import '../../goal/widgets/goal_item_widget.dart';
+import '../../../core/const/app_exports.dart';
 
 class YourActivityScreen extends StatelessWidget {
   YourActivityScreen({super.key});
@@ -36,48 +31,11 @@ class YourActivityScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header: Avatar, Title, Notification Bell
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        // Avatar
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.lightGray,
-                          ),
-                          child: const Icon(
-                            Icons.person,
-                            size: 30,
-                            color: AppColors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Notification Bell
-                    IconButton(
-                      onPressed: () {
-                        // Handle notification tap
-                      },
-                      icon: const Icon(
-                        Icons.notifications_outlined,
-                        color: AppColors.black,
-                        size: 24,
-                      ),
-                    ),
-                  ],
-                ),
-                const Gap(24),
-
-                const CustomTextWidget(
-                  text: 'Your Activities',
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  textColor: AppColors.black,
-                  textAlign: TextAlign.left,
+                AppHeaderWidget(
+                  title: 'Your Activity',
+                  onNotificationTap: () {
+                    // Handle notification tap
+                  },
                 ),
                 const Gap(12),
                 SearchBarWidget(
@@ -173,6 +131,9 @@ class YourActivityScreen extends StatelessWidget {
                         title: controller.activityCardsData[1]['title'],
                         subtitle: controller.activityCardsData[1]['subtitle'],
                         backgroundColor: AppColors.lightBlue.withOpacity(0.5),
+                        onTap: () {
+                          Get.toNamed(AppRoutes.dailyReflectionScreen);
+                        },
                       ),
                     ),
                   ],
@@ -192,7 +153,7 @@ class YourActivityScreen extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () {
-                        // Handle view all goals
+                        Get.toNamed(AppRoutes.goalScreen);
                       },
                       icon: const Icon(
                         Icons.arrow_forward,
@@ -231,8 +192,7 @@ class YourActivityScreen extends StatelessWidget {
                   children: controller.moodEmojisData.map((mood) {
                     return MoodEmojiWidget(
                       day: mood['day'],
-                      emoji: mood['emoji'],
-                      backgroundColor: mood['bgColor'],
+                      imagePath: mood['imagePath'] as String?,
                     );
                   }).toList(),
                 ),

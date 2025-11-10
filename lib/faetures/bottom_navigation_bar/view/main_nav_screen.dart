@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pixsa_petrol_pump/faetures/activity/view/your_activity_screen.dart';
-import '../../../core/widgets/custom_text_widget.dart';
-import '../../home/view/home_screen.dart';
-import '../bindings/bottom_nav_binding.dart';
-import '../controller/bottom_nav_controller.dart';
-import '../widget/bottom_nav_bar.dart';
+import 'package:pixsa_petrol_pump/faetures/subscription/view/subscription_screen.dart';
+import '../../../core/const/app_exports.dart';
 
 class MainNavScreen extends StatelessWidget {
-  const MainNavScreen({super.key});
+  final int? initialIndex;
+
+  const MainNavScreen({super.key, this.initialIndex});
 
   @override
   Widget build(BuildContext context) {
     // Initialize binding when screen is first created
     BottomNavBinding().dependencies();
 
+    // Set initial index if provided via arguments or parameter
+    final indexFromArgs = Get.arguments as int?;
+    final index = initialIndex ?? indexFromArgs;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
       body: _buildBody(),
-      bottomNavigationBar: const CustomBottomNavBar(),
+      bottomNavigationBar: CustomBottomNavBar(initialIndex: index),
     );
   }
 
@@ -31,58 +32,12 @@ class MainNavScreen extends StatelessWidget {
         case 1:
           return YourActivityScreen();
         case 2:
-          return _buildTrophyScreen();
+          return AchievementScreen();
         case 3:
-          return _buildMusicScreen();
-        case 4:
-          return _buildListScreen();
+          return const SubscriptionScreen(); // or use any other appropriate widget, e.g., SizedBox.shrink()
         default:
           return const HomeScreen();
       }
     });
-  }
-
-  Widget _buildFlameScreen() {
-    return const Center(
-      child: CustomTextWidget(
-        text: 'Flame',
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        textColor: Colors.black,
-      ),
-    );
-  }
-
-  Widget _buildTrophyScreen() {
-    return const Center(
-      child: CustomTextWidget(
-        text: 'Trophy',
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        textColor: Colors.black,
-      ),
-    );
-  }
-
-  Widget _buildMusicScreen() {
-    return const Center(
-      child: CustomTextWidget(
-        text: 'Music',
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        textColor: Colors.black,
-      ),
-    );
-  }
-
-  Widget _buildListScreen() {
-    return const Center(
-      child: CustomTextWidget(
-        text: 'List',
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        textColor: Colors.black,
-      ),
-    );
   }
 }

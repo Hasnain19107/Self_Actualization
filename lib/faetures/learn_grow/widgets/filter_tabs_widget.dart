@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../core/Const/app_colors.dart';
-import '../../../core/widgets/custom_text_widget.dart';
 import '../controller/learn_grow_controller.dart';
+import '../../../core/const/app_exports.dart';
 
 class FilterTabsWidget extends StatelessWidget {
   const FilterTabsWidget({super.key});

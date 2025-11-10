@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/const/app_exports.dart';
 
 class YourActivityController extends GetxController {
   final RxString selectedDate = 'Today, 2 Apr'.obs;
@@ -31,41 +32,57 @@ class YourActivityController extends GetxController {
 
   final List<Map<String, dynamic>> goalsData = [
     {
-      'barColor': Colors.green,
+      'barColor': const Color(0xFFD3E85D),
       'title': '8h Work Target',
       'subtitle': 'Personal',
     },
     {
-      'barColor': Colors.blue,
+      'barColor': const Color(0xFF7AC4E6),
       'title': 'Achieve 6.5h Sleep',
       'subtitle': 'Health',
     },
     {
-      'barColor': Colors.pink,
+      'barColor': const Color(0xFFE9C6F2),
       'title': '100 Calories Burn',
       'subtitle': 'Health',
     },
   ];
 
   final List<Map<String, dynamic>> moodEmojisData = [
-    {'day': 'Mon', 'emoji': '😴', 'bgColor': const Color(0xFFFFB74D)}, // Orange
-    {'day': 'Tue', 'emoji': '😬', 'bgColor': const Color(0xFFFFEE58)}, // Yellow
+    {
+      'day': 'Mon',
+      'imagePath': AppImages.sleepEmoji,
+      'bgColor': const Color(0xFFFFB74D),
+    }, // Orange
+    {
+      'day': 'Tue',
+      'imagePath': AppImages.teethEmoji,
+      'bgColor': const Color(0xFFFFEE58),
+    }, // Yellow
     {
       'day': 'Wed',
-      'emoji': '😐',
+      'imagePath': AppImages.silentEmoji,
       'bgColor': const Color(0xFF81D4FA),
     }, // Light Blue
     {
       'day': 'Thr',
-      'emoji': '😅',
+      'imagePath': AppImages.wonderEmoji,
       'bgColor': const Color(0xFFF8BBD0),
     }, // Light Pink
     {
       'day': 'Fri',
-      'emoji': '😑',
+      'imagePath': AppImages.hardEmoji,
       'bgColor': const Color(0xFF42A5F5),
     }, // Dark Blue
-    {'day': 'Sat', 'emoji': '😂', 'bgColor': const Color(0xFFFFEE58)}, // Yellow
-    {'day': 'Sun', 'emoji': '😂', 'bgColor': const Color(0xFFFFEE58)}, // Yellow
+    {
+      'day': 'Sat',
+      'imagePath': AppImages.happyEmoji,
+      'bgColor': const Color(0xFFFFEE58),
+    }, // Yellow
+    {
+      'day': 'Sun',
+      'imagePath': AppImages.happyEmoji,
+      'bgColor': const Color(0xFFFFEE58),
+    }, // Yellow
   ];
 }

@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:pixsa_petrol_pump/faetures/On_boarding/view/profileSetup_screen.dart';
-import '../../../core/Const/app_colors.dart';
-import '../../../core/utils/app_sizes.dart';
-import '../../../core/widgets/custom_elevated_button.dart';
-import '../../../core/widgets/custom_text_widget.dart';
 import '../controllers/onboarding_controller.dart';
+import '../../../core/const/app_exports.dart';
 
 class SelfAssessmentScreen extends StatelessWidget {
   SelfAssessmentScreen({super.key});
@@ -21,7 +17,8 @@ class SelfAssessmentScreen extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: appSizes.getWidthPercentage(4),
+            horizontal: appSizes.getWidthPercentage(3),
+            vertical: appSizes.getHeightPercentage(2),
           ),
           child: Column(
             children: [
@@ -176,26 +173,24 @@ class SelfAssessmentScreen extends StatelessWidget {
                         ],
                       ),
                       Gap(32),
+                      CustomElevatedButton(
+                        text: 'Continue',
+                        backgroundColor: AppColors.blue,
+                        textColor: AppColors.white,
+                        onPress: () {
+                          Get.toNamed(AppRoutes.reviewResultScreen);
+                        },
+                        hasRightIcon: true,
+                        iconColor: AppColors.white,
+                        iconData: Icons.arrow_forward,
+                        iconSize: 20,
+                      ),
                     ],
                   ),
                 ),
               ),
+
               // Continue Button
-              Padding(
-                padding: EdgeInsets.only(bottom: Get.height * 0.04),
-                child: CustomElevatedButton(
-                  text: 'Continue',
-                  backgroundColor: AppColors.blue,
-                  textColor: AppColors.white,
-                  onPress: () {
-                    Get.to(ProfileSetupScreen());
-                  },
-                  hasRightIcon: true,
-                  iconColor: AppColors.white,
-                  iconData: Icons.arrow_forward,
-                  iconSize: 20,
-                ),
-              ),
             ],
           ),
         ),
