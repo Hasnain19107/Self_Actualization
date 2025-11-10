@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../core/const/app_exports.dart';
+import '../../../data/repository/user_repository.dart';
+import '../../../data/models/user/register_request_model.dart';
+import '../../../data/models/user/login_request_model.dart';
 
 class AuthController extends GetxController {
   TextEditingController emailController = TextEditingController();
@@ -16,6 +19,9 @@ class AuthController extends GetxController {
 
   // Plan validation error
   final RxString planValidationError = ''.obs;
+
+  // User Repository
+  final UserRepository _userRepository = UserRepository();
 
   // Email validation
   String? validateEmail(String? value) {
@@ -89,21 +95,47 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
 
-      // TODO: Implement actual API call for authentication
-      // For now, simulate API call
-      await Future.delayed(const Duration(seconds: 1));
+      // Create login request
+      final loginRequest = LoginRequestModel(
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
 
-      // Clear controllers
-      emailController.clear();
-      passwordController.clear();
+      // Call repository to login
+      final response = await _userRepository.login(loginRequest);
 
       isLoading.value = false;
 
-      // Navigate to welcome screen on success
-      Get.toNamed(AppRoutes.welcomeScreen);
+      if (response.success && response.data != null) {
+        // Clear controllers
+        emailController.clear();
+        passwordController.clear();
+
+        // Show success message
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Login successful',
+          type: ToastType.success,
+        );
+
+        // Navigate to welcome screen on success
+        Get.toNamed(AppRoutes.welcomeScreen);
+      } else {
+        // Show error message
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Sign in failed. Please try again.',
+          type: ToastType.error,
+        );
+      }
     } catch (e) {
       isLoading.value = false;
-      ToastClass.showCustomToast('Sign in failed. Please try again.', type: ToastType.error);
+      ToastClass.showCustomToast(
+        'Sign in failed. Please try again.',
+        type: ToastType.error,
+      );
     }
   }
 
@@ -140,25 +172,50 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
 
-      // TODO: Implement actual API call for registration
-      // For now, simulate API call
-      await Future.delayed(const Duration(seconds: 1));
+      // Create register request
+      final registerRequest = RegisterRequestModel(
+        name: fullNameController.text.trim(),
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
 
-      // Clear controllers
-      emailController.clear();
-      fullNameController.clear();
-      passwordController.clear();
-      confirmPasswordController.clear();
+      // Call repository to register
+      final response = await _userRepository.register(registerRequest);
 
       isLoading.value = false;
 
-      ToastClass.showCustomToast('Account created successfully!', type: ToastType.success);
+      if (response.success && response.data != null) {
+        // Clear controllers
+        emailController.clear();
+        fullNameController.clear();
+        passwordController.clear();
+        confirmPasswordController.clear();
 
-      // Navigate to welcome screen on success
-      Get.toNamed(AppRoutes.welcomeScreen);
+        // Show success message
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Account created successfully!',
+          type: ToastType.success,
+        );
+
+        // Navigate to welcome screen on success
+        Get.toNamed(AppRoutes.welcomeScreen);
+      } else {
+        // Show error message
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Sign up failed. Please try again.',
+          type: ToastType.error,
+        );
+      }
     } catch (e) {
       isLoading.value = false;
-      ToastClass.showCustomToast('Sign up failed. Please try again.', type: ToastType.error);
+      ToastClass.showCustomToast(
+        'Sign up failed. Please try again.',
+        type: ToastType.error,
+      );
     }
   }
 
