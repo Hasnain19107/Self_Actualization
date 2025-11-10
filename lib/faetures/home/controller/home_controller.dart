@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
+import '../../learn_grow/view/learn_grow_screen.dart';
 import '../../../core/const/app_exports.dart';
-
 // Needs data structure
 class NeedData {
   final String title;
@@ -96,9 +96,9 @@ class HomeController extends GetxController {
   void onActionCardTap(String title) {
     // Handle action card tap
     if (title == 'Learn & Grow') {
-      Get.toNamed(AppRoutes.learnGrowScreen);
+      Get.to(() => LearnGrowScreen());
     } else {
-      Get.snackbar('Action', 'Tapped on $title');
+      ToastClass.showCustomToast('Tapped on $title', type: ToastType.simple);
     }
   }
 }

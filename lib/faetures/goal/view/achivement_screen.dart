@@ -24,13 +24,12 @@ class AchievementScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              Center(
-                child: CustomTextWidget(
-                  text: 'Achievements',
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  textColor: AppColors.black,
-                ),
+              AppHeaderWidget(),
+              CustomTextWidget(
+                text: 'Achievements',
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                textColor: AppColors.black,
               ),
               const Gap(24),
 

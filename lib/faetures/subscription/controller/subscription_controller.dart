@@ -29,7 +29,7 @@ class SubscriptionController extends GetxController {
 
   void onMicTap() {
     // Handle microphone tap for voice search
-    Get.snackbar('Info', 'Voice search functionality');
+    ToastClass.showCustomToast('Voice search functionality', type: ToastType.simple);
   }
 
   void onNotificationTap() {
@@ -38,13 +38,23 @@ class SubscriptionController extends GetxController {
   }
 
   void onPlanTap(String planId) {
-    // Handle subscription plan tap
-    // TODO: Navigate to subscription detail screen when implemented
-    Get.snackbar(
-      'Subscription Plan',
-      'Selected plan: ${planId.toUpperCase()}',
-      snackPosition: SnackPosition.BOTTOM,
+    // Find the selected plan
+    final selectedPlan = subscriptionPlans.firstWhereOrNull(
+      (plan) => plan['planId'] == planId,
     );
+
+    if (selectedPlan != null) {
+      // Navigate to plan details screen with plan data
+      Get.toNamed(
+        AppRoutes.planDetailsScreen,
+        arguments: selectedPlan,
+      );
+    } else {
+      ToastClass.showCustomToast(
+        'Plan not found',
+        type: ToastType.error,
+      );
+    }
   }
 
   @override

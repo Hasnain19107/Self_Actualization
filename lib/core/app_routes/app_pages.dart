@@ -28,6 +28,8 @@ import '../../faetures/notification/binding/notification_binding.dart';
 import '../../faetures/bottom_navigation_bar/bindings/bottom_nav_binding.dart';
 import '../../faetures/home/binding/home_binding.dart';
 import '../../faetures/activity/binding/your_activity_binding.dart';
+import '../../faetures/subscription/view/plan_details_screen.dart';
+import '../../faetures/subscription/binding/plan_details_binding.dart';
 import 'package:get/get.dart';
 import 'app_routes.dart';
 
@@ -172,6 +174,14 @@ class AppPages {
       name: AppRoutes.notificationScreen,
       page: () => const NotificationScreen(),
       binding: NotificationBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+
+    GetPage(
+      name: AppRoutes.planDetailsScreen,
+      page: () => const PlanDetailsScreen(),
+      binding: PlanDetailsBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
     ),

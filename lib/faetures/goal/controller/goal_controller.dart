@@ -84,7 +84,7 @@ class GoalController extends GetxController {
 
   void onMicTap() {
     // Handle microphone tap for voice search
-    Get.snackbar('Info', 'Voice search functionality');
+    ToastClass.showCustomToast('Voice search functionality', type: ToastType.simple);
   }
 
   void onAddNewGoal() {
@@ -126,19 +126,19 @@ class GoalController extends GetxController {
 
   void saveGoal() {
     if (goalTitleController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Please enter goal title');
+      ToastClass.showCustomToast('Please enter goal title', type: ToastType.error);
       return;
     }
     if (startDateController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Please select start date');
+      ToastClass.showCustomToast('Please select start date', type: ToastType.error);
       return;
     }
     if (endDateController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Please select end date');
+      ToastClass.showCustomToast('Please select end date', type: ToastType.error);
       return;
     }
     if (descriptionController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Please enter description');
+      ToastClass.showCustomToast('Please enter description', type: ToastType.error);
       return;
     }
 
@@ -160,7 +160,7 @@ class GoalController extends GetxController {
     endDate.value = '';
     selectedGoalType.value = 'Personal';
 
-    Get.snackbar('Success', 'Goal saved successfully');
+    ToastClass.showCustomToast('Goal saved successfully', type: ToastType.success);
     Get.offNamed(AppRoutes.mainNavScreen, arguments: 2);
   }
 

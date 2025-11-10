@@ -52,7 +52,7 @@ class AddReflectionController extends GetxController {
   void _initializeSpeech() async {
     isAvailable.value = await _speech.initialize(
       onError: (error) {
-        Get.snackbar('Error', 'Speech recognition error: ${error.errorMsg}');
+        ToastClass.showCustomToast('Speech recognition error: ${error.errorMsg}', type: ToastType.error);
         isListening.value = false;
       },
       onStatus: (status) {
@@ -78,7 +78,7 @@ class AddReflectionController extends GetxController {
 
   void onMicTap() {
     if (!isAvailable.value) {
-      Get.snackbar('Error', 'Speech recognition is not available');
+      ToastClass.showCustomToast('Speech recognition is not available', type: ToastType.error);
       return;
     }
 
@@ -103,7 +103,7 @@ class AddReflectionController extends GetxController {
               reflectionController.text = newText;
             } else {
               reflectionController.text = newText.substring(0, maxCharacters);
-              Get.snackbar('Info', 'Character limit reached');
+              ToastClass.showCustomToast('Character limit reached', type: ToastType.simple);
               _speech.stop();
               isListening.value = false;
             }
@@ -123,11 +123,11 @@ class AddReflectionController extends GetxController {
 
   void saveReflection() {
     if (reflectionController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Please write your reflection');
+      ToastClass.showCustomToast('Please write your reflection', type: ToastType.error);
       return;
     }
     if (selectedMood.value.isEmpty) {
-      Get.snackbar('Error', 'Please select a mood');
+      ToastClass.showCustomToast('Please select a mood', type: ToastType.error);
       return;
     }
 
@@ -160,7 +160,7 @@ class AddReflectionController extends GetxController {
     selectedMood.value = '';
 
     // Show success message and navigate back
-    Get.snackbar('Success', 'Reflection saved successfully');
+    ToastClass.showCustomToast('Reflection saved successfully', type: ToastType.success);
     Get.offNamed(AppRoutes.dailyReflectionScreen);
   }
 

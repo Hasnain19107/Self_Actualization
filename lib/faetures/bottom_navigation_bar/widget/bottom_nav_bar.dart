@@ -24,7 +24,7 @@ class CustomBottomNavBar extends StatelessWidget {
         width: double.infinity,
         decoration: const BoxDecoration(color: AppColors.white),
         child: Padding(
-          padding: const EdgeInsets.only(right: 30, left: 30),
+          padding: const EdgeInsets.only(left: 12,right: 12,bottom: 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

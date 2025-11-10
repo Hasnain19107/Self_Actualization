@@ -70,6 +70,6 @@ class DailyReflectionController extends GetxController {
 
   void viewReflectionHistory() {
     // Handle view full history
-    Get.snackbar('Info', 'View full reflection history');
+    ToastClass.showCustomToast('View full reflection history', type: ToastType.simple);
   }
 }

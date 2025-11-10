@@ -14,7 +14,11 @@ class MainNavScreen extends StatelessWidget {
     BottomNavBinding().dependencies();
 
     // Set initial index if provided via arguments or parameter
-    final indexFromArgs = Get.arguments as int?;
+    // Safely check if arguments is an int before casting
+    int? indexFromArgs;
+    if (Get.arguments != null && Get.arguments is int) {
+      indexFromArgs = Get.arguments as int;
+    }
     final index = initialIndex ?? indexFromArgs;
 
     return Scaffold(

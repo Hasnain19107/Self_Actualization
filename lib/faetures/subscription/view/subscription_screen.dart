@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import '../../../core/const/app_exports.dart';
-import '../binding/subscription_binding.dart';
-import '../controller/subscription_controller.dart';
-import '../widgets/subscription_card_widget.dart';
 
 class SubscriptionScreen extends StatelessWidget {
   const SubscriptionScreen({super.key});

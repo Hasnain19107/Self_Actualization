@@ -32,4 +32,7 @@ class AppRoutes {
 
   /// Notification
   static const String notificationScreen = "/notificationScreen";
+
+  /// Subscription
+  static const String planDetailsScreen = "/planDetailsScreen";
 }

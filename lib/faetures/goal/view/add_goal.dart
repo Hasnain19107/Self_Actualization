@@ -25,50 +25,43 @@ class AddGoalScreen extends StatelessWidget {
           ),
           child: Column(
             children: [
+
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Header with back button and title
-                      Row(
-                        children: [
-                          // Back button
-                          GestureDetector(
-                            onTap: () => Get.back(),
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppColors.inputBorderGrey,
-                                  width: 1,
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_back,
-                                color: AppColors.black,
-                                size: 20,
-                              ),
+                      GestureDetector(
+                        onTap: () => Get.back(),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.inputBorderGrey,
+                              width: 1,
                             ),
                           ),
-                          Expanded(
-                            child: Center(
-                              child: CustomTextWidget(
-                                text: 'Add Goal',
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                textColor: AppColors.black,
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
+                          child: const Icon(
+                            Icons.arrow_back,
+                            color: AppColors.black,
+                            size: 20,
                           ),
-                          // Spacer to center the title
-                          const SizedBox(width: 40),
-                        ],
+                        ),
                       ),
+                      Gap(12),
+                      CustomTextWidget(
+                        text: 'Add Goal',
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        textColor: AppColors.black,
+                        textAlign: TextAlign.center,
+                      ),
+                      // Spacer to center the title
+                      const SizedBox(width: 40),
                       const Gap(32),
 
                       // Goal Title Section

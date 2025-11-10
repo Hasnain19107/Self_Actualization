@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../core/const/app_exports.dart';
 
 class ReviewResultController extends GetxController {
   // Needs categories data
@@ -81,14 +82,14 @@ class ReviewResultController extends GetxController {
   }
 
   void downloadPDF() {
-    Get.snackbar('Info', 'Download PDF Summary functionality');
+    ToastClass.showCustomToast('Download PDF Summary functionality', type: ToastType.simple);
   }
 
   void shareToCoach() {
-    Get.snackbar('Info', 'Share to Coach functionality');
+    ToastClass.showCustomToast('Share to Coach functionality', type: ToastType.simple);
   }
 
   void continueAction() {
-    Get.snackbar('Info', 'Continue functionality');
+    ToastClass.showCustomToast('Continue functionality', type: ToastType.simple);
   }
 }

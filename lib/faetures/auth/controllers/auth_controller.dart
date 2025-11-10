@@ -75,14 +75,14 @@ class AuthController extends GetxController {
     // Validate email
     final emailError = validateEmail(emailController.text);
     if (emailError != null) {
-      Get.snackbar('Error', emailError);
+      ToastClass.showCustomToast(emailError, type: ToastType.error);
       return;
     }
 
     // Validate password
     final passwordError = validatePassword(passwordController.text);
     if (passwordError != null) {
-      Get.snackbar('Error', passwordError);
+      ToastClass.showCustomToast(passwordError, type: ToastType.error);
       return;
     }
 
@@ -103,7 +103,7 @@ class AuthController extends GetxController {
       Get.toNamed(AppRoutes.welcomeScreen);
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar('Error', 'Sign in failed. Please try again.');
+      ToastClass.showCustomToast('Sign in failed. Please try again.', type: ToastType.error);
     }
   }
 
@@ -112,28 +112,28 @@ class AuthController extends GetxController {
     // Validate email
     final emailError = validateEmail(emailController.text);
     if (emailError != null) {
-      Get.snackbar('Error', emailError);
+      ToastClass.showCustomToast(emailError, type: ToastType.error);
       return;
     }
 
     // Validate full name
     final fullNameError = validateFullName(fullNameController.text);
     if (fullNameError != null) {
-      Get.snackbar('Error', fullNameError);
+      ToastClass.showCustomToast(fullNameError, type: ToastType.error);
       return;
     }
 
     // Validate password
     final passwordError = validatePassword(passwordController.text);
     if (passwordError != null) {
-      Get.snackbar('Error', passwordError);
+      ToastClass.showCustomToast(passwordError, type: ToastType.error);
       return;
     }
 
     // Validate plan selection
     final planError = validatePlan();
     if (planError != null) {
-      Get.snackbar('Error', planError);
+      ToastClass.showCustomToast(planError, type: ToastType.error);
       return;
     }
 
@@ -152,13 +152,13 @@ class AuthController extends GetxController {
 
       isLoading.value = false;
 
-      Get.snackbar('Success', 'Account created successfully!');
+      ToastClass.showCustomToast('Account created successfully!', type: ToastType.success);
 
       // Navigate to welcome screen on success
       Get.toNamed(AppRoutes.welcomeScreen);
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar('Error', 'Sign up failed. Please try again.');
+      ToastClass.showCustomToast('Sign up failed. Please try again.', type: ToastType.error);
     }
   }
 

@@ -78,11 +78,11 @@ class OnboardingController extends GetxController {
   // Submit selection
   void submitSelection() {
     if (selectedMetaNeeds.isEmpty && selectedCategory.value.isEmpty) {
-      Get.snackbar('Error', 'Please select at least one option');
+      ToastClass.showCustomToast('Please select at least one option', type: ToastType.error);
       return;
     }
     // Handle submit logic here
-    Get.snackbar('Success', 'Selection saved');
+    ToastClass.showCustomToast('Selection saved', type: ToastType.success);
     // Navigate to next screen if needed
     // Get.toNamed(AppRoutes.NEXTSCREEN);
   }
@@ -180,19 +180,19 @@ class OnboardingController extends GetxController {
   // Submit Profile Setup
   void submitProfileSetup() {
     if (fullNameController.text.isEmpty) {
-      Get.snackbar('Error', 'Please enter your full name');
+      ToastClass.showCustomToast('Please enter your full name', type: ToastType.error);
       return;
     }
     if (selectedFocusAreas.isEmpty) {
-      Get.snackbar('Error', 'Please select at least one focus area');
+      ToastClass.showCustomToast('Please select at least one focus area', type: ToastType.error);
       return;
     }
     if (selectedAvatar.value.isEmpty) {
-      Get.snackbar('Error', 'Please select an avatar');
+      ToastClass.showCustomToast('Please select an avatar', type: ToastType.error);
       return;
     }
     // Handle submit logic here
-    Get.snackbar('Success', 'Profile setup completed');
+    ToastClass.showCustomToast('Profile setup completed', type: ToastType.success);
     // Navigate to main navigation screen
     Get.offAllNamed(AppRoutes.mainNavScreen);
   }

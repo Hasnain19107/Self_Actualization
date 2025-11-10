@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import '../../../core/const/app_colors.dart';
+import '../../../core/utils/app_sizes.dart';
+import '../../../core/widgets/custom_text_widget.dart';
+import '../../../core/widgets/search_bar_widget.dart';
 import '../controller/learn_grow_controller.dart';
-import '../widgets/article_card.dart';
+import '../../learn_grow/widgets/article_card.dart';
 import '../widgets/audio_card_widget.dart';
 import '../widgets/filter_tabs_widget.dart';
-import '../widgets/video_card_widget.dart';
-import '../../../core/const/app_exports.dart';
+import '../../learn_grow/widgets/video_card_widget.dart';
 
 class LearnGrowScreen extends StatelessWidget {
   LearnGrowScreen({super.key});
@@ -24,8 +27,7 @@ class LearnGrowScreen extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: appSizes.getWidthPercentage(3),
-            vertical: appSizes.getHeightPercentage(2),
+            horizontal: appSizes.getWidthPercentage(4),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

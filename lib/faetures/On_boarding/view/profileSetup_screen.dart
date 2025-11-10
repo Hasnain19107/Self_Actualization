@@ -68,7 +68,7 @@ class ProfileSetupScreen extends StatelessWidget {
                         () => Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 14,
+                            vertical: 2,
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.white,
@@ -88,25 +88,22 @@ class ProfileSetupScreen extends StatelessWidget {
                                 textColor: AppColors.black,
                                 textAlign: TextAlign.left,
                               ),
-                              Row(
+                              Column(
                                 children: [
-                                  IconButton(
-                                    onPressed: controller.decrementAge,
-                                    icon: const Icon(
-                                      Icons.arrow_drop_down,
-                                      color: AppColors.black,
-                                    ),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                  IconButton(
-                                    onPressed: controller.incrementAge,
-                                    icon: const Icon(
-                                      Icons.arrow_drop_up,
-                                      color: AppColors.black,
-                                    ),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
+
+                                 GestureDetector(
+                                   onTap:controller.incrementAge,
+                                   child: Icon(
+                                        Icons.arrow_drop_up,
+                                        color: AppColors.black,
+                                      ),
+                                 ),
+                                  GestureDetector(
+                                    onTap: controller.decrementAge,
+                                    child: Icon(
+                                        Icons.arrow_drop_down,
+                                        color: AppColors.black,
+                                      ),
                                   ),
                                 ],
                               ),
