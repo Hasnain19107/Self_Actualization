@@ -2,11 +2,15 @@
 /// Contains all API-related constants including base URL and endpoints
 class ApiConstants {
   // Base URL
-  static const String baseUrl = 'https://self-actualization-analysis.vercel.app';
+  static const String baseUrl = 'https://self-actualization-analysis-two.vercel.app';
 
   // API Endpoints
   static const String registerEndpoint = '/api/auth/register';
   static const String loginEndpoint = '/api/auth/login';
+  static const String forgotPasswordEndpoint = '/api/auth/forgot-password';
+  static const String questionsEndpoint = '/api/questions';
+  static const String assessmentSubmitEndpoint = '/api/assessment/submit';
+  static const String assessmentResultEndpoint = '/api/assessment/result';
 
   // Headers
   static const String authorizationHeader = 'Authorization';

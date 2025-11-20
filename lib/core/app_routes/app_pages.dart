@@ -1,11 +1,13 @@
 import 'package:pixsa_petrol_pump/faetures/auth/bindings/auth_binding.dart';
 import 'package:pixsa_petrol_pump/faetures/auth/view/sign_in_screen.dart';
 import 'package:pixsa_petrol_pump/faetures/auth/view/sign_up_screen.dart';
+import 'package:pixsa_petrol_pump/faetures/auth/view/forgot_password_screen.dart';
 import 'package:pixsa_petrol_pump/faetures/auth/view/welcome_screen.dart';
 import '../../faetures/On_boarding/bindings/onBoarding_binding.dart';
 import '../../faetures/On_boarding/view/selectCategory_level.dart';
-import '../../faetures/On_boarding/view/self_assessment.dart';
-import '../../faetures/On_boarding/view/review_result_screen.dart';
+import '../../faetures/self_assessment/view/self_assessment.dart';
+import '../../faetures/self_assessment/binding/self_assessment_binding.dart';
+import '../../faetures/self_assessment/view/review_result_screen.dart';
 import '../../faetures/On_boarding/view/profileSetup_screen.dart';
 import '../../faetures/splash/bindings/splash_binding.dart';
 import '../../faetures/splash/view/splash_screen.dart';
@@ -59,6 +61,13 @@ class AppPages {
       transitionDuration: const Duration(microseconds: 300),
     ),
     GetPage(
+      name: AppRoutes.forgotPasswordScreen,
+      page: () => ForgotPasswordScreen(),
+      binding: AuthBinding(),
+      transition: Transition.downToUp,
+      transitionDuration: const Duration(microseconds: 300),
+    ),
+    GetPage(
       name: AppRoutes.welcomeScreen,
       page: () => WelcomeScreen(),
 
@@ -77,7 +86,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.selfAssessmentScreen,
       page: () => SelfAssessmentScreen(),
-      binding: OnboardingBinding(),
+      binding: SelfAssessmentBinding(),
       transition: Transition.downToUp,
       transitionDuration: const Duration(microseconds: 300),
     ),

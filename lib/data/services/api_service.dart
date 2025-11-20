@@ -52,10 +52,47 @@ class ApiService {
     String method,
   ) {
     try {
+      // Handle redirect responses (3xx status codes)
+      if (response.statusCode >= 300 && response.statusCode < 400) {
+        DebugUtils.logHttpError(
+          statusCode: response.statusCode,
+          url: url,
+          method: method,
+          body: response.body,
+          errorMessage: 'Redirect response (${response.statusCode}). Please use HTTPS.',
+        );
+        
+        return ApiResponseModel<T>(
+          success: false,
+          message: 'Redirect detected. Please check the API URL configuration.',
+          statusCode: response.statusCode,
+        );
+      }
+
       dynamic jsonData;
       
       // Try to parse JSON
       if (response.body.isNotEmpty) {
+        // Check if response body is valid JSON before parsing
+        final trimmedBody = response.body.trim();
+        if (trimmedBody.isEmpty || 
+            (!trimmedBody.startsWith('{') && !trimmedBody.startsWith('['))) {
+          // Not valid JSON, return error
+          DebugUtils.logHttpError(
+            statusCode: response.statusCode,
+            url: url,
+            method: method,
+            body: response.body,
+            errorMessage: 'Invalid JSON response',
+          );
+          
+          return ApiResponseModel<T>(
+            success: false,
+            message: 'Invalid response format from server',
+            statusCode: response.statusCode,
+          );
+        }
+        
         jsonData = json.decode(response.body);
       } else {
         jsonData = <String, dynamic>{};

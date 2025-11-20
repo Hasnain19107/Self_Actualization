@@ -104,15 +104,15 @@ export '../../faetures/notification/widgets/notification_header_widget.dart';
 
 // Feature: Onboarding
 export '../../faetures/On_boarding/bindings/onBoarding_binding.dart';
-export '../../faetures/On_boarding/bindings/review_result_binding.dart';
+export '../../faetures/self_assessment/binding/review_result_binding.dart';
 export '../../faetures/On_boarding/controllers/onboarding_controller.dart';
-export '../../faetures/On_boarding/controllers/review_result_controller.dart';
+export '../../faetures/self_assessment/controller/review_result_controller.dart';
 export '../../faetures/On_boarding/view/profileSetup_screen.dart';
-export '../../faetures/On_boarding/view/review_result_screen.dart';
+export '../../faetures/self_assessment/view/review_result_screen.dart';
 export '../../faetures/On_boarding/view/selectCategory_level.dart';
-export '../../faetures/On_boarding/view/self_assessment.dart';
-export '../../faetures/On_boarding/widgets/assessment_grid_widget.dart';
-export '../../faetures/On_boarding/widgets/review_result_action_buttons_widget.dart';
+export '../../faetures/self_assessment/view/self_assessment.dart';
+export '../../faetures/self_assessment/widgets/assessment_grid_widget.dart';
+export '../../faetures/self_assessment/widgets/review_result_action_buttons_widget.dart';
 
 // Feature: Splash
 export '../../faetures/splash/bindings/splash_binding.dart';

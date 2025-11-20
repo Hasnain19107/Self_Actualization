@@ -20,9 +20,14 @@ class ApiResponseModel<T> {
     Map<String, dynamic> json,
     T Function(dynamic)? fromJsonT,
   ) {
+    // Extract message from 'message' or 'error' field
+    final message = json['message'] as String? ?? 
+                    json['error'] as String? ?? 
+                    '';
+    
     return ApiResponseModel<T>(
       success: json['success'] as bool? ?? false,
-      message: json['message'] as String? ?? '',
+      message: message,
       data: json['data'] != null && fromJsonT != null
           ? fromJsonT(json['data'])
           : json['data'] as T?,

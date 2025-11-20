@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import '../bindings/review_result_binding.dart';
+import 'package:get/get.dart';
+import '../binding/review_result_binding.dart';
 import '../widgets/assessment_grid_widget.dart';
 import '../widgets/review_result_action_buttons_widget.dart';
+import '../controller/review_result_controller.dart';
 import '../../../core/const/app_exports.dart';
 
 class ReviewResultScreen extends StatelessWidget {
@@ -61,9 +63,23 @@ class ReviewResultScreen extends StatelessWidget {
                 const Gap(24),
 
                 // Assessment Grid - with calculated height
-                SizedBox(
-                  height: screenHeight * 0.6, // Use 60% of screen height
-                  child: AssessmentGridWidget(),
+                GetBuilder<ReviewResultController>(
+                  builder: (controller) {
+                    return Obx(() {
+                      if (controller.isLoading.value) {
+                        return SizedBox(
+                          height: screenHeight * 0.6,
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                      return SizedBox(
+                        height: screenHeight * 0.6, // Use 60% of screen height
+                        child: AssessmentGridWidget(),
+                      );
+                    });
+                  },
                 ),
                 const Gap(24),
 

@@ -4,8 +4,8 @@ import 'package:get/get.dart';
 
 import '../../../core/const/app_exports.dart';
 
-class SignUpScreen extends StatelessWidget {
-  SignUpScreen({super.key});
+class ForgotPasswordScreen extends StatelessWidget {
+  ForgotPasswordScreen({super.key});
 
   final AuthController controller = Get.find<AuthController>();
   final AppSizes appSizes = AppSizes();
@@ -29,13 +29,24 @@ class SignUpScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Gap(32),
-                  // Sign Up Title
+                  // Forgot Password Title
                   Center(
                     child: CustomTextWidget(
-                      text: "Sign Up",
+                      text: "Forgot Password",
                       fontWeight: FontWeight.w700,
                       textColor: AppColors.black,
                       fontSize: 28,
+                    ),
+                  ),
+                  Gap(16),
+                  // Description
+                  Center(
+                    child: CustomTextWidget(
+                      text: "Enter your email address and we'll send you a link to reset your password.",
+                      fontWeight: FontWeight.w400,
+                      textColor: AppColors.grey,
+                      fontSize: 14,
+                      textAlign: TextAlign.center,
                     ),
                   ),
                   Gap(32),
@@ -44,51 +55,25 @@ class SignUpScreen extends StatelessWidget {
                     labelText: "Email Address",
                     hintText: "Enter your email...",
                     hintColor: AppColors.grey,
-                    textEditingController: controller.signupEmailController,
+                    textEditingController: controller.forgotPasswordEmailController,
                     customPrefixIcon: Icons.email_outlined,
                     prefixIconColor: AppColors.blue,
                     validator: controller.validateEmail,
                     isValidator: false,
                   ),
-                  Gap(24),
-                  // Full Name Field
-                  CustomInputTextField(
-                    labelText: "Full Name",
-                    hintText: "Enter your full name",
-                    hintColor: AppColors.grey,
-                    textEditingController: controller.fullNameController,
-                    customPrefixIcon: Icons.person_outline,
-                    prefixIconColor: AppColors.blue,
-                    validator: controller.validateFullName,
-                    isValidator: false,
-                  ),
-                  Gap(24),
-                  // Password Field
-                  CustomInputTextField(
-                    labelText: "Password",
-                    hintText: "Enter your password...",
-                    hintColor: AppColors.grey,
-                    hasSuffixIcon: true,
-                    isObscure: true,
-                    textEditingController: controller.signupPasswordController,
-                    customPrefixIcon: Icons.lock_outline,
-                    prefixIconColor: AppColors.blue,
-                    validator: controller.validatePassword,
-                    isValidator: false,
-                  ),
                   Gap(28),
-                  // Sign Up Button
+                  // Send Reset Link Button
                   Obx(
                     () => CustomElevatedButton(
-                      text: "Sign Up",
+                      text: "Send Reset Link",
                       backgroundColor: AppColors.blue,
                       textColor: AppColors.white,
                       isLoading: controller.isLoading.value,
                       onPress: () {
                         // Validate form fields
                         if (_formKey.currentState!.validate()) {
-                          // All validations passed, proceed with sign up
-                          controller.signUp();
+                          // All validations passed, proceed with forgot password
+                          controller.forgotPassword();
                         }
                       },
                       hasRightIcon: !controller.isLoading.value,
@@ -100,7 +85,7 @@ class SignUpScreen extends StatelessWidget {
                   Gap(28),
                   // Sign In Link
                   CustomRichText(
-                    text1: "Already have an account? ",
+                    text1: "Remember your password? ",
                     text2: "Sign In.",
                     onPress: () => Get.toNamed(AppRoutes.loginScreen),
                   ),
@@ -114,3 +99,4 @@ class SignUpScreen extends StatelessWidget {
     );
   }
 }
+

@@ -51,7 +51,7 @@ class SignInScreen extends StatelessWidget {
                           labelText: "Email Address",
                           hintText: "Enter your email...",
                           hintColor: AppColors.grey,
-                          textEditingController: controller.emailController,
+                          textEditingController: controller.signinEmailController,
                           customPrefixIcon: Icons.email_outlined,
                           prefixIconColor: AppColors.blue,
                           validator: controller.validateEmail,
@@ -65,7 +65,7 @@ class SignInScreen extends StatelessWidget {
                           hintColor: AppColors.grey,
                           hasSuffixIcon: true,
                           isObscure: true,
-                          textEditingController: controller.passwordController,
+                          textEditingController: controller.signinPasswordController,
                           customPrefixIcon: Icons.lock_outline,
                           prefixIconColor: AppColors.blue,
                           validator: controller.validatePassword,
@@ -159,7 +159,7 @@ class SignInScreen extends StatelessWidget {
                         // Forgot Password Link
                         InkWell(
                           onTap: () {
-                            // Handle forgot password
+                            Get.toNamed(AppRoutes.forgotPasswordScreen);
                           },
                           child: CustomTextWidget(
                             text: "Forgot Password",

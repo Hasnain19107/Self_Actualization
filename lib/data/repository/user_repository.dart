@@ -167,6 +167,49 @@ class UserRepository {
     }
   }
 
+  /// Forgot password - send reset link to email
+  Future<ApiResponseModel<dynamic>> forgotPassword(String email) async {
+    try {
+      DebugUtils.logInfo(
+        'Starting forgot password request',
+        tag: 'UserRepository.forgotPassword',
+      );
+
+      final response = await _apiService.post<dynamic>(
+        endpoint: ApiConstants.forgotPasswordEndpoint,
+        body: {'email': email},
+        includeAuth: false,
+        fromJsonT: (data) => data,
+      );
+
+      if (response.success) {
+        DebugUtils.logInfo(
+          'Forgot password request sent successfully',
+          tag: 'UserRepository.forgotPassword',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Forgot password failed: ${response.message}',
+          tag: 'UserRepository.forgotPassword',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Forgot password error',
+        tag: 'UserRepository.forgotPassword',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<dynamic>(
+        success: false,
+        message: 'Failed to send reset link: ${e.toString()}',
+      );
+    }
+  }
+
   /// Check if user is logged in
   Future<bool> isLoggedIn() async {
     final token = await getToken();

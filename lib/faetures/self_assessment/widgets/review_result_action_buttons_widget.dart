@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import '../controllers/review_result_controller.dart';
+import '../controller/review_result_controller.dart';
 import '../../../core/const/app_exports.dart';
 
 class ReviewResultActionButtonsWidget extends StatelessWidget {

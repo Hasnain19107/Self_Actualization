@@ -3,6 +3,18 @@ import 'package:get/get.dart';
 import '../../../core/const/app_exports.dart';
 
 class OnboardingController extends GetxController {
+  // Store selected plan
+  final RxString selectedPlanId = ''.obs;
+  final RxMap<String, dynamic> selectedPlan = <String, dynamic>{}.obs;
+
+  // Initialize plan from arguments
+  void initializePlan(Map<String, dynamic>? planData) {
+    if (planData != null) {
+      selectedPlan.value = planData;
+      selectedPlanId.value = planData['planId'] as String? ?? '';
+    }
+  }
+
   final List<String> metaNeedsOptions = [
     'Cognitive needs: to know, understand, learn',
     'Contribution needs: to make a difference',
@@ -12,29 +24,48 @@ class OnboardingController extends GetxController {
     'Aesthetic needs: to see, enjoy, and create beauty',
   ];
 
-  // Categories
-  final List<Map<String, String>> categories = [
+  // Levels (Self, Social, Safety, Survival)
+  final List<Map<String, String>> levels = [
     {'name': 'Self', 'emoji': '✏️'},
     {'name': 'Social', 'emoji': '💬'},
     {'name': 'Safety', 'emoji': '💪'},
     {'name': 'Survival', 'emoji': '😊'},
   ];
 
-  // Levels for each category
-  final Map<String, List<String>> categoryLevels = {
-    'Self': ['Beginner', 'Intermediate', 'Advanced'],
-    'Social': ['Beginner', 'Intermediate', 'Advanced'],
-    'Safety': ['Beginner', 'Intermediate', 'Advanced'],
-    'Survival': ['Beginner', 'Intermediate', 'Advanced'],
-  };
-
   // Reactive variables for selections
   final RxSet<String> selectedMetaNeeds = <String>{}.obs;
-  final RxString selectedCategory = ''.obs;
-  final RxString selectedLevel = ''.obs;
+  final RxSet<String> selectedLevels = <String>{}.obs;
+
+  // Check if meta need is locked based on plan
+  bool isMetaNeedLocked(String option) {
+    final planId = selectedPlanId.value;
+    final index = metaNeedsOptions.indexOf(option);
+    
+    if (planId == 'free') {
+      // Free plan: only first 2 unlocked
+      return index >= 2;
+    } else if (planId == 'premium') {
+      // Premium plan: first 5 unlocked
+      return index >= 5;
+    } else if (planId == 'coach') {
+      // Coach plan: all unlocked
+      return false;
+    }
+    // Default: all locked if no plan selected
+    return true;
+  }
 
   // Toggle Meta Needs selection (multiple selection allowed)
   void toggleMetaNeed(String option) {
+    // Don't allow selection if locked
+    if (isMetaNeedLocked(option)) {
+      ToastClass.showCustomToast(
+        'This feature is locked. Please upgrade your plan.',
+        type: ToastType.error,
+      );
+      return;
+    }
+
     if (selectedMetaNeeds.contains(option)) {
       selectedMetaNeeds.remove(option);
     } else {
@@ -47,38 +78,51 @@ class OnboardingController extends GetxController {
     return selectedMetaNeeds.contains(option);
   }
 
-  // Select category (single selection)
-  void selectCategory(String category) {
-    selectedCategory.value = category;
-  }
-
-  // Check if category is selected
-  bool isCategorySelected(String category) {
-    return selectedCategory.value == category;
-  }
-
-  // Get levels for selected category
-  List<String> getLevelsForSelectedCategory() {
-    if (selectedCategory.value.isEmpty) {
-      return [];
+  // Check if level is locked based on plan
+  bool isLevelLocked(String levelName) {
+    final planId = selectedPlanId.value;
+    final index = levels.indexWhere((level) => level['name'] == levelName);
+    
+    if (index == -1) return true; // Level not found
+    
+    if (planId == 'free') {
+      // Free plan: only first 2 levels unlocked
+      return index >= 2;
+    } else if (planId == 'premium' || planId == 'coach') {
+      // Premium and Coach plans: all levels unlocked
+      return false;
     }
-    return categoryLevels[selectedCategory.value] ?? [];
+    // Default: all locked if no plan selected
+    return true;
   }
 
-  // Select level (single selection)
-  void selectLevel(String level) {
-    selectedLevel.value = level;
+  // Toggle level selection (multiple selection allowed)
+  void toggleLevel(String levelName) {
+    // Don't allow selection if locked
+    if (isLevelLocked(levelName)) {
+      ToastClass.showCustomToast(
+        'This level is locked. Please upgrade your plan.',
+        type: ToastType.error,
+      );
+      return;
+    }
+
+    if (selectedLevels.contains(levelName)) {
+      selectedLevels.remove(levelName);
+    } else {
+      selectedLevels.add(levelName);
+    }
   }
 
   // Check if level is selected
-  bool isLevelSelected(String level) {
-    return selectedLevel.value == level;
+  bool isLevelSelected(String levelName) {
+    return selectedLevels.contains(levelName);
   }
 
   // Submit selection
   void submitSelection() {
-    if (selectedMetaNeeds.isEmpty && selectedCategory.value.isEmpty) {
-      ToastClass.showCustomToast('Please select at least one option', type: ToastType.error);
+    if (selectedMetaNeeds.isEmpty || selectedLevels.isEmpty) {
+      ToastClass.showCustomToast('Please select meta needs and at least one level', type: ToastType.error);
       return;
     }
     // Handle submit logic here
@@ -86,31 +130,6 @@ class OnboardingController extends GetxController {
     // Navigate to next screen if needed
     // Get.toNamed(AppRoutes.NEXTSCREEN);
   }
-
-  // Self Assessment variables
-  final RxInt currentQuestionIndex = 2.obs; // 3 of 14 (0-indexed, so 2)
-  final RxInt selectedRating = 5.obs;
-  final RxString currentQuestion =
-      'I get 7-8 hours of quality,\n restorative sleep most nights'.obs;
-  final int totalQuestions = 14;
-
-  // Rating scale descriptions
-  final Map<int, String> ratingDescriptions = {
-    1: 'Not at all true',
-    2: 'Rarely true',
-    3: 'Sometimes true',
-    4: 'Often true',
-    5: 'Usually true',
-    6: 'Almost always true',
-    7: 'Completely true',
-  };
-
-  void selectRating(int rating) {
-    selectedRating.value = rating;
-  }
-
-  String get progressText =>
-      '${currentQuestionIndex.value + 1} of $totalQuestions';
 
   // Profile Setup variables
   final TextEditingController fullNameController = TextEditingController();

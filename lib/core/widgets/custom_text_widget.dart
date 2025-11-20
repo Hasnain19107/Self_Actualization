@@ -13,6 +13,7 @@ class CustomTextWidget extends StatelessWidget {
     this.noOfCharacter = 20,
     this.textOverflow = TextOverflow.ellipsis,
     this.latterSpacing = 1,
+    this.maxLines,
   });
 
   final FontWeight fontWeight;
@@ -25,6 +26,7 @@ class CustomTextWidget extends StatelessWidget {
   final int noOfCharacter;
   final TextOverflow textOverflow;
   final double latterSpacing;
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +38,9 @@ class CustomTextWidget extends StatelessWidget {
     return Text(
       displayText,
       overflow: textOverflow,
+      maxLines: maxLines,
       textAlign: textAlign,
+      softWrap: true,
       style: TextStyle(
         fontFamily:'Poppins',
         height: 0,

@@ -6,19 +6,20 @@ import '../../../data/models/user/register_request_model.dart';
 import '../../../data/models/user/login_request_model.dart';
 
 class AuthController extends GetxController {
-  TextEditingController emailController = TextEditingController();
+  // Sign in controllers
+  TextEditingController signinEmailController = TextEditingController();
+  TextEditingController signinPasswordController = TextEditingController();
+  
+  // Sign up controllers
+  TextEditingController signupEmailController = TextEditingController();
   TextEditingController fullNameController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  TextEditingController confirmPasswordController = TextEditingController();
+  TextEditingController signupPasswordController = TextEditingController();
 
-  // Plan selection
-  RxString selectedPlan = 'Coach'.obs;
+  // Forgot password controller
+  TextEditingController forgotPasswordEmailController = TextEditingController();
 
   // Loading state
   final RxBool isLoading = false.obs;
-
-  // Plan validation error
-  final RxString planValidationError = ''.obs;
 
   // User Repository
   final UserRepository _userRepository = UserRepository();
@@ -62,16 +63,8 @@ class AuthController extends GetxController {
     if (value == null || value.isEmpty) {
       return 'Please confirm your password';
     }
-    if (value != passwordController.text) {
+    if (value != signupPasswordController.text) {
       return 'Passwords do not match';
-    }
-    return null;
-  }
-
-  // Plan selection validation
-  String? validatePlan() {
-    if (selectedPlan.value.isEmpty) {
-      return 'Please select a plan';
     }
     return null;
   }
@@ -79,14 +72,14 @@ class AuthController extends GetxController {
   // Sign in method
   Future<void> signIn() async {
     // Validate email
-    final emailError = validateEmail(emailController.text);
+    final emailError = validateEmail(signinEmailController.text);
     if (emailError != null) {
       ToastClass.showCustomToast(emailError, type: ToastType.error);
       return;
     }
 
     // Validate password
-    final passwordError = validatePassword(passwordController.text);
+    final passwordError = validatePassword(signinPasswordController.text);
     if (passwordError != null) {
       ToastClass.showCustomToast(passwordError, type: ToastType.error);
       return;
@@ -97,8 +90,8 @@ class AuthController extends GetxController {
 
       // Create login request
       final loginRequest = LoginRequestModel(
-        email: emailController.text.trim(),
-        password: passwordController.text,
+        email: signinEmailController.text.trim(),
+        password: signinPasswordController.text,
       );
 
       // Call repository to login
@@ -108,8 +101,8 @@ class AuthController extends GetxController {
 
       if (response.success && response.data != null) {
         // Clear controllers
-        emailController.clear();
-        passwordController.clear();
+        signinEmailController.clear();
+        signinPasswordController.clear();
 
         // Show success message
         ToastClass.showCustomToast(
@@ -142,7 +135,7 @@ class AuthController extends GetxController {
   // Sign up method
   Future<void> signUp() async {
     // Validate email
-    final emailError = validateEmail(emailController.text);
+    final emailError = validateEmail(signupEmailController.text);
     if (emailError != null) {
       ToastClass.showCustomToast(emailError, type: ToastType.error);
       return;
@@ -156,16 +149,9 @@ class AuthController extends GetxController {
     }
 
     // Validate password
-    final passwordError = validatePassword(passwordController.text);
+    final passwordError = validatePassword(signupPasswordController.text);
     if (passwordError != null) {
       ToastClass.showCustomToast(passwordError, type: ToastType.error);
-      return;
-    }
-
-    // Validate plan selection
-    final planError = validatePlan();
-    if (planError != null) {
-      ToastClass.showCustomToast(planError, type: ToastType.error);
       return;
     }
 
@@ -175,8 +161,8 @@ class AuthController extends GetxController {
       // Create register request
       final registerRequest = RegisterRequestModel(
         name: fullNameController.text.trim(),
-        email: emailController.text.trim(),
-        password: passwordController.text,
+        email: signupEmailController.text.trim(),
+        password: signupPasswordController.text,
       );
 
       // Call repository to register
@@ -186,10 +172,9 @@ class AuthController extends GetxController {
 
       if (response.success && response.data != null) {
         // Clear controllers
-        emailController.clear();
+        signupEmailController.clear();
         fullNameController.clear();
-        passwordController.clear();
-        confirmPasswordController.clear();
+        signupPasswordController.clear();
 
         // Show success message
         ToastClass.showCustomToast(
@@ -219,12 +204,65 @@ class AuthController extends GetxController {
     }
   }
 
+  // Forgot password method
+  Future<void> forgotPassword() async {
+    // Validate email
+    final emailError = validateEmail(forgotPasswordEmailController.text);
+    if (emailError != null) {
+      ToastClass.showCustomToast(emailError, type: ToastType.error);
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+
+      // Call repository to send forgot password request
+      final response = await _userRepository.forgotPassword(
+        forgotPasswordEmailController.text.trim(),
+      );
+
+      isLoading.value = false;
+
+      if (response.success) {
+        // Clear controller
+        forgotPasswordEmailController.clear();
+
+        // Show success message
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Password reset link sent to your email!',
+          type: ToastType.success,
+        );
+
+        // Navigate back to login screen
+        Get.back();
+      } else {
+        // Show error message
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Failed to send reset link. Please try again.',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      isLoading.value = false;
+      ToastClass.showCustomToast(
+        'Failed to send reset link. Please try again.',
+        type: ToastType.error,
+      );
+    }
+  }
+
   @override
   void onClose() {
-    emailController.dispose();
+    signinEmailController.dispose();
+    signinPasswordController.dispose();
+    signupEmailController.dispose();
     fullNameController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
+    signupPasswordController.dispose();
+    forgotPasswordEmailController.dispose();
     super.onClose();
   }
 }
