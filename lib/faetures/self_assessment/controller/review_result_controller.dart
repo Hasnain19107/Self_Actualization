@@ -1,6 +1,8 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/const/app_exports.dart';
+import '../../../core/models/need_data.dart';
 import '../../../data/models/question/assessment_result_model.dart';
 import '../../../data/repository/question_repository.dart';
 
@@ -10,6 +12,7 @@ class ReviewResultController extends GetxController {
 
   // Assessment result data
   final Rx<AssessmentResultModel?> assessmentResult = Rx<AssessmentResultModel?>(null);
+  final RxList<NeedData> sliderNeeds = <NeedData>[].obs;
   
   // Loading state
   final RxBool isLoading = false.obs;
@@ -24,6 +27,7 @@ class ReviewResultController extends GetxController {
   Future<void> fetchAssessmentResult() async {
     try {
       isLoading.value = true;
+      sliderNeeds.clear();
       update(); // Notify GetBuilder to rebuild
 
       final response = await _questionRepository.getAssessmentResult();
@@ -33,6 +37,7 @@ class ReviewResultController extends GetxController {
 
       if (response.success && response.data != null) {
         assessmentResult.value = response.data;
+        _updateSliderNeeds();
         update(); // Notify GetBuilder to rebuild with new data
       } else {
         ToastClass.showCustomToast(
@@ -44,6 +49,7 @@ class ReviewResultController extends GetxController {
       }
     } catch (e) {
       isLoading.value = false;
+      sliderNeeds.clear();
       update(); // Notify GetBuilder to rebuild
       ToastClass.showCustomToast(
         'Failed to load assessment result. Please try again.',
@@ -53,13 +59,13 @@ class ReviewResultController extends GetxController {
   }
 
   /// Get category scores from API or return empty map
-  Map<String, int> get categoryScores {
+  Map<String, double> get categoryScores {
     return assessmentResult.value?.categoryScores ?? {};
   }
 
   /// Get overall score from API or return 0
-  int get overallScore {
-    return assessmentResult.value?.overallScore ?? 0;
+  double get overallScore {
+    return assessmentResult.value?.overallScore ?? 0.0;
   }
 
   /// Get lowest categories from API or return empty list
@@ -78,7 +84,7 @@ class ReviewResultController extends GetxController {
   }
 
   /// Get color for a score based on performance bands
-  int getColorForScore(int score) {
+  int getColorForScore(double score) {
     final bands = performanceBands;
     
     for (final band in bands) {
@@ -228,6 +234,49 @@ class ReviewResultController extends GetxController {
 
     debugPrint('ReviewResultController: formatted categories count: ${formatted.length}');
     return formatted;
+  }
+
+  void _updateSliderNeeds() {
+    final categories = formattedNeedsCategories;
+    if (categories.isEmpty) {
+      sliderNeeds.clear();
+      return;
+    }
+
+    final mapped = categories.map((category) {
+      final title = category['category'] as String? ?? '';
+      final score = (category['score'] as num?)?.toDouble() ?? 0.0;
+      final sliderValue = _normalizeScoreForSlider(score);
+
+      return NeedData(
+        id: title,
+        title: title,
+        vValue: sliderValue.obs,
+        qValue: sliderValue.obs,
+        isGreen: false,
+      );
+    }).toList();
+
+    sliderNeeds.assignAll(mapped);
+  }
+
+  double _normalizeScoreForSlider(double score) {
+    final maxScore = _maxPerformanceScore;
+    final normalizedMax = maxScore <= 0 ? 10.0 : math.max(10.0, maxScore);
+    final normalized = (score / normalizedMax) * 10.0;
+    return normalized.clamp(0.0, 10.0);
+  }
+
+  double get _maxPerformanceScore {
+    double maxScore = 0;
+    for (final band in performanceBands) {
+      for (final value in band.range) {
+        if (value > maxScore) {
+          maxScore = value.toDouble();
+        }
+      }
+    }
+    return maxScore > 0 ? maxScore : 10.0;
   }
 
   void downloadPDF() {

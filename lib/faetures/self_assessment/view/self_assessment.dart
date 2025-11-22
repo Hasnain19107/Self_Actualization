@@ -24,18 +24,12 @@ class SelfAssessmentScreen extends StatelessWidget {
             children: [
               // Header
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 2),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Back Button
-                    IconButton(
-                      onPressed: () => Get.back(),
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: AppColors.black,
-                      ),
-                    ),
+                   
                     // Title
                     CustomTextWidget(
                       text: 'Self Assessment',
@@ -85,6 +79,34 @@ class SelfAssessmentScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Gap(Get.height * 0.02),
+                                  // Category label
+                                  Obx(() {
+                                    final category =
+                                        controller.currentQuestionCategory;
+                                    if (category.isEmpty) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.white,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: AppColors.blue.withOpacity(0.3),
+                                        ),
+                                      ),
+                                      child: CustomTextWidget(
+                                        text: category,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        textColor: AppColors.blue,
+                                      ),
+                                    );
+                                  }),
+                                  Gap(Get.height * 0.015),
                                   // Question
                                   Obx(
                                     () => CustomTextWidget(

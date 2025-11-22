@@ -5,6 +5,7 @@ import 'package:pixsa_petrol_pump/faetures/auth/view/forgot_password_screen.dart
 import 'package:pixsa_petrol_pump/faetures/auth/view/welcome_screen.dart';
 import '../../faetures/On_boarding/bindings/onBoarding_binding.dart';
 import '../../faetures/On_boarding/view/selectCategory_level.dart';
+import '../../faetures/On_boarding/view/select_plan.dart';
 import '../../faetures/self_assessment/view/self_assessment.dart';
 import '../../faetures/self_assessment/binding/self_assessment_binding.dart';
 import '../../faetures/self_assessment/view/review_result_screen.dart';
@@ -17,11 +18,10 @@ import '../../faetures/activity/view/your_activity_screen.dart';
 import '../../faetures/activity/view/daily_reflection_screen.dart';
 import '../../faetures/activity/binding/daily_reflection_binding.dart';
 import '../../faetures/activity/view/add_reflection_screen.dart';
-import '../../faetures/activity/binding/add_reflection_binding.dart';
 import '../../faetures/goal/view/goal_screen.dart';
 import '../../faetures/goal/binding/goal_binding.dart';
-import '../../faetures/goal/view/achivement_screen.dart';
-import '../../faetures/goal/binding/achievement_binding.dart';
+import '../../faetures/achievments/view/achivement_screen.dart';
+import '../../faetures/achievments/binding/achievement_binding.dart';
 import '../../faetures/goal/view/add_goal.dart';
 import '../../faetures/learn_grow/view/learn_grow_screen.dart';
 import '../../faetures/learn_grow/binding/binding.dart' as learn_grow_binding;
@@ -71,6 +71,14 @@ class AppPages {
       name: AppRoutes.welcomeScreen,
       page: () => WelcomeScreen(),
 
+      transition: Transition.downToUp,
+      transitionDuration: const Duration(microseconds: 300),
+    ),
+
+    GetPage(
+      name: AppRoutes.selectPlanScreen,
+      page: () => const SelectPlanScreen(),
+      binding: OnboardingBinding(),
       transition: Transition.downToUp,
       transitionDuration: const Duration(microseconds: 300),
     ),
@@ -142,7 +150,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.addReflectionScreen,
       page: () => AddReflectionScreen(),
-      binding: AddReflectionBinding(),
+      binding: DailyReflectionBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
     ),

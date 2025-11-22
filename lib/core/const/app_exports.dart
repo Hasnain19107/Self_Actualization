@@ -42,10 +42,10 @@ export '../../faetures/auth/view/sign_up_screen.dart';
 export '../../faetures/auth/view/welcome_screen.dart';
 
 // Feature: Activity
-export '../../faetures/activity/binding/add_reflection_binding.dart';
+
 export '../../faetures/activity/binding/daily_reflection_binding.dart';
 export '../../faetures/activity/binding/your_activity_binding.dart';
-export '../../faetures/activity/controller/add_reflection_controller.dart';
+
 export '../../faetures/activity/controller/daily_reflection_controller.dart';
 export '../../faetures/activity/controller/your_activity_controller.dart';
 export '../../faetures/activity/view/add_reflection_screen.dart';
@@ -64,16 +64,16 @@ export '../../faetures/bottom_navigation_bar/view/main_nav_screen.dart';
 export '../../faetures/bottom_navigation_bar/widget/bottom_nav_bar.dart';
 
 // Feature: Goal
-export '../../faetures/goal/binding/achievement_binding.dart';
+export '../../faetures/achievments/binding/achievement_binding.dart';
 export '../../faetures/goal/binding/goal_binding.dart';
-export '../../faetures/goal/controller/achievement_controller.dart';
+export '../../faetures/achievments/controller/achievement_controller.dart';
 export '../../faetures/goal/controller/goal_controller.dart';
-export '../../faetures/goal/view/achivement_screen.dart';
+export '../../faetures/achievments/view/achivement_screen.dart';
 export '../../faetures/goal/view/add_goal.dart';
 export '../../faetures/goal/view/goal_screen.dart';
-export '../../faetures/goal/widgets/achievement_card_widget.dart';
+export '../../faetures/achievments/widgets/achievement_card_widget.dart';
 
-export '../../faetures/goal/widgets/achievement_progress_card_widget.dart';
+export '../../faetures/achievments/widgets/achievement_progress_card_widget.dart';
 export '../../faetures/goal/widgets/date_picker_widget.dart';
 export '../../faetures/goal/widgets/goal_card_widget.dart';
 export '../../faetures/goal/widgets/goal_item_widget.dart';
@@ -84,7 +84,7 @@ export '../../faetures/home/controller/home_controller.dart';
 export '../../faetures/home/view/home_screen.dart';
 export '../../faetures/home/widgtes/action_cards_widget.dart';
 export '../../faetures/home/widgtes/header_widget.dart';
-export '../../faetures/home/widgtes/needs_slider_widget.dart';
+export '../widgets/needs_slider_widget.dart';
 
 // Feature: Learn & Grow
 export '../../faetures/learn_grow/binding/binding.dart';

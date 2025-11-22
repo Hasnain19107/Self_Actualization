@@ -1,18 +1,111 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/const/app_exports.dart';
+import '../../../data/services/shared_preference_services.dart';
 
 class OnboardingController extends GetxController {
   // Store selected plan
   final RxString selectedPlanId = ''.obs;
-  final RxMap<String, dynamic> selectedPlan = <String, dynamic>{}.obs;
+  
+  // Subscription plans data
+  final List<Map<String, dynamic>> subscriptionPlans = [
+    {'planName': 'Free', 'price': '\$0', 'planId': 'free'},
+    {'planName': 'Premium', 'price': '\$19', 'planId': 'premium'},
+    {'planName': 'Coach', 'price': '\$39', 'planId': 'coach'},
+  ];
 
-  // Initialize plan from arguments
+  // Initialize plan ID from arguments
   void initializePlan(Map<String, dynamic>? planData) {
     if (planData != null) {
-      selectedPlan.value = planData;
       selectedPlanId.value = planData['planId'] as String? ?? '';
     }
+  }
+
+  // Select plan
+  void selectPlan(Map<String, dynamic> plan) {
+    final planId = plan['planId'] as String? ?? '';
+
+    if (selectedPlanId.value != planId) {
+      selectedPlanId.value = planId;
+    }
+  }
+
+  // Getter for currently selected plan data
+  Map<String, dynamic>? get currentPlan => subscriptionPlans.firstWhereOrNull(
+        (plan) => plan['planId'] == selectedPlanId.value,
+      );
+
+  // Getter for selected plan name
+  String get selectedPlanName {
+    final plan = currentPlan;
+    return plan != null ? plan['planName'] as String? ?? '' : '';
+  }
+
+  // Getter for selected plan price
+  String get selectedPlanPrice {
+    final plan = currentPlan;
+    return plan != null ? plan['price'] as String? ?? '' : '';
+  }
+  
+  // Check if plan is selected
+  bool get hasSelectedPlan => selectedPlanId.value.isNotEmpty;
+  
+  // Handle continue from select plan screen
+  void handlePlanContinue() {
+    if (!hasSelectedPlan) {
+      ToastClass.showCustomToast(
+        'Please select a plan to continue',
+        type: ToastType.error,
+      );
+      return;
+    }
+    
+    // Navigate to category level screen with plan data
+    final planData = currentPlan;
+    if (planData == null) {
+      ToastClass.showCustomToast(
+        'Something went wrong. Please select a plan again.',
+        type: ToastType.error,
+      );
+      return;
+    }
+
+    Get.toNamed(
+      AppRoutes.categoryLevelScreen,
+      arguments: planData,
+    );
+  }
+  
+  // Initialize category level screen from arguments
+  void initializeCategoryLevelScreen() {
+    final planData = Get.arguments as Map<String, dynamic>?;
+    if (planData != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        initializePlan(planData);
+      });
+    }
+  }
+  
+  // Handle get started from category level screen
+  void handleGetStarted() {
+    if (selectedMetaNeeds.isEmpty) {
+      ToastClass.showCustomToast(
+        'Please select at least one meta need',
+        type: ToastType.error,
+      );
+      return;
+    }
+    
+    if (selectedLevels.isEmpty) {
+      ToastClass.showCustomToast(
+        'Please select at least one level',
+        type: ToastType.error,
+      );
+      return;
+    }
+    
+    // Navigate to self assessment screen
+    Get.toNamed(AppRoutes.selfAssessmentScreen);
   }
 
   final List<String> metaNeedsOptions = [
@@ -197,7 +290,7 @@ class OnboardingController extends GetxController {
   }
 
   // Submit Profile Setup
-  void submitProfileSetup() {
+  Future<void> submitProfileSetup() async {
     if (fullNameController.text.isEmpty) {
       ToastClass.showCustomToast('Please enter your full name', type: ToastType.error);
       return;
@@ -210,10 +303,27 @@ class OnboardingController extends GetxController {
       ToastClass.showCustomToast('Please select an avatar', type: ToastType.error);
       return;
     }
-    // Handle submit logic here
-    ToastClass.showCustomToast('Profile setup completed', type: ToastType.success);
-    // Navigate to main navigation screen
-    Get.offAllNamed(AppRoutes.mainNavScreen);
+    
+    // Save profile setup completion status to local storage
+    try {
+      await PreferenceHelper.setBool(
+        PrefConstants.isProfileSetupCompleted,
+        true,
+      );
+      
+      // Save profile data (optional - if you want to persist the data)
+      // You can save fullName, age, selectedFocusAreas, selectedAvatar if needed
+      
+      ToastClass.showCustomToast('Profile setup completed', type: ToastType.success);
+      
+      // Navigate to main navigation screen
+      Get.offAllNamed(AppRoutes.mainNavScreen);
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Failed to save profile setup. Please try again.',
+        type: ToastType.error,
+      );
+    }
   }
 
   @override

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import '../binding/review_result_binding.dart';
-import '../widgets/assessment_grid_widget.dart';
-import '../widgets/review_result_action_buttons_widget.dart';
-import '../controller/review_result_controller.dart';
+
 import '../../../core/const/app_exports.dart';
+
 
 class ReviewResultScreen extends StatelessWidget {
   const ReviewResultScreen({super.key});
@@ -15,6 +13,7 @@ class ReviewResultScreen extends StatelessWidget {
     ReviewResultBinding().dependencies();
     final AppSizes appSizes = AppSizes();
     final screenHeight = MediaQuery.of(context).size.height;
+    final reviewResultController = Get.find<ReviewResultController>();
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -81,6 +80,37 @@ class ReviewResultScreen extends StatelessWidget {
                     });
                   },
                 ),
+               
+
+                // Needs sliders under the chart
+                Obx(() {
+                  final needs = reviewResultController.sliderNeeds;
+                  if (needs.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomTextWidget(
+                        text: 'Needs Breakdown',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        textColor: AppColors.black,
+                        textAlign: TextAlign.left,
+                      ),
+                      const Gap(12),
+                      ...needs
+                          .map(
+                            (need) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: NeedsSliderWidget(need: need),
+                            ),
+                          )
+                          .toList(),
+                    ],
+                  );
+                }),
                 const Gap(24),
 
                 // Action Buttons

@@ -11,6 +11,8 @@ class ApiConstants {
   static const String questionsEndpoint = '/api/questions';
   static const String assessmentSubmitEndpoint = '/api/assessment/submit';
   static const String assessmentResultEndpoint = '/api/assessment/result';
+  static const String reflectionsEndpoint = '/api/reflections';
+  static const String goalsEndpoint = '/api/goals';
 
   // Headers
   static const String authorizationHeader = 'Authorization';

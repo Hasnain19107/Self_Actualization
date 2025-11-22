@@ -1,22 +1,7 @@
 import 'package:get/get.dart';
 import '../../learn_grow/view/learn_grow_screen.dart';
 import '../../../core/const/app_exports.dart';
-// Needs data structure
-class NeedData {
-  final String title;
-  final RxDouble vValue;
-  final RxDouble qValue;
-  final bool isGreen;
-  final String id;
-
-  NeedData({
-    required this.title,
-    required this.vValue,
-    required this.qValue,
-    required this.isGreen,
-    required this.id,
-  });
-}
+import '../../../core/models/need_data.dart';
 
 class HomeController extends GetxController {
   // User info

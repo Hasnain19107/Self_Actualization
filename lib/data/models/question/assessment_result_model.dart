@@ -2,8 +2,8 @@
 /// Represents the response from the assessment result API
 class AssessmentResultModel {
   final String assessmentId;
-  final Map<String, int> categoryScores;
-  final int overallScore;
+  final Map<String, double> categoryScores;
+  final double overallScore;
   final List<String> lowestCategories;
   final DateTime completedAt;
   final ChartMeta chartMeta;
@@ -21,9 +21,9 @@ class AssessmentResultModel {
     return AssessmentResultModel(
       assessmentId: json['assessmentId'] as String? ?? '',
       categoryScores: (json['categoryScores'] as Map<String, dynamic>?)
-              ?.map((key, value) => MapEntry(key, value as int))
+              ?.map((key, value) => MapEntry(key, (value as num).toDouble()))
           ?? {},
-      overallScore: json['overallScore'] as int? ?? 0,
+      overallScore: (json['overallScore'] as num?)?.toDouble() ?? 0.0,
       lowestCategories: (json['lowestCategories'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??

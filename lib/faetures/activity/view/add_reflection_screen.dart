@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import '../binding/add_reflection_binding.dart';
-import '../controller/add_reflection_controller.dart';
+import '../controller/daily_reflection_controller.dart';
 import '../widgets/mood_selector_widget.dart';
 import '../widgets/reflection_input_widget.dart';
 import '../../../core/const/app_exports.dart';
@@ -14,8 +13,7 @@ class AddReflectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AddReflectionBinding().dependencies();
-    final controller = Get.find<AddReflectionController>();
+    final controller = Get.find<DailyReflectionController>();
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -93,14 +91,17 @@ class AddReflectionScreen extends StatelessWidget {
                 padding: EdgeInsets.only(
                   bottom: appSizes.getHeightPercentage(2),
                 ),
-                child: CustomElevatedButton(
-                  text: 'Save',
-                  onPress: controller.saveReflection,
-                  backgroundColor: AppColors.blue,
-                  textColor: AppColors.white,
-                  borderRadius: 1000,
-                  height: 56,
-                  width: double.infinity,
+                child: Obx(
+                  () => CustomElevatedButton(
+                    text: 'Save',
+                    onPress: controller.saveReflection,
+                    backgroundColor: AppColors.blue,
+                    textColor: AppColors.white,
+                    borderRadius: 1000,
+                    height: 56,
+                    width: double.infinity,
+                    isLoading: controller.isLoading.value,
+                  ),
                 ),
               ),
             ],

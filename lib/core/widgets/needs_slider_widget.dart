@@ -1,16 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import '../controller/home_controller.dart';
-import '../../../core/const/app_exports.dart';
+
+import '../const/app_exports.dart';
+import '../models/need_data.dart';
 
 class NeedsSliderWidget extends StatelessWidget {
   final NeedData need;
+  final ValueChanged<double>? onVChanged;
+  final ValueChanged<double>? onQChanged;
 
-  const NeedsSliderWidget({super.key, required this.need});
+  const NeedsSliderWidget({
+    super.key,
+    required this.need,
+    this.onVChanged,
+    this.onQChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final HomeController? homeController =
+        Get.isRegistered<HomeController>() ? Get.find<HomeController>() : null;
+
+    final ValueChanged<double> vHandler = onVChanged ??
+        (homeController != null
+            ? (value) => homeController.updateVValue(need.id, value)
+            : (value) => need.vValue.value = value);
+
+    final ValueChanged<double> qHandler = onQChanged ??
+        (homeController != null
+            ? (value) => homeController.updateQValue(need.id, value)
+            : (value) => need.qValue.value = value);
+
     return Container(
       width: double.infinity,
       height: 120,
@@ -25,37 +46,37 @@ class NeedsSliderWidget extends StatelessWidget {
         children: [
           // Top: 0 and 10 labels
           const SizedBox(height: 8),
-          // Progress bar - white unfilled, red filled
-          Container(
-            height: 8,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                // Red progress portion (75% width)
-                Expanded(
-                  flex: 75,
-                  child: Container(
-                    height: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppColors.red,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-                // White unprogressed portion (25% width)
-                Expanded(
-                  flex: 25,
-                  child: Container(
-                    height: double.infinity,
-                    decoration: const BoxDecoration(color: AppColors.white),
-                  ),
-                ),
-              ],
-            ),
+          // Progress bar - adapt color based on average V/Q
+       Obx(() {
+  final averageValue =
+      ((need.vValue.value + need.qValue.value) / 2).clamp(0.0, 10.0);
+  final fillColor = _getSliderColor(averageValue);
+  final widthFactor = (averageValue / 10).clamp(0.0, 1.0);
+
+  return Container(
+    height: 12,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Stack(
+        children: [
+          // un-progress background
+          Container(color: Colors.white),
+
+          // progress
+          FractionallySizedBox(
+            widthFactor: widthFactor == 0 ? 0.001 : widthFactor,
+            alignment: Alignment.centerLeft,
+            child: Container(color: fillColor),
           ),
+        ],
+      ),
+    ),
+  );
+}),
+
           const Gap(8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -96,9 +117,7 @@ class NeedsSliderWidget extends StatelessWidget {
                 child: _buildVerticalSlider(
                   label: 'V',
                   value: need.vValue,
-                  onChanged: (value) {
-                    Get.find<HomeController>().updateVValue(need.id, value);
-                  },
+                  onChanged: vHandler,
                 ),
               ),
               const SizedBox(width: 10),
@@ -108,9 +127,7 @@ class NeedsSliderWidget extends StatelessWidget {
                 child: _buildVerticalSlider(
                   label: 'Q',
                   value: need.qValue,
-                  onChanged: (value) {
-                    Get.find<HomeController>().updateQValue(need.id, value);
-                  },
+                  onChanged: qHandler,
                 ),
               ),
             ],
@@ -123,7 +140,7 @@ class NeedsSliderWidget extends StatelessWidget {
   Widget _buildVerticalSlider({
     required String label,
     required RxDouble value,
-    required Function(double) onChanged,
+    required ValueChanged<double> onChanged,
   }) {
     return Obx(
       () => Column(
@@ -207,5 +224,9 @@ class NeedsSliderWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Color _getSliderColor(double currentValue) {
+    return currentValue > 5 ? AppColors.greenAccent : AppColors.red;
   }
 }

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../core/const/app_exports.dart';
+import '../../../data/models/goal/goal_model.dart';
+import '../../../data/models/goal/goal_request_model.dart';
+import '../../../data/repository/goal_repository.dart';
 
 class GoalController extends GetxController {
   final TextEditingController searchController = TextEditingController();
@@ -18,56 +21,54 @@ class GoalController extends GetxController {
   final RxString endDate = ''.obs;
   final RxInt characterCount = 0.obs;
   final int maxCharacters = 300;
+  final RxBool isSaving = false.obs;
 
-  // Goal types
+  final GoalRepository _goalRepository = GoalRepository();
+
   final List<String> goalTypes = ['Career', 'Health', 'Personal', 'Spiritual'];
 
-  // Current goals data
-  final List<Map<String, dynamic>> currentGoals = [
-    {
-      'barColor': const Color(0xFFD3E85D), // Light green
-      'title': '8h Work Target',
-      'subtitle': 'Personal',
-    },
-    {
-      'barColor': const Color(0xFF7AC4E6), // Light blue
-      'title': 'Achieve 6.5h Sleep',
-      'subtitle': 'Health',
-    },
-    {
-      'barColor': const Color(0xFFE9C6F2), // Light pink/purple
-      'title': '100 Calories Burn',
-      'subtitle': 'Health',
-    },
-  ];
-
-  // All goals data
-  final RxList<Map<String, dynamic>> allGoals = <Map<String, dynamic>>[
-    {
-      'emoji': '🏃',
-      'title': 'Daily Motivation',
-      'category': 'Health',
-      'date': '20/10/25',
-    },
-    {
-      'emoji': '🧘',
-      'title': 'Daily Motivation',
-      'category': 'Spiritual',
-      'date': '20/10/25',
-    },
-    {
-      'emoji': '🧘',
-      'title': 'Daily Motivation',
-      'category': 'Spiritual',
-      'date': '20/10/25',
-    },
-  ].obs;
+  final RxList<GoalModel> goals = <GoalModel>[].obs;
+  final RxBool isLoadingGoals = false.obs;
+  final RxString selectedStatus = 'active'.obs;
 
   @override
   void onInit() {
     super.onInit();
     searchController.addListener(_onSearchChanged);
     descriptionController.addListener(_updateCharacterCount);
+    fetchGoals();
+  }
+
+  Future<void> fetchGoals({bool showLoader = true}) async {
+    try {
+      if (showLoader) isLoadingGoals.value = true;
+      final response = await _goalRepository.getGoals(
+        status: selectedStatus.value,
+      );
+      if (response.success && response.data != null) {
+        goals.assignAll(response.data!);
+      } else {
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Failed to fetch goals',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Failed to fetch goals. Please try again.',
+        type: ToastType.error,
+      );
+    } finally {
+      if (showLoader) isLoadingGoals.value = false;
+    }
+  }
+
+  void changeGoalStatus(String status) {
+    if (selectedStatus.value == status) return;
+    selectedStatus.value = status;
+    fetchGoals();
   }
 
   void _onSearchChanged() {
@@ -124,7 +125,7 @@ class GoalController extends GetxController {
     }
   }
 
-  void saveGoal() {
+  Future<void> saveGoal() async {
     if (goalTitleController.text.trim().isEmpty) {
       ToastClass.showCustomToast('Please enter goal title', type: ToastType.error);
       return;
@@ -142,26 +143,57 @@ class GoalController extends GetxController {
       return;
     }
 
-    // Add goal to allGoals list
-    allGoals.add({
-      'emoji': _getEmojiForType(selectedGoalType.value),
-      'title': goalTitleController.text.trim(),
-      'category': selectedGoalType.value,
-      'date': startDateController.text.trim(),
-    });
+    final startIso = _parseDateToIso(startDateController.text.trim());
+    final endIso = _parseDateToIso(endDateController.text.trim());
 
-    // Clear form before navigating back
-    goalTitleController.clear();
-    startDateController.clear();
-    endDateController.clear();
-    descriptionController.clear();
-    characterCount.value = 0;
-    startDate.value = '';
-    endDate.value = '';
-    selectedGoalType.value = 'Personal';
+    if (startIso == null || endIso == null) {
+      ToastClass.showCustomToast('Invalid date format. Please pick valid dates.', type: ToastType.error);
+      return;
+    }
 
-    ToastClass.showCustomToast('Goal saved successfully', type: ToastType.success);
-    Get.offNamed(AppRoutes.mainNavScreen, arguments: 2);
+    final start = DateTime.parse(startIso);
+    final end = DateTime.parse(endIso);
+    if (end.isBefore(start)) {
+      ToastClass.showCustomToast('End date must be after start date', type: ToastType.error);
+      return;
+    }
+
+    final request = GoalRequestModel(
+      title: goalTitleController.text.trim(),
+      description: descriptionController.text.trim(),
+      startDate: startIso,
+      endDate: endIso,
+      type: selectedGoalType.value,
+    );
+
+    try {
+      isSaving.value = true;
+      final response = await _goalRepository.createGoal(request);
+      isSaving.value = false;
+
+      if (response.success) {
+        _clearForm();
+
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty ? response.message : 'Goal saved successfully',
+          type: ToastType.success,
+        );
+
+        await fetchGoals(showLoader: false);
+        Get.offNamed(AppRoutes.goalScreen);
+      } else {
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty ? response.message : 'Failed to save goal',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      isSaving.value = false;
+      ToastClass.showCustomToast(
+        'Something went wrong. Please try again.',
+        type: ToastType.error,
+      );
+    }
   }
 
   String _getEmojiForType(String type) {
@@ -179,23 +211,72 @@ class GoalController extends GetxController {
     }
   }
 
-  List<Map<String, dynamic>> get filteredGoals {
+  List<GoalModel> get currentGoals =>
+      goals.where((goal) => !goal.isCompleted).take(3).toList();
+
+  List<GoalModel> get filteredGoals {
     if (searchQuery.value.isEmpty) {
-      return allGoals;
+      return goals;
     }
-    return allGoals.where((goal) {
-      return goal['title'].toString().toLowerCase().contains(
-            searchQuery.value.toLowerCase(),
-          ) ||
-          goal['category'].toString().toLowerCase().contains(
-            searchQuery.value.toLowerCase(),
-          );
+    final query = searchQuery.value.toLowerCase();
+    return goals.where((goal) {
+      return goal.title.toLowerCase().contains(query) ||
+          goal.type.toLowerCase().contains(query);
     }).toList();
+  }
+
+  String _formatDate(DateTime date) => DateFormat('dd/MM/yy').format(date);
+
+  String _formatDateRange(GoalModel goal) =>
+      '${DateFormat('dd MMM').format(goal.startDate)} - ${DateFormat('dd MMM').format(goal.endDate)}';
+
+  Color _getBarColorForType(String type) {
+    switch (type) {
+      case 'Career':
+        return const Color(0xFFD3E85D);
+      case 'Health':
+        return const Color(0xFF7AC4E6);
+      case 'Spiritual':
+        return const Color(0xFFE9C6F2);
+      case 'Personal':
+      default:
+        return const Color(0xFFFFCBA4);
+    }
+  }
+
+  Color barColorForGoal(GoalModel goal) => _getBarColorForType(goal.type);
+  String emojiForGoal(GoalModel goal) => _getEmojiForType(goal.type);
+  String formattedStartDate(GoalModel goal) => _formatDate(goal.startDate);
+  String formattedDateRange(GoalModel goal) => _formatDateRange(goal);
+
+  String? _parseDateToIso(String value) {
+    if (value.isEmpty) return null;
+    try {
+      final parsed = DateFormat('dd/MM/yy').parseStrict(value);
+      return parsed.toIso8601String();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _clearForm() {
+    goalTitleController.clear();
+    startDateController.clear();
+    endDateController.clear();
+    descriptionController.clear();
+    characterCount.value = 0;
+    startDate.value = '';
+    endDate.value = '';
+    selectedGoalType.value = 'Personal';
   }
 
   @override
   void onClose() {
     searchController.dispose();
+    goalTitleController.dispose();
+    startDateController.dispose();
+    endDateController.dispose();
+    descriptionController.dispose();
     super.onClose();
   }
 }

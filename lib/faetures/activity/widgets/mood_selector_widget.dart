@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controller/add_reflection_controller.dart';
+import '../controller/daily_reflection_controller.dart';
 import '../../../core/const/app_exports.dart';
 
 class MoodSelectorWidget extends StatelessWidget {
@@ -8,7 +8,7 @@ class MoodSelectorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<AddReflectionController>();
+    final controller = Get.find<DailyReflectionController>();
 
     return Obx(
       () => Row(

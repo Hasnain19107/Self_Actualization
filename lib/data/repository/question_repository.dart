@@ -14,16 +14,21 @@ class QuestionRepository {
   QuestionRepository({ApiService? apiService})
       : _apiService = apiService ?? ApiService();
 
-  /// Get all questions
-  Future<ApiResponseModel<List<QuestionModel>>> getQuestions() async {
+  /// Get questions, optionally filtered by category
+  Future<ApiResponseModel<List<QuestionModel>>> getQuestions({
+    String? category,
+  }) async {
     try {
       DebugUtils.logInfo(
-        'Starting to fetch questions',
+        'Starting to fetch questions'
+        '${category != null ? ' for category: $category' : ''}',
         tag: 'QuestionRepository.getQuestions',
       );
 
       final response = await _apiService.get<List<QuestionModel>>(
         endpoint: ApiConstants.questionsEndpoint,
+        queryParameters:
+            category != null ? {'category': category} : null,
         includeAuth: false,
         fromJsonT: (data) {
           // The API returns { success, total, data: [...] }
@@ -41,12 +46,14 @@ class QuestionRepository {
 
       if (response.success && response.data != null) {
         DebugUtils.logInfo(
-          'Questions fetched successfully. Total: ${response.data!.length}',
+          'Questions fetched successfully. Total: ${response.data!.length}'
+          '${category != null ? ' for $category' : ''}',
           tag: 'QuestionRepository.getQuestions',
         );
       } else {
         DebugUtils.logWarning(
-          'Failed to fetch questions: ${response.message}',
+          'Failed to fetch questions'
+          '${category != null ? ' for $category' : ''}: ${response.message}',
           tag: 'QuestionRepository.getQuestions',
         );
       }
@@ -54,7 +61,8 @@ class QuestionRepository {
       return response;
     } catch (e, stackTrace) {
       DebugUtils.logError(
-        'Error fetching questions',
+        'Error fetching questions'
+        '${category != null ? ' for $category' : ''}',
         tag: 'QuestionRepository.getQuestions',
         error: e,
         stackTrace: stackTrace,
@@ -62,7 +70,8 @@ class QuestionRepository {
 
       return ApiResponseModel<List<QuestionModel>>(
         success: false,
-        message: 'Failed to fetch questions: ${e.toString()}',
+        message: 'Failed to fetch questions'
+            '${category != null ? ' for $category' : ''}: ${e.toString()}',
       );
     }
   }

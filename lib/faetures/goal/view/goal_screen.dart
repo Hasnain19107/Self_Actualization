@@ -71,31 +71,53 @@ class GoalScreen extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Goal List (Left)
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomTextWidget(
-                          text: 'Current Goals',
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          textColor: AppColors.black,
-                          textAlign: TextAlign.left,
-                        ),
-                        const Gap(16),
-                        ...controller.currentGoals.map(
-                          (goal) => GoalItemWidget(
-                            barColor: goal['barColor'],
-                            title: goal['title'],
-                            subtitle: goal['subtitle'],
-                          ),
-                        ),
-                      ],
+                    child: Obx(
+                      () {
+                        final currentGoals = controller.currentGoals;
+                        final isLoading = controller.isLoadingGoals.value &&
+                            controller.goals.isEmpty;
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomTextWidget(
+                              text: 'Current Goals',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              textColor: AppColors.black,
+                              textAlign: TextAlign.left,
+                            ),
+                            const Gap(16),
+                            if (isLoading)
+                              const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              )
+                            else if (currentGoals.isEmpty)
+                              CustomTextWidget(
+                                text: 'No active goals yet. Add a new goal to get started!',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                textColor: AppColors.mediumGray,
+                                textAlign: TextAlign.left,
+                              ),
+                            if (!isLoading && currentGoals.isNotEmpty)
+                              ...currentGoals.map(
+                                (goal) => GoalItemWidget(
+                                  barColor: controller.barColorForGoal(goal),
+                                  title: goal.title,
+                                  subtitle: controller.formattedDateRange(goal),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                   const Gap(16),
-                  // Circular Progress Chart (Right)
                   const CircularProgressChartWidget(),
                 ],
               ),
@@ -158,21 +180,44 @@ class GoalScreen extends StatelessWidget {
               // All Goals List
               Expanded(
                 child: Obx(
-                  () => ListView.builder(
-                    itemCount: controller.filteredGoals.length,
-                    itemBuilder: (context, index) {
-                      final goal = controller.filteredGoals[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: GoalCardWidget(
-                          emoji: goal['emoji'],
-                          title: goal['title'],
-                          category: goal['category'],
-                          date: goal['date'],
+                  () {
+                    if (controller.isLoadingGoals.value &&
+                        controller.goals.isEmpty) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+
+                    final goals = controller.filteredGoals;
+
+                    if (goals.isEmpty) {
+                      return Center(
+                        child: CustomTextWidget(
+                          text: 'No goals found.',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          textColor: AppColors.mediumGray,
+                          textAlign: TextAlign.center,
                         ),
                       );
-                    },
-                  ),
+                    }
+
+                    return ListView.builder(
+                      itemCount: goals.length,
+                      itemBuilder: (context, index) {
+                        final goal = goals[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: GoalCardWidget(
+                            emoji: controller.emojiForGoal(goal),
+                            title: goal.title,
+                            category: goal.type,
+                            date: controller.formattedStartDate(goal),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
             ],

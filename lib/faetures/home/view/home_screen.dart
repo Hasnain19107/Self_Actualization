@@ -6,7 +6,7 @@ import '../../../core/const/app_exports.dart';
 import '../controller/home_controller.dart';
 import '../widgtes/action_cards_widget.dart';
 
-import '../widgtes/needs_slider_widget.dart';
+import '../../../core/widgets/needs_slider_widget.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

@@ -72,15 +72,34 @@ class DailyReflectionScreen extends StatelessWidget {
                   textAlign: TextAlign.left,
                 ),
                 const Gap(16),
-                // Mood emojis row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: controller.moodData.map((mood) {
-                    return MoodEmojiWidget(
-                      day: mood['day'],
-                      imagePath: mood['imagePath'] as String?,
+                // Mood emojis row - only show last 7 days, one per day
+                Obx(
+                  () {
+                    final moodsWithReflections = controller.moodsWithReflections;
+                    
+                    if (moodsWithReflections.isEmpty) {
+                      return Center(
+                        child: CustomTextWidget(
+                          text: 'No moods recorded yet',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          textColor: AppColors.mediumGray,
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }
+
+                    // Show in a row (max 7 days)
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: moodsWithReflections.map((mood) {
+                        return MoodEmojiWidget(
+                          day: mood['day'] as String? ?? '',
+                          imagePath: mood['imagePath'] as String?,
+                        );
+                      }).toList(),
                     );
-                  }).toList(),
+                  },
                 ),
                 const Gap(32),
 
@@ -113,14 +132,43 @@ class DailyReflectionScreen extends StatelessWidget {
 
                 // Reflection Cards List
                 Obx(
-                  () => Column(
-                    children: controller.reflections.map((reflection) {
-                      return ReflectionCardWidget(
-                        text: reflection['text'],
-                        date: reflection['date'],
+                  () {
+                    if (controller.isLoadingReflections.value) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: CircularProgressIndicator(),
+                        ),
                       );
-                    }).toList(),
-                  ),
+                    }
+
+                    if (controller.reflections.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32.0),
+                          child: CustomTextWidget(
+                            text: 'No reflections yet. Add your first reflection!',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            textColor: AppColors.mediumGray,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    }
+
+                    // Show only last 7 days reflections (one per day)
+                    final last7Days = controller.last7DaysReflections;
+                    
+                    return Column(
+                      children: last7Days.map((reflection) {
+                        return ReflectionCardWidget(
+                          text: reflection['text'] as String,
+                          date: reflection['date'] as String,
+                        );
+                      }).toList(),
+                    );
+                  },
                 ),
                 const Gap(20),
               ],

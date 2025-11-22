@@ -228,12 +228,15 @@ class AddGoalScreen extends StatelessWidget {
                         },
                       ),
                       const Gap(32),
-                      CustomElevatedButton(
-                        text: 'Save Goal',
-                        backgroundColor: AppColors.blue,
-                        textColor: AppColors.white,
-                        onPress: controller.saveGoal,
-                        width: double.infinity,
+                      Obx(
+                        () => CustomElevatedButton(
+                          text: 'Save Goal',
+                          backgroundColor: AppColors.blue,
+                          textColor: AppColors.white,
+                          onPress: controller.saveGoal,
+                          width: double.infinity,
+                          isLoading: controller.isSaving.value,
+                        ),
                       ),
                     ],
                   ),

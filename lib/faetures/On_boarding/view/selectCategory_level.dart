@@ -13,10 +13,8 @@ class SelectCategoryLevelScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Initialize plan from arguments
-    final planData = Get.arguments as Map<String, dynamic>?;
-    if (planData != null) {
-      controller.initializePlan(planData);
-    }
+    controller.initializeCategoryLevelScreen();
+    
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       body: SafeArea(
@@ -319,9 +317,7 @@ class SelectCategoryLevelScreen extends StatelessWidget {
                           text: 'Get Started',
                           backgroundColor: AppColors.blue,
                           textColor: AppColors.white,
-                          onPress: () {
-                            Get.toNamed(AppRoutes.selfAssessmentScreen);
-                          },
+                          onPress: controller.handleGetStarted,
                           hasRightIcon: true,
                           iconColor: AppColors.white,
                           iconData: Icons.arrow_forward,

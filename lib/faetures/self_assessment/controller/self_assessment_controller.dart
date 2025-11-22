@@ -5,6 +5,14 @@ import '../../../data/models/question/assessment_submission_model.dart';
 import '../../../data/repository/question_repository.dart';
 
 class SelfAssessmentController extends GetxController {
+  static const List<String> _questionCategoryOrder = [
+    'Survival',
+    'Safety',
+    'Social',
+    'Self',
+    'Meta-Needs',
+  ];
+
   // Repository
   final QuestionRepository _questionRepository = QuestionRepository();
 
@@ -48,33 +56,34 @@ class SelfAssessmentController extends GetxController {
 
   /// Fetch questions from API
   Future<void> fetchQuestions() async {
+    isLoading.value = true;
     try {
-      isLoading.value = true;
-      
-      final response = await _questionRepository.getQuestions();
-      
-      isLoading.value = false;
-      
-      if (response.success && response.data != null) {
-        questions.value = response.data!;
-        // Reset to first question
-        currentQuestionIndex.value = 0;
-        // Load existing answer if any
-        loadAnswerForCurrentQuestion();
-      } else {
-        ToastClass.showCustomToast(
-          response.message.isNotEmpty
+      final List<QuestionModel> fetchedQuestions = [];
+
+      for (final category in _questionCategoryOrder) {
+        final response =
+            await _questionRepository.getQuestions(category: category);
+
+        if (response.success && response.data != null) {
+          fetchedQuestions.addAll(response.data!);
+        } else {
+          final message = response.message.isNotEmpty
               ? response.message
-              : 'Failed to load questions',
-          type: ToastType.error,
-        );
+              : 'Failed to load $category questions';
+          throw Exception(message);
+        }
       }
+
+      questions.value = fetchedQuestions;
+      currentQuestionIndex.value = 0;
+      loadAnswerForCurrentQuestion();
     } catch (e) {
-      isLoading.value = false;
       ToastClass.showCustomToast(
-        'Failed to load questions. Please try again.',
+        e is Exception ? e.toString().replaceFirst('Exception: ', '') : 'Failed to load questions. Please try again.',
         type: ToastType.error,
       );
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -90,6 +99,11 @@ class SelfAssessmentController extends GetxController {
   /// Get current question text
   String get currentQuestionText {
     return currentQuestion?.questionText ?? '';
+  }
+
+  /// Current question category
+  String get currentQuestionCategory {
+    return currentQuestion?.category ?? '';
   }
 
   /// Get total questions count
