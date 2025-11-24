@@ -269,12 +269,15 @@ class ProfileSetupScreen extends StatelessWidget {
                         ),
                       ),
                       Gap(32),
-                      CustomElevatedButton(
-                        text: 'Finish Setup',
-                        backgroundColor: AppColors.blue,
-                        textColor: AppColors.white,
-                        onPress: controller.submitProfileSetup,
-                        width: double.infinity,
+                      Obx(
+                        () => CustomElevatedButton(
+                          text: 'Finish Setup',
+                          backgroundColor: AppColors.blue,
+                          textColor: AppColors.white,
+                          onPress: controller.submitProfileSetup,
+                          width: double.infinity,
+                          isLoading: controller.isProfileSubmitting.value,
+                        ),
                       ),
                     ],
                   ),

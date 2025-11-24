@@ -5,6 +5,7 @@ import '../models/api_response_model.dart';
 import '../models/user/user_model.dart';
 import '../models/user/register_request_model.dart';
 import '../models/user/login_request_model.dart';
+import '../models/user/profile_update_request_model.dart';
 import '../services/api_service.dart';
 import '../services/shared_preference_services.dart';
 
@@ -214,6 +215,103 @@ class UserRepository {
   Future<bool> isLoggedIn() async {
     final token = await getToken();
     return token != null && token.isNotEmpty;
+  }
+
+  /// Update user profile information
+  Future<ApiResponseModel<Map<String, dynamic>>> updateProfile(
+    ProfileUpdateRequestModel request,
+  ) async {
+    try {
+      DebugUtils.logInfo(
+        'Starting profile update request',
+        tag: 'UserRepository.updateProfile',
+      );
+
+      final response = await _apiService.put<Map<String, dynamic>>(
+        endpoint: ApiConstants.profileEndpoint,
+        body: request.toJson(),
+        includeAuth: true,
+        fromJsonT: (data) => data as Map<String, dynamic>,
+      );
+
+      if (response.success) {
+        DebugUtils.logInfo(
+          'Profile updated successfully',
+          tag: 'UserRepository.updateProfile',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Profile update failed: ${response.message}',
+          tag: 'UserRepository.updateProfile',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Profile update error',
+        tag: 'UserRepository.updateProfile',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<Map<String, dynamic>>(
+        success: false,
+        message: 'Failed to update profile: ${e.toString()}',
+      );
+    }
+  }
+
+  /// Get current user data
+  Future<ApiResponseModel<UserModel>> getUserData() async {
+    try {
+      DebugUtils.logInfo(
+        'Starting to fetch user data',
+        tag: 'UserRepository.getUserData',
+      );
+
+      final response = await _apiService.get<UserModel>(
+        endpoint: ApiConstants.getUserDataEndpoint,
+        includeAuth: true, // Requires authentication
+        fromJsonT: (data) {
+          // The API returns { success, data: { user: {...} } }
+          // So 'data' parameter here is the data object containing 'user'
+          if (data is Map<String, dynamic>) {
+            final userData = data['user'] as Map<String, dynamic>?;
+            if (userData != null) {
+              return UserModel.fromJson(userData);
+            }
+          }
+          throw Exception('Invalid user data format');
+        },
+      );
+
+      if (response.success && response.data != null) {
+        DebugUtils.logInfo(
+          'User data fetched successfully',
+          tag: 'UserRepository.getUserData',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Failed to fetch user data: ${response.message}',
+          tag: 'UserRepository.getUserData',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Error fetching user data',
+        tag: 'UserRepository.getUserData',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<UserModel>(
+        success: false,
+        message: 'Failed to fetch user data: ${e.toString()}',
+      );
+    }
   }
 }
 

@@ -8,11 +8,15 @@ class ApiConstants {
   static const String registerEndpoint = '/api/auth/register';
   static const String loginEndpoint = '/api/auth/login';
   static const String forgotPasswordEndpoint = '/api/auth/forgot-password';
+  static const String getUserDataEndpoint = '/api/auth/me';
   static const String questionsEndpoint = '/api/questions';
   static const String assessmentSubmitEndpoint = '/api/assessment/submit';
   static const String assessmentResultEndpoint = '/api/assessment/result';
+  static const String assessmentDownloadPdfEndpoint =
+      '/api/assessment/download-pdf';
   static const String reflectionsEndpoint = '/api/reflections';
   static const String goalsEndpoint = '/api/goals';
+  static const String profileEndpoint = '/api/auth/profile';
 
   // Headers
   static const String authorizationHeader = 'Authorization';

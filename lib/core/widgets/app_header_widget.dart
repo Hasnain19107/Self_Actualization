@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get.dart';
 import '../const/app_exports.dart';
+import '../controllers/user_controller.dart';
 
 class AppHeaderWidget extends StatelessWidget {
   final String title;
@@ -28,42 +30,49 @@ class AppHeaderWidget extends StatelessWidget {
           children: [
             // Profile Picture
             if (showProfile)
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primaryColor,
-                ),
-                child: ClipOval(
-                  child: Image.asset(
-                    profileImagePath ?? AppImages.avatar1,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: AppColors.lightGray,
-                        child: const Icon(
-                          Icons.person,
-                          size: 30,
-                          color: AppColors.white,
-                        ),
-                      );
-                    },
+              Obx(() {
+                final userController = Get.isRegistered<UserController>()
+                    ? Get.find<UserController>()
+                    : null;
+                final avatarPath = profileImagePath ??
+                    (userController?.currentUser.value?.avatar ?? AppImages.avatar1);
+
+                return Container(
+                  width: 50,
+                  height: 50,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
                   ),
-                ),
-              )
+                  child: ClipOval(
+                    child: Image.asset(
+                      avatarPath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: AppColors.lightGray,
+                          child: const Icon(
+                            Icons.person,
+                            size: 30,
+                            color: AppColors.white,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              })
             else
               const SizedBox(width: 50),
-            // Title
 
             // Bell Icon
             if (showNotification)
               IconButton(
-                onPressed: onNotificationTap,
+                onPressed: onNotificationTap ??
+                    () => Get.toNamed(AppRoutes.notificationScreen),
                 icon: Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppColors.white,
                   ),
@@ -78,14 +87,15 @@ class AppHeaderWidget extends StatelessWidget {
               const SizedBox(width: 40),
           ],
         ),
-        Gap(20),
+
+        const Gap(20),
+
         if (title.isNotEmpty)
           CustomTextWidget(
             text: title,
             fontSize: 24,
             fontWeight: FontWeight.w700,
             textColor: AppColors.black,
-            textAlign: TextAlign.center,
           ),
       ],
     );

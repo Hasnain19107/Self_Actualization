@@ -5,6 +5,9 @@ class UserModel {
   final String name;
   final String email;
   final String? token;
+  final String? avatar;
+  final int? age;
+  final List<String>? focusAreas;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -13,6 +16,9 @@ class UserModel {
     required this.name,
     required this.email,
     this.token,
+    this.avatar,
+    this.age,
+    this.focusAreas,
     this.createdAt,
     this.updatedAt,
   });
@@ -24,6 +30,13 @@ class UserModel {
       name: json['name'] as String? ?? '',
       email: json['email'] as String? ?? '',
       token: json['token'] as String?,
+      avatar: json['avatar'] as String?,
+      age: json['age'] as int?,
+      focusAreas: json['focusAreas'] != null
+          ? (json['focusAreas'] as List<dynamic>)
+              .map((e) => e.toString())
+              .toList()
+          : null,
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString())
           : null,
@@ -40,6 +53,9 @@ class UserModel {
       'name': name,
       'email': email,
       'token': token,
+      'avatar': avatar,
+      'age': age,
+      'focusAreas': focusAreas,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };
@@ -51,6 +67,9 @@ class UserModel {
     String? name,
     String? email,
     String? token,
+    String? avatar,
+    int? age,
+    List<String>? focusAreas,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -59,6 +78,9 @@ class UserModel {
       name: name ?? this.name,
       email: email ?? this.email,
       token: token ?? this.token,
+      avatar: avatar ?? this.avatar,
+      age: age ?? this.age,
+      focusAreas: focusAreas ?? this.focusAreas,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

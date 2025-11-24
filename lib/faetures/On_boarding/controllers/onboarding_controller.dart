@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/const/app_exports.dart';
+import '../../../data/models/user/profile_update_request_model.dart';
+import '../../../data/repository/user_repository.dart';
 import '../../../data/services/shared_preference_services.dart';
 
 class OnboardingController extends GetxController {
+  final UserRepository _userRepository = UserRepository();
   // Store selected plan
   final RxString selectedPlanId = ''.obs;
   
@@ -229,6 +232,7 @@ class OnboardingController extends GetxController {
   final RxInt age = 45.obs;
   final RxSet<String> selectedFocusAreas = <String>{}.obs;
   final RxString selectedAvatar = ''.obs;
+  final RxBool isProfileSubmitting = false.obs;
 
   // Focus Areas options
   final List<String> focusAreas = [
@@ -267,6 +271,23 @@ class OnboardingController extends GetxController {
     selectedFocusAreas.remove(focusArea);
   }
 
+  String _mapAvatarKeyToAsset(String avatarKey) {
+    switch (avatarKey) {
+      case 'avatar1':
+        return AppImages.avatar1;
+      case 'avatar2':
+        return AppImages.avatar2;
+      case 'avatar3':
+        return AppImages.avatar3;
+      case 'avatar4':
+        return AppImages.avatar4;
+      case 'avatar5':
+        return AppImages.avatar5;
+      default:
+        return AppImages.avatar1;
+    }
+  }
+
   // Select Avatar (single selection)
   void selectAvatar(String avatar) {
     selectedAvatar.value = avatar;
@@ -291,7 +312,8 @@ class OnboardingController extends GetxController {
 
   // Submit Profile Setup
   Future<void> submitProfileSetup() async {
-    if (fullNameController.text.isEmpty) {
+    final fullName = fullNameController.text.trim();
+    if (fullName.isEmpty) {
       ToastClass.showCustomToast('Please enter your full name', type: ToastType.error);
       return;
     }
@@ -303,26 +325,41 @@ class OnboardingController extends GetxController {
       ToastClass.showCustomToast('Please select an avatar', type: ToastType.error);
       return;
     }
-    
-    // Save profile setup completion status to local storage
+
+    final request = ProfileUpdateRequestModel(
+      name: fullName,
+      age: age.value,
+      focusAreas: selectedFocusAreas.toList(),
+      avatar: _mapAvatarKeyToAsset(selectedAvatar.value),
+    );
+
+    // Save profile setup completion status after successful API update
     try {
+      isProfileSubmitting.value = true;
+
+      final response = await _userRepository.updateProfile(request);
+      if (!response.success) {
+        final message = response.message.isNotEmpty
+            ? response.message
+            : 'Failed to update profile. Please try again.';
+        ToastClass.showCustomToast(message, type: ToastType.error);
+        return;
+      }
+
       await PreferenceHelper.setBool(
         PrefConstants.isProfileSetupCompleted,
         true,
       );
-      
-      // Save profile data (optional - if you want to persist the data)
-      // You can save fullName, age, selectedFocusAreas, selectedAvatar if needed
-      
+
       ToastClass.showCustomToast('Profile setup completed', type: ToastType.success);
-      
-      // Navigate to main navigation screen
       Get.offAllNamed(AppRoutes.mainNavScreen);
     } catch (e) {
       ToastClass.showCustomToast(
         'Failed to save profile setup. Please try again.',
         type: ToastType.error,
       );
+    } finally {
+      isProfileSubmitting.value = false;
     }
   }
 

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import '../../core/const/api_constants.dart';
 import '../../core/utils/debug_utils.dart';
 import '../models/api_response_model.dart';
@@ -186,6 +187,47 @@ class QuestionRepository {
       return ApiResponseModel<AssessmentResultModel>(
         success: false,
         message: 'Failed to fetch assessment result: ${e.toString()}',
+      );
+    }
+  }
+
+  /// Download assessment result as PDF
+  Future<ApiResponseModel<Uint8List>> downloadAssessmentPdf() async {
+    try {
+      DebugUtils.logInfo(
+        'Starting to download assessment PDF',
+        tag: 'QuestionRepository.downloadAssessmentPdf',
+      );
+
+      final response = await _apiService.downloadFile(
+        endpoint: ApiConstants.assessmentDownloadPdfEndpoint,
+        includeAuth: true,
+      );
+
+      if (response.success) {
+        DebugUtils.logInfo(
+          'Assessment PDF download request succeeded',
+          tag: 'QuestionRepository.downloadAssessmentPdf',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Assessment PDF download failed: ${response.message}',
+          tag: 'QuestionRepository.downloadAssessmentPdf',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Error downloading assessment PDF',
+        tag: 'QuestionRepository.downloadAssessmentPdf',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<Uint8List>(
+        success: false,
+        message: 'Failed to download assessment PDF: ${e.toString()}',
       );
     }
   }

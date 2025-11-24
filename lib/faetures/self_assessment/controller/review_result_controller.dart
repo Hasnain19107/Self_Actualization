@@ -1,6 +1,11 @@
 import 'dart:math' as math;
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/const/app_exports.dart';
 import '../../../core/models/need_data.dart';
 import '../../../data/models/question/assessment_result_model.dart';
@@ -11,11 +16,17 @@ class ReviewResultController extends GetxController {
   final QuestionRepository _questionRepository = QuestionRepository();
 
   // Assessment result data
-  final Rx<AssessmentResultModel?> assessmentResult = Rx<AssessmentResultModel?>(null);
+  final Rx<AssessmentResultModel?> assessmentResult =
+      Rx<AssessmentResultModel?>(null);
   final RxList<NeedData> sliderNeeds = <NeedData>[].obs;
-  
+
   // Loading state
   final RxBool isLoading = false.obs;
+  final RxBool isDownloadingPdf = false.obs;
+  final RxBool isSharingPdf = false.obs;
+  
+  // Store the downloaded PDF file path
+  String? _downloadedPdfPath;
 
   @override
   void onInit() {
@@ -279,12 +290,152 @@ class ReviewResultController extends GetxController {
     return maxScore > 0 ? maxScore : 10.0;
   }
 
-  void downloadPDF() {
-    ToastClass.showCustomToast('Download PDF Summary functionality', type: ToastType.simple);
+  Future<void> downloadPDF() async {
+    if (isDownloadingPdf.value) return;
+
+    try {
+      isDownloadingPdf.value = true;
+      final response = await _questionRepository.downloadAssessmentPdf();
+
+      if (response.success && response.data != null) {
+        final filePath = await _savePdfToFile(response.data!);
+        _downloadedPdfPath = filePath; // Store the path for sharing
+        
+        try {
+          await OpenFilex.open(filePath);
+          ToastClass.showCustomToast(
+            'PDF downloaded and opened successfully',
+            type: ToastType.success,
+          );
+        } catch (openError) {
+          // File saved but couldn't open - still show success with location
+          ToastClass.showCustomToast(
+            'PDF saved to: $filePath',
+            type: ToastType.success,
+          );
+        }
+      } else {
+        final message = response.message.isNotEmpty
+            ? response.message
+            : 'Unable to download PDF. Please try again.';
+        ToastClass.showCustomToast(message, type: ToastType.error);
+      }
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Failed to download PDF: ${e.toString()}',
+        type: ToastType.error,
+      );
+    } finally {
+      isDownloadingPdf.value = false;
+    }
   }
 
-  void shareToCoach() {
-    ToastClass.showCustomToast('Share to Coach functionality', type: ToastType.simple);
+  Future<String> _savePdfToFile(Uint8List bytes) async {
+    // Use temporary directory for sharing - accessible by share_plus on both Android and iOS
+    final directory = await getTemporaryDirectory();
+
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final filePath = '${directory.path}/assessment_result_$timestamp.pdf';
+    final file = File(filePath);
+    await file.writeAsBytes(bytes, flush: true);
+    return file.path;
+  }
+
+  Future<void> shareToCoach() async {
+    if (isSharingPdf.value) return;
+
+    try {
+      isSharingPdf.value = true;
+
+      String? filePathToShare;
+
+      // If PDF is already downloaded, use it directly
+      if (_downloadedPdfPath != null && File(_downloadedPdfPath!).existsSync()) {
+        filePathToShare = _downloadedPdfPath;
+      } else {
+        // Otherwise, download the PDF first
+        final response = await _questionRepository.downloadAssessmentPdf();
+
+        if (response.success && response.data != null) {
+          filePathToShare = await _savePdfToFile(response.data!);
+          _downloadedPdfPath = filePathToShare;
+        } else {
+          final message = response.message.isNotEmpty
+              ? response.message
+              : 'Unable to download PDF for sharing. Please try again.';
+          ToastClass.showCustomToast(message, type: ToastType.error);
+          return;
+        }
+      }
+
+      // Share the PDF file
+      if (filePathToShare != null) {
+        await _sharePdfFile(filePathToShare);
+      }
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Failed to share PDF: ${e.toString()}',
+        type: ToastType.error,
+      );
+    } finally {
+      isSharingPdf.value = false;
+    }
+  }
+
+  Future<void> _sharePdfFile(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (!file.existsSync()) {
+        ToastClass.showCustomToast(
+          'PDF file not found. Please download it first.',
+          type: ToastType.error,
+        );
+        return;
+      }
+
+      DebugUtils.logInfo(
+        'Sharing PDF file: $filePath, exists: ${file.existsSync()}, size: ${await file.length()}',
+        tag: 'ReviewResultController._sharePdfFile',
+      );
+
+      final xFile = XFile(
+        filePath,
+        mimeType: 'application/pdf',
+        name: 'assessment_result.pdf',
+      );
+
+      DebugUtils.logInfo(
+        'Calling Share.shareXFiles with file: ${xFile.path}',
+        tag: 'ReviewResultController._sharePdfFile',
+      );
+
+      // Use shareXFiles - share_plus handles FileProvider automatically
+      final result = await Share.shareXFiles(
+        [xFile],
+        text: 'Assessment Results PDF',
+        subject: 'Self-Actualization Assessment Results',
+      );
+
+      DebugUtils.logInfo(
+        'Share completed with status: ${result.status}',
+        tag: 'ReviewResultController._sharePdfFile',
+      );
+
+      // Share dialog opened - no need for success toast
+      // The native share sheet is the feedback
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Error sharing PDF: $e',
+        tag: 'ReviewResultController._sharePdfFile',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      ToastClass.showCustomToast(
+        'Failed to share PDF. Please try again.',
+        type: ToastType.error,
+      );
+      rethrow;
+    }
   }
 
   void continueAction() {

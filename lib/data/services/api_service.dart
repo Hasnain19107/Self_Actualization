@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../../core/const/api_constants.dart';
 import '../../core/const/pref_consts.dart';
@@ -331,6 +333,70 @@ class ApiService {
       return _handleResponse<T>(response, fromJsonT, uri.toString(), 'DELETE');
     } catch (e, stackTrace) {
       return _handleError<T>(e, '${ApiConstants.baseUrl}$endpoint', 'DELETE', stackTrace);
+    }
+  }
+
+  /// Download binary file (e.g., PDF)
+  Future<ApiResponseModel<Uint8List>> downloadFile({
+    required String endpoint,
+    bool includeAuth = true,
+    Map<String, String>? additionalHeaders,
+  }) async {
+    try {
+      final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final headers = await _getHeaders(
+        includeAuth: includeAuth,
+        additionalHeaders: additionalHeaders,
+      );
+      headers.putIfAbsent(HttpHeaders.acceptHeader, () => 'application/pdf');
+
+      DebugUtils.logApiRequest(
+        method: 'GET',
+        url: uri.toString(),
+        headers: headers,
+      );
+
+      final response = await http
+          .get(uri, headers: headers)
+          .timeout(ApiConstants.connectionTimeout);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        DebugUtils.logApiResponse(
+          statusCode: response.statusCode,
+          url: uri.toString(),
+          body: 'Binary file downloaded (${response.bodyBytes.lengthInBytes} bytes)',
+        );
+
+        return ApiResponseModel<Uint8List>(
+          success: true,
+          data: response.bodyBytes,
+          message: '',
+          statusCode: response.statusCode,
+        );
+      }
+
+      DebugUtils.logHttpError(
+        statusCode: response.statusCode,
+        url: uri.toString(),
+        method: 'GET',
+        body: response.body,
+        errorMessage: 'HTTP ${response.statusCode} Error',
+      );
+
+      return ApiResponseModel<Uint8List>(
+        success: false,
+        message: response.body.isNotEmpty
+            ? response.body
+            : 'Failed to download file (HTTP ${response.statusCode})',
+        statusCode: response.statusCode,
+      );
+    } catch (e, stackTrace) {
+      return _handleError<Uint8List>(
+        e,
+        '${ApiConstants.baseUrl}$endpoint',
+        'GET',
+        stackTrace,
+      );
     }
   }
 }

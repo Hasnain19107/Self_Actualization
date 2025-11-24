@@ -14,59 +14,93 @@ class ReviewResultActionButtonsWidget extends StatelessWidget {
     return Column(
       children: [
         // Download PDF Summary Button
-        GestureDetector(
-          onTap: controller.downloadPDF,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(1000),
-              border: Border.all(color: AppColors.inputBorderGrey, width: 1),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomTextWidget(
-                  text: 'Download PDF Summary',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  textColor: AppColors.black,
-                  textAlign: TextAlign.center,
+        Obx(
+          () {
+            final isLoading = controller.isDownloadingPdf.value;
+            return GestureDetector(
+              onTap: isLoading ? null : controller.downloadPDF,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(1000),
+                  border: Border.all(color: AppColors.inputBorderGrey, width: 1),
                 ),
-                const Gap(8),
-                const Icon(Icons.download, color: AppColors.blue, size: 20),
-              ],
-            ),
-          ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (isLoading) ...[
+                      const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      const Gap(12),
+                    ],
+                    CustomTextWidget(
+                      text: 'Download PDF Summary',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      textColor: AppColors.black,
+                      textAlign: TextAlign.center,
+                    ),
+                    const Gap(8),
+                    Icon(
+                      Icons.download,
+                      color: isLoading ? AppColors.inputBorderGrey : AppColors.blue,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
         const Gap(12),
         // Share to Coach Button
-        GestureDetector(
-          onTap: controller.shareToCoach,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(1000),
-              border: Border.all(color: AppColors.inputBorderGrey, width: 1),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomTextWidget(
-                  text: 'Share to Coach',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  textColor: AppColors.black,
-                  textAlign: TextAlign.center,
+        Obx(
+          () {
+            final isSharing = controller.isSharingPdf.value;
+            return GestureDetector(
+              onTap: isSharing ? null : controller.shareToCoach,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(1000),
+                  border: Border.all(color: AppColors.inputBorderGrey, width: 1),
                 ),
-                const Gap(8),
-                const Icon(Icons.share, color: AppColors.blue, size: 20),
-              ],
-            ),
-          ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (isSharing) ...[
+                      const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      const Gap(12),
+                    ],
+                    CustomTextWidget(
+                      text: 'Share to Coach',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      textColor: AppColors.black,
+                      textAlign: TextAlign.center,
+                    ),
+                    const Gap(8),
+                    Icon(
+                      Icons.share,
+                      color: isSharing ? AppColors.inputBorderGrey : AppColors.blue,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
         const Gap(12),
         // Continue Button
