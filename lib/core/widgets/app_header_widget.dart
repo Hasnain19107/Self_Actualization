@@ -37,26 +37,31 @@ class AppHeaderWidget extends StatelessWidget {
                 final avatarPath = profileImagePath ??
                     (userController?.currentUser.value?.avatar ?? AppImages.avatar1);
 
-                return Container(
-                  width: 50,
-                  height: 50,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                  ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      avatarPath,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: AppColors.lightGray,
-                          child: const Icon(
-                            Icons.person,
-                            size: 30,
-                            color: AppColors.white,
-                          ),
-                        );
-                      },
+                return GestureDetector(
+                  onTap: () {
+                    Get.toNamed(AppRoutes.profileSetupScreen);
+                  },
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        avatarPath,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: AppColors.lightGray,
+                            child: const Icon(
+                              Icons.person,
+                              size: 30,
+                              color: AppColors.white,
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 );

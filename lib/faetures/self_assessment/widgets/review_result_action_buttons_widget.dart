@@ -34,7 +34,7 @@ class ReviewResultActionButtonsWidget extends StatelessWidget {
                       const SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CustomProgressIndicator(strokeWidth: 2),
                       ),
                       const Gap(12),
                     ],
@@ -79,7 +79,7 @@ class ReviewResultActionButtonsWidget extends StatelessWidget {
                       const SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CustomProgressIndicator(strokeWidth: 2),
                       ),
                       const Gap(12),
                     ],

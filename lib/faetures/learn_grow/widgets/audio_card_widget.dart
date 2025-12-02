@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/learn_grow_controller.dart';
 import '../../../core/const/app_exports.dart';
+import '../../../data/models/audio/audio_model.dart';
 
 class AudioCardWidget extends StatelessWidget {
-  final AudioFile audio;
+  final AudioModel audio;
 
   const AudioCardWidget({super.key, required this.audio});
 
@@ -41,7 +42,7 @@ class AudioCardWidget extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    audio.emoji,
+                    controller.getEmojiForCategory(audio.category),
                     style: const TextStyle(fontSize: 14),
                   ),
                 ),
@@ -59,30 +60,31 @@ class AudioCardWidget extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               // Time and duration
-              Container(
-                width: 66,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Center(
-                  child: Text(
-                    '${audio.currentTime}/${audio.totalDuration}',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w400,
+              Obx(() => Container(
+                    width: 66,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                  ),
-                ),
-              ),
+                    child: Center(
+                      child: Text(
+                        '${controller.getAudioCurrentTime(audio.id)}/${controller.getAudioTotalDuration(audio.id)}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w400,
+                          color: isSelected ? AppColors.white : AppColors.black,
+                        ),
+                      ),
+                    ),
+                  )),
               const SizedBox(width: 12),
-              // Pause/Play icon
-              Icon(
-                audio.isPlaying.value ? Icons.pause : Icons.pause_outlined,
-                color: isSelected ? AppColors.white : AppColors.black,
-                size: 24,
-              ),
+              // Play/Pause icon
+              Obx(() => Icon(
+                    controller.isAudioPlaying(audio.id) ? Icons.pause : Icons.play_arrow,
+                    color: isSelected ? AppColors.white : AppColors.black,
+                    size: 24,
+                  )),
             ],
           ),
         ),

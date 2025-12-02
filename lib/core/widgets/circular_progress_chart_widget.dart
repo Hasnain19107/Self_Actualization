@@ -3,10 +3,65 @@ import 'package:flutter/material.dart';
 import '../const/app_colors.dart';
 
 class CircularProgressChartWidget extends StatelessWidget {
-  const CircularProgressChartWidget({super.key});
+  final List<Map<String, dynamic>>? segments;
+  
+  const CircularProgressChartWidget({
+    super.key,
+    this.segments,
+  });
+  
+  // Get icon for goal type (goal-related icons)
+  static IconData _getIconForGoalType(String goalType) {
+    switch (goalType) {
+      case 'Career':
+        return Icons.assignment; // Career goals/tasks
+      case 'Health':
+        return Icons.fitness_center; // Health goals
+      case 'Spiritual':
+        return Icons.self_improvement; // Spiritual goals
+      case 'Personal':
+      default:
+        return Icons.flag; // Personal goals/targets
+    }
+  }
+  
+  // Get center icon based on segments
+  IconData get _centerIcon {
+    if (segments == null || segments!.isEmpty) {
+      return Icons.flag; // Default goal icon
+    }
+    // Use the first goal's type to determine center icon
+    final firstSegment = segments!.first;
+    final goalType = firstSegment['goalType'] as String?;
+    if (goalType != null) {
+      return _getIconForGoalType(goalType);
+    }
+    return Icons.flag; // Default goal icon
+  }
+  
+  // Get perimeter icons based on segments
+  List<Map<String, dynamic>> get _perimeterIcons {
+    if (segments == null || segments!.isEmpty) {
+      return [];
+    }
+    
+    return segments!.asMap().entries.map((entry) {
+      final segment = entry.value;
+      final goalType = segment['goalType'] as String? ?? 'Personal';
+      
+      return {
+        'angle': segment['angle'] as double,
+        'icon': _getIconForGoalType(goalType),
+        'color': segment['color'] as Color,
+      };
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final chartSegments = this.segments ?? [];
+    final perimeterIcons = _perimeterIcons;
+    
     return Opacity(
       opacity: 1,
       child: Transform.rotate(
@@ -17,26 +72,21 @@ class CircularProgressChartWidget extends StatelessWidget {
           child: Stack(
             children: [
               CustomPaint(
-                painter: CircularChartPainter(),
+                painter: CircularChartPainter(segments: chartSegments),
                 child: const SizedBox.expand(),
               ),
               // Center icon
-              const Center(
-                child: Icon(Icons.eco, color: AppColors.white, size: 26),
+              Center(
+                child: Icon(_centerIcon, color: AppColors.white, size: 26),
               ),
               // Icons perfectly aligned to arc stroke
-              _buildPerimeterIcon(
-                angle: -60, // top-right
-                icon: Icons.local_florist,
-              ),
-              _buildPerimeterIcon(
-                angle: 60, // bottom-right
-                icon: Icons.local_cafe,
-              ),
-              _buildPerimeterIcon(
-                angle: 180, // left side
-                icon: Icons.bed,
-              ),
+              ...perimeterIcons.map((iconData) {
+                return _buildPerimeterIcon(
+                  angle: iconData['angle'] as double,
+                  icon: iconData['icon'] as IconData,
+                  color: iconData['color'] as Color,
+                );
+              }).toList(),
             ],
           ),
         ),
@@ -44,7 +94,11 @@ class CircularProgressChartWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildPerimeterIcon({required double angle, required IconData icon}) {
+  Widget _buildPerimeterIcon({
+    required double angle,
+    required IconData icon,
+    Color? color,
+  }) {
     final radians = angle * math.pi / 180;
     const size = Size(155, 150);
     final center = Offset(size.width / 2, size.height / 2);
@@ -63,9 +117,9 @@ class CircularProgressChartWidget extends StatelessWidget {
       child: Container(
         width: 32,
         height: 32,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Color(0xFF5E6B6B),
+          color: const Color(0x66000000), // #00000066 - 40% opacity black
         ),
         child: Icon(icon, color: Colors.white, size: 18),
       ),
@@ -74,22 +128,43 @@ class CircularProgressChartWidget extends StatelessWidget {
 }
 
 class CircularChartPainter extends CustomPainter {
+  final List<Map<String, dynamic>> segments;
+  
+  CircularChartPainter({required this.segments});
+  
   @override
   void paint(Canvas canvas, Size size) {
+    if (segments.isEmpty) {
+      // Draw default segments if no goals
+      final defaultSegments = [
+        _ArcSegment(120, const Color(0xFFD3E85D)), // Lime
+        _ArcSegment(150, const Color(0xFF7AC4E6)), // Sky Blue
+        _ArcSegment(90, const Color(0xFFE9C6F2)), // Light Pink
+      ];
+      _drawSegments(canvas, size, defaultSegments);
+      return;
+    }
+    
+    // Convert segments to _ArcSegment list
+    final arcSegments = segments.map((seg) {
+      return _ArcSegment(
+        seg['sweepAngle'] as double,
+        seg['color'] as Color,
+      );
+    }).toList();
+    
+    _drawSegments(canvas, size, arcSegments);
+  }
+  
+  void _drawSegments(Canvas canvas, Size size, List<_ArcSegment> arcSegments) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2.4;
     const strokeWidth = 24.0;
     const startAngle = -math.pi / 2;
 
-    final segments = [
-      _ArcSegment(120, const Color(0xFFD3E85D)), // Lime
-      _ArcSegment(150, const Color(0xFF7AC4E6)), // Sky Blue
-      _ArcSegment(90, const Color(0xFFE9C6F2)), // Light Pink
-    ];
-
     double currentStart = startAngle;
 
-    for (final seg in segments) {
+    for (final seg in arcSegments) {
       final paint = Paint()
         ..color = seg.color
         ..style = PaintingStyle.stroke
@@ -109,7 +184,12 @@ class CircularChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    if (oldDelegate is CircularChartPainter) {
+      return oldDelegate.segments != segments;
+    }
+    return true;
+  }
 }
 
 class _ArcSegment {

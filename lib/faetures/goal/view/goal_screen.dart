@@ -93,7 +93,7 @@ class GoalScreen extends StatelessWidget {
                               const Center(
                                 child: Padding(
                                   padding: EdgeInsets.all(16.0),
-                                  child: CircularProgressIndicator(),
+                                  child: CustomProgressIndicator(),
                                 ),
                               )
                             else if (currentGoals.isEmpty)
@@ -118,7 +118,13 @@ class GoalScreen extends StatelessWidget {
                     ),
                   ),
                   const Gap(16),
-                  const CircularProgressChartWidget(),
+                  Obx(() {
+                    // Observe goals to update chart
+                    final _ = controller.goals.length;
+                    return CircularProgressChartWidget(
+                      segments: controller.chartSegments,
+                    );
+                  }),
                 ],
               ),
               const Gap(24),
@@ -184,7 +190,7 @@ class GoalScreen extends StatelessWidget {
                     if (controller.isLoadingGoals.value &&
                         controller.goals.isEmpty) {
                       return const Center(
-                        child: CircularProgressIndicator(),
+                        child: CustomProgressIndicator(),
                       );
                     }
 

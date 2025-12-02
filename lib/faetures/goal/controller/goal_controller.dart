@@ -90,7 +90,7 @@ class GoalController extends GetxController {
 
   void onAddNewGoal() {
     // Navigate to add goal screen
-    Get.toNamed(AppRoutes.addGoalScreen);
+    Get.offNamed(AppRoutes.addGoalScreen);
   }
 
   void selectGoalType(String type) {
@@ -248,6 +248,33 @@ class GoalController extends GetxController {
   String emojiForGoal(GoalModel goal) => _getEmojiForType(goal.type);
   String formattedStartDate(GoalModel goal) => _formatDate(goal.startDate);
   String formattedDateRange(GoalModel goal) => _formatDateRange(goal);
+  
+  // Get chart segments from current goals (max 3 segments)
+  List<Map<String, dynamic>> get chartSegments {
+    final currentGoalsList = currentGoals;
+    if (currentGoalsList.isEmpty) {
+      return [];
+    }
+    
+    // Take up to 3 goals for the chart
+    final goalsForChart = currentGoalsList.take(3).toList();
+    final totalGoals = goalsForChart.length;
+    
+    // Calculate sweep angle per segment (360 degrees total)
+    final sweepAnglePerSegment = 360.0 / totalGoals;
+    
+    return goalsForChart.asMap().entries.map((entry) {
+      final index = entry.key;
+      final goal = entry.value;
+      
+      return {
+        'sweepAngle': sweepAnglePerSegment,
+        'color': barColorForGoal(goal),
+        'goalType': goal.type, // Pass goal type so widget can determine icon
+        'angle': -90 + (index * sweepAnglePerSegment) + (sweepAnglePerSegment / 2), // Center of segment
+      };
+    }).toList();
+  }
 
   String? _parseDateToIso(String value) {
     if (value.isEmpty) return null;
@@ -273,10 +300,7 @@ class GoalController extends GetxController {
   @override
   void onClose() {
     searchController.dispose();
-    goalTitleController.dispose();
-    startDateController.dispose();
-    endDateController.dispose();
-    descriptionController.dispose();
+   
     super.onClose();
   }
 }

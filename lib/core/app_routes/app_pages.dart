@@ -3,13 +3,17 @@ import 'package:pixsa_petrol_pump/faetures/auth/view/sign_in_screen.dart';
 import 'package:pixsa_petrol_pump/faetures/auth/view/sign_up_screen.dart';
 import 'package:pixsa_petrol_pump/faetures/auth/view/forgot_password_screen.dart';
 import 'package:pixsa_petrol_pump/faetures/auth/view/welcome_screen.dart';
-import '../../faetures/On_boarding/bindings/onBoarding_binding.dart';
-import '../../faetures/On_boarding/view/selectCategory_level.dart';
-import '../../faetures/On_boarding/view/select_plan.dart';
+import 'package:pixsa_petrol_pump/faetures/self_assessment/binding/review_result_binding.dart';
+import 'package:pixsa_petrol_pump/faetures/subscription/bindings/onBoarding_binding.dart';
+import 'package:pixsa_petrol_pump/faetures/self_assessment/view/selectCategory_level.dart';
+import 'package:pixsa_petrol_pump/faetures/subscription/view/select_plan.dart';
+
+
 import '../../faetures/self_assessment/view/self_assessment.dart';
 import '../../faetures/self_assessment/binding/self_assessment_binding.dart';
 import '../../faetures/self_assessment/view/review_result_screen.dart';
-import '../../faetures/On_boarding/view/profileSetup_screen.dart';
+import '../../faetures/profile/view/profileSetup_screen.dart';
+import '../../faetures/profile/binding/profile_binding.dart';
 import '../../faetures/splash/bindings/splash_binding.dart';
 import '../../faetures/splash/view/splash_screen.dart';
 import '../../faetures/bottom_navigation_bar/view/main_nav_screen.dart';
@@ -30,8 +34,7 @@ import '../../faetures/notification/binding/notification_binding.dart';
 import '../../faetures/bottom_navigation_bar/bindings/bottom_nav_binding.dart';
 import '../../faetures/home/binding/home_binding.dart';
 import '../../faetures/activity/binding/your_activity_binding.dart';
-import '../../faetures/subscription/view/plan_details_screen.dart';
-import '../../faetures/subscription/binding/plan_details_binding.dart';
+
 import 'package:get/get.dart';
 import 'app_routes.dart';
 
@@ -78,7 +81,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.selectPlanScreen,
       page: () => const SelectPlanScreen(),
-      binding: OnboardingBinding(),
+      binding: SubscriptionBinding(),
       transition: Transition.downToUp,
       transitionDuration: const Duration(microseconds: 300),
     ),
@@ -86,10 +89,12 @@ class AppPages {
     GetPage(
       name: AppRoutes.categoryLevelScreen,
       page: () => SelectCategoryLevelScreen(),
-      binding: OnboardingBinding(),
+      binding: SelfAssessmentBinding(),
       transition: Transition.downToUp,
       transitionDuration: const Duration(microseconds: 300),
     ),
+
+   
 
     GetPage(
       name: AppRoutes.selfAssessmentScreen,
@@ -102,7 +107,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.reviewResultScreen,
       page: () => ReviewResultScreen(),
-      binding: OnboardingBinding(),
+      binding: ReviewResultBinding(),
       transition: Transition.downToUp,
       transitionDuration: const Duration(microseconds: 300),
     ),
@@ -110,7 +115,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.profileSetupScreen,
       page: () => ProfileSetupScreen(),
-      binding: OnboardingBinding(),
+      binding: ProfileBinding(),
       transition: Transition.downToUp,
       transitionDuration: const Duration(microseconds: 300),
     ),
@@ -195,12 +200,6 @@ class AppPages {
       transitionDuration: const Duration(milliseconds: 300),
     ),
 
-    GetPage(
-      name: AppRoutes.planDetailsScreen,
-      page: () => const PlanDetailsScreen(),
-      binding: PlanDetailsBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 300),
-    ),
+   
   ];
 }

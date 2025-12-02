@@ -88,26 +88,59 @@ class UserRepository {
         endpoint: ApiConstants.loginEndpoint,
         body: request.toJson(),
         includeAuth: false,
-        fromJsonT: (data) => UserModel.fromJson(data as Map<String, dynamic>),
+        fromJsonT: (data) {
+          // Handle nested structure: data.user and data.token
+          final dataMap = data as Map<String, dynamic>;
+          final userData = dataMap.containsKey('user')
+              ? dataMap['user'] as Map<String, dynamic>
+              : dataMap;
+          
+          // Extract token from data.token and add it to user data
+          final token = dataMap['token'] as String?;
+          if (token != null) {
+            userData['token'] = token;
+          }
+          
+          return UserModel.fromJson(userData);
+        },
       );
 
       // Save token if login is successful
-      if (response.success && response.data?.token != null) {
-        await PreferenceHelper.setString(
-          PrefConstants.token,
-          response.data!.token!,
-        );
-
-        // Save user ID if available
-        if (response.data?.id.isNotEmpty == true) {
+      if (response.success && response.data != null) {
+        final user = response.data!;
+        
+        // Save token if available
+        if (user.token != null && user.token!.isNotEmpty) {
           await PreferenceHelper.setString(
-            PrefConstants.userId,
-            response.data!.id,
+            PrefConstants.token,
+            user.token!,
           );
         }
 
+        // Save user ID if available
+        if (user.id.isNotEmpty) {
+          await PreferenceHelper.setString(
+            PrefConstants.userId,
+            user.id,
+          );
+        }
+
+        // Save subscription plan if available
+        if (user.currentSubscriptionType != null && user.currentSubscriptionType!.isNotEmpty) {
+          await PreferenceHelper.setString(
+            PrefConstants.subscriptionPlan,
+            user.currentSubscriptionType!,
+          );
+        }
+
+        // Save assessment completion status
+        await PreferenceHelper.setBool(
+          PrefConstants.hasCompletedAssessment,
+          user.hasCompletedAssessment ?? false,
+        );
+
         DebugUtils.logInfo(
-          'User logged in successfully. Token and user ID saved.',
+          'User logged in successfully. Token, user ID, subscription plan, and assessment status saved.',
           tag: 'UserRepository.login',
         );
       } else {
@@ -153,9 +186,11 @@ class UserRepository {
 
       await PreferenceHelper.removeData(PrefConstants.token);
       await PreferenceHelper.removeData(PrefConstants.userId);
+      await PreferenceHelper.removeData(PrefConstants.subscriptionPlan);
+      await PreferenceHelper.removeData(PrefConstants.hasCompletedAssessment);
 
       DebugUtils.logInfo(
-        'User logged out successfully. Token and user ID removed.',
+        'User logged out successfully. Token, user ID, subscription plan, and assessment status removed.',
         tag: 'UserRepository.logout',
       );
     } catch (e, stackTrace) {

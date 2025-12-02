@@ -1,21 +1,24 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/const/app_exports.dart';
-import '../../../data/models/user/profile_update_request_model.dart';
-import '../../../data/repository/user_repository.dart';
-import '../../../data/services/shared_preference_services.dart';
+import '../../../data/models/subscription/create_subscription_request_model.dart';
+import '../../../data/repository/subscription_repository.dart';
 
-class OnboardingController extends GetxController {
-  final UserRepository _userRepository = UserRepository();
+class SubscriptionController extends GetxController {
+  final SubscriptionRepository _subscriptionRepository = SubscriptionRepository();
+  
   // Store selected plan
   final RxString selectedPlanId = ''.obs;
   
   // Subscription plans data
   final List<Map<String, dynamic>> subscriptionPlans = [
-    {'planName': 'Free', 'price': '\$0', 'planId': 'free'},
-    {'planName': 'Premium', 'price': '\$19', 'planId': 'premium'},
-    {'planName': 'Coach', 'price': '\$39', 'planId': 'coach'},
+    {'planName': 'Free', 'price': '\$0', 'planId': 'free', 'subscriptionType': 'Free'},
+    {'planName': 'Premium', 'price': '\$19', 'planId': 'premium', 'subscriptionType': 'Premium'},
+    {'planName': 'Coach', 'price': '\$39', 'planId': 'coach', 'subscriptionType': 'Coach'},
   ];
+  
+  // Loading states
+  final RxBool isProcessingPayment = false.obs;
+  final RxBool isCreatingSubscription = false.obs;
 
   // Initialize plan ID from arguments
   void initializePlan(Map<String, dynamic>? planData) {
@@ -54,7 +57,7 @@ class OnboardingController extends GetxController {
   bool get hasSelectedPlan => selectedPlanId.value.isNotEmpty;
   
   // Handle continue from select plan screen
-  void handlePlanContinue() {
+  Future<void> handlePlanContinue() async {
     if (!hasSelectedPlan) {
       ToastClass.showCustomToast(
         'Please select a plan to continue',
@@ -63,7 +66,6 @@ class OnboardingController extends GetxController {
       return;
     }
     
-    // Navigate to category level screen with plan data
     final planData = currentPlan;
     if (planData == null) {
       ToastClass.showCustomToast(
@@ -73,42 +75,101 @@ class OnboardingController extends GetxController {
       return;
     }
 
-    Get.toNamed(
-      AppRoutes.categoryLevelScreen,
-      arguments: planData,
-    );
-  }
-  
-  // Initialize category level screen from arguments
-  void initializeCategoryLevelScreen() {
-    final planData = Get.arguments as Map<String, dynamic>?;
-    if (planData != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        initializePlan(planData);
-      });
-    }
-  }
-  
-  // Handle get started from category level screen
-  void handleGetStarted() {
-    if (selectedMetaNeeds.isEmpty) {
-      ToastClass.showCustomToast(
-        'Please select at least one meta need',
-        type: ToastType.error,
-      );
+    // For Free plan, skip payment and go directly to category selection
+    if (selectedPlanId.value == 'free') {
+      await _processFreePlan(planData);
       return;
     }
-    
-    if (selectedLevels.isEmpty) {
+
+    // For paid plans, process payment (hardcoded for now)
+    await _processPayment(planData);
+  }
+
+  // Process free plan - no payment needed
+  Future<void> _processFreePlan(Map<String, dynamic> planData) async {
+    try {
+      isCreatingSubscription.value = true;
+      
+      // Create subscription for free plan
+      final subscriptionRequest = CreateSubscriptionRequestModel(
+        subscriptionType: planData['subscriptionType'] as String,
+        stripePaymentIntentId: 'free_plan_no_payment',
+        stripeCustomerId: 'free_plan_no_customer',
+        paymentStatus: 'succeeded',
+      );
+
+      final response = await _subscriptionRepository.createSubscription(subscriptionRequest);
+
+      if (response.success && response.data != null) {
+        Get.toNamed(
+          AppRoutes.categoryLevelScreen,
+          arguments: planData,
+        );
+      } else {
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Failed to create subscription. Please try again.',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
       ToastClass.showCustomToast(
-        'Please select at least one level',
+        'Failed to process free plan: ${e.toString()}',
         type: ToastType.error,
       );
-      return;
+    } finally {
+      isCreatingSubscription.value = false;
     }
-    
-    // Navigate to self assessment screen
-    Get.toNamed(AppRoutes.selfAssessmentScreen);
+  }
+
+  // Process payment (hardcoded for now - Stripe not implemented)
+  Future<void> _processPayment(Map<String, dynamic> planData) async {
+    try {
+      isProcessingPayment.value = true;
+      
+      // Simulate payment processing delay
+      await Future.delayed(const Duration(seconds: 1));
+      
+      // Hardcoded payment success
+      final paymentIntentId = 'pi_hardcoded_${DateTime.now().millisecondsSinceEpoch}';
+      final customerId = 'cus_hardcoded_${DateTime.now().millisecondsSinceEpoch}';
+      
+      isProcessingPayment.value = false;
+      isCreatingSubscription.value = true;
+
+      // Create subscription after payment
+      final subscriptionRequest = CreateSubscriptionRequestModel(
+        subscriptionType: planData['subscriptionType'] as String,
+        stripePaymentIntentId: paymentIntentId,
+        stripeCustomerId: customerId,
+        paymentStatus: 'succeeded',
+      );
+
+      final response = await _subscriptionRepository.createSubscription(subscriptionRequest);
+
+      if (response.success && response.data != null) {
+        Get.toNamed(
+          AppRoutes.categoryLevelScreen,
+          arguments: planData,
+        );
+      } else {
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Failed to create subscription. Please try again.',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Failed to process payment: ${e.toString()}',
+        type: ToastType.error,
+      );
+    } finally {
+      isProcessingPayment.value = false;
+      isCreatingSubscription.value = false;
+    }
   }
 
   final List<String> metaNeedsOptions = [
@@ -225,147 +286,5 @@ class OnboardingController extends GetxController {
     ToastClass.showCustomToast('Selection saved', type: ToastType.success);
     // Navigate to next screen if needed
     // Get.toNamed(AppRoutes.NEXTSCREEN);
-  }
-
-  // Profile Setup variables
-  final TextEditingController fullNameController = TextEditingController();
-  final RxInt age = 45.obs;
-  final RxSet<String> selectedFocusAreas = <String>{}.obs;
-  final RxString selectedAvatar = ''.obs;
-  final RxBool isProfileSubmitting = false.obs;
-
-  // Focus Areas options
-  final List<String> focusAreas = [
-    'Career',
-    'Health',
-    'Creativity',
-    'Spirituality',
-    'Motivation',
-  ];
-
-  // Avatar options (you can replace these with actual image paths)
-  final List<String> avatarOptions = [
-    'avatar1',
-    'avatar2',
-    'avatar3',
-    'avatar4',
-    'avatar5',
-  ];
-
-  // Toggle Focus Area selection (multiple selection allowed)
-  void toggleFocusArea(String focusArea) {
-    if (selectedFocusAreas.contains(focusArea)) {
-      selectedFocusAreas.remove(focusArea);
-    } else {
-      selectedFocusAreas.add(focusArea);
-    }
-  }
-
-  // Check if Focus Area is selected
-  bool isFocusAreaSelected(String focusArea) {
-    return selectedFocusAreas.contains(focusArea);
-  }
-
-  // Remove Focus Area from selected
-  void removeFocusArea(String focusArea) {
-    selectedFocusAreas.remove(focusArea);
-  }
-
-  String _mapAvatarKeyToAsset(String avatarKey) {
-    switch (avatarKey) {
-      case 'avatar1':
-        return AppImages.avatar1;
-      case 'avatar2':
-        return AppImages.avatar2;
-      case 'avatar3':
-        return AppImages.avatar3;
-      case 'avatar4':
-        return AppImages.avatar4;
-      case 'avatar5':
-        return AppImages.avatar5;
-      default:
-        return AppImages.avatar1;
-    }
-  }
-
-  // Select Avatar (single selection)
-  void selectAvatar(String avatar) {
-    selectedAvatar.value = avatar;
-  }
-
-  // Check if Avatar is selected
-  bool isAvatarSelected(String avatar) {
-    return selectedAvatar.value == avatar;
-  }
-
-  // Increment age
-  void incrementAge() {
-    age.value++;
-  }
-
-  // Decrement age
-  void decrementAge() {
-    if (age.value > 1) {
-      age.value--;
-    }
-  }
-
-  // Submit Profile Setup
-  Future<void> submitProfileSetup() async {
-    final fullName = fullNameController.text.trim();
-    if (fullName.isEmpty) {
-      ToastClass.showCustomToast('Please enter your full name', type: ToastType.error);
-      return;
-    }
-    if (selectedFocusAreas.isEmpty) {
-      ToastClass.showCustomToast('Please select at least one focus area', type: ToastType.error);
-      return;
-    }
-    if (selectedAvatar.value.isEmpty) {
-      ToastClass.showCustomToast('Please select an avatar', type: ToastType.error);
-      return;
-    }
-
-    final request = ProfileUpdateRequestModel(
-      name: fullName,
-      age: age.value,
-      focusAreas: selectedFocusAreas.toList(),
-      avatar: _mapAvatarKeyToAsset(selectedAvatar.value),
-    );
-
-    // Save profile setup completion status after successful API update
-    try {
-      isProfileSubmitting.value = true;
-
-      final response = await _userRepository.updateProfile(request);
-      if (!response.success) {
-        final message = response.message.isNotEmpty
-            ? response.message
-            : 'Failed to update profile. Please try again.';
-        ToastClass.showCustomToast(message, type: ToastType.error);
-        return;
-      }
-
-      await PreferenceHelper.setBool(
-        PrefConstants.isProfileSetupCompleted,
-        true,
-      );
-
-      ToastClass.showCustomToast('Profile setup completed', type: ToastType.success);
-      Get.offAllNamed(AppRoutes.mainNavScreen);
-    } catch (e) {
-      ToastClass.showCustomToast(
-        'Failed to save profile setup. Please try again.',
-        type: ToastType.error,
-      );
-    } finally {
-      isProfileSubmitting.value = false;
-    }
-  }
-
-  @override
-  void onClose() {
-    fullNameController.dispose();
-    super.onClose();
   }
 }

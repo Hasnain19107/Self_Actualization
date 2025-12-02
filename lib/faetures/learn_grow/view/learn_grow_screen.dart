@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:pixsa_petrol_pump/core/widgets/custom_progress_indicator.dart';
 import '../../../core/const/app_colors.dart';
 import '../../../core/utils/app_sizes.dart';
 import '../../../core/widgets/custom_text_widget.dart';
@@ -70,7 +71,7 @@ class LearnGrowScreen extends StatelessWidget {
               SearchBarWidget(
                 searchController: searchController,
                 onChanged: (value) {
-                  // Handle search
+                  controller.updateSearchQuery(value);
                 },
                 onMicTap: () {
                   // Handle mic tap
@@ -99,30 +100,84 @@ class LearnGrowScreen extends StatelessWidget {
               Expanded(
                 child: Obx(() {
                   if (controller.selectedTab.value == 'Videos') {
+                    if (controller.isLoadingVideos.value) {
+                      return const Center(
+                        child: CustomProgressIndicator(),
+                      );
+                    }
+                    final filteredVideos = controller.filteredVideos;
+                    if (filteredVideos.isEmpty) {
+                      return Center(
+                        child: CustomTextWidget(
+                          text: controller.searchQuery.value.isEmpty
+                              ? 'No videos available'
+                              : 'No videos found',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          textColor: AppColors.grey,
+                        ),
+                      );
+                    }
                     return ListView.builder(
-                      itemCount: controller.videoFiles.length,
+                      itemCount: filteredVideos.length,
                       itemBuilder: (context, index) {
                         return VideoCardWidget(
-                          video: controller.videoFiles[index],
+                          video: filteredVideos[index],
                         );
                       },
                     );
                   } else if (controller.selectedTab.value == 'Articles') {
+                    if (controller.isLoadingArticles.value) {
+                      return const Center(
+                        child: CustomProgressIndicator(),
+                      );
+                    }
+                    final filteredArticles = controller.filteredArticles;
+                    if (filteredArticles.isEmpty) {
+                      return Center(
+                        child: CustomTextWidget(
+                          text: controller.searchQuery.value.isEmpty
+                              ? 'No articles available'
+                              : 'No articles found',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          textColor: AppColors.grey,
+                        ),
+                      );
+                    }
                     return ListView.builder(
-                      itemCount: controller.articleFiles.length,
+                      itemCount: filteredArticles.length,
                       itemBuilder: (context, index) {
                         return ArticleCardWidget(
-                          video: controller.articleFiles[index],
+                          article: filteredArticles[index],
                         );
                       },
                     );
                   } else {
                     // Audios
+                    if (controller.isLoadingAudios.value) {
+                      return const Center(
+                        child: CustomProgressIndicator(),
+                      );
+                    }
+                    final filteredAudios = controller.filteredAudios;
+                    if (filteredAudios.isEmpty) {
+                      return Center(
+                        child: CustomTextWidget(
+                          text: controller.searchQuery.value.isEmpty
+                              ? 'No audios available'
+                              : 'No audios found',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          textColor: AppColors.grey,
+                        ),
+                      );
+                    }
                     return ListView.builder(
-                      itemCount: controller.audioFiles.length,
+                      itemCount: filteredAudios.length,
                       itemBuilder: (context, index) {
                         return AudioCardWidget(
-                          audio: controller.audioFiles[index],
+                          audio: filteredAudios[index],
                         );
                       },
                     );

@@ -145,7 +145,7 @@ class NeedsSliderWidget extends StatelessWidget {
     return Obx(
       () => Column(
         children: [
-          // Slider track with filled portion
+          // Slider track with filled portion (static, display-only)
           SizedBox(
             height: 16,
             child: Stack(
@@ -162,7 +162,7 @@ class NeedsSliderWidget extends StatelessWidget {
                   ),
                   child: Stack(
                     children: [
-                      // Light blue filled portion (upper progress)
+                      // Light blue filled portion (upper progress) - static based on API data
                       Positioned(
                         left: 0,
                         top: 0,
@@ -178,24 +178,16 @@ class NeedsSliderWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Blue circular thumb (16x16) - stacked over the slider
+                // Blue circular thumb (16x16) - static, no interaction
                 Positioned(
                   left: (value.value / 10) * 152.52 - 8,
                   top: 0,
-                  child: GestureDetector(
-                    onHorizontalDragUpdate: (details) {
-                      final trackWidth = 152.52;
-                      final newValue =
-                          (details.localPosition.dx / trackWidth) * 10;
-                      onChanged(newValue.clamp(0.0, 10.0));
-                    },
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: const BoxDecoration(
-                        color: AppColors.blue,
-                        shape: BoxShape.circle,
-                      ),
+                  child: Container(
+                    width: 16,
+                    height: 16,
+                    decoration: const BoxDecoration(
+                      color: AppColors.blue,
+                      shape: BoxShape.circle,
                     ),
                   ),
                 ),

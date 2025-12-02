@@ -36,6 +36,7 @@ export '../widgets/custom_rich_text.dart';
 export '../widgets/custom_svg_icon.dart';
 export '../widgets/custom_text_widget.dart';
 export '../widgets/custom_toast_show.dart';
+export '../widgets/custom_progress_indicator.dart';
 export '../widgets/mood_emoji_widget.dart';
 export '../widgets/plan_card_widget.dart';
 export '../widgets/search_bar_widget.dart';
@@ -109,13 +110,13 @@ export '../../faetures/notification/widgets/notification_card_widget.dart';
 export '../../faetures/notification/widgets/notification_header_widget.dart';
 
 // Feature: Onboarding
-export '../../faetures/On_boarding/bindings/onBoarding_binding.dart';
+
 export '../../faetures/self_assessment/binding/review_result_binding.dart';
-export '../../faetures/On_boarding/controllers/onboarding_controller.dart';
+
 export '../../faetures/self_assessment/controller/review_result_controller.dart';
-export '../../faetures/On_boarding/view/profileSetup_screen.dart';
+export '../../faetures/profile/view/profileSetup_screen.dart';
 export '../../faetures/self_assessment/view/review_result_screen.dart';
-export '../../faetures/On_boarding/view/selectCategory_level.dart';
+
 export '../../faetures/self_assessment/view/self_assessment.dart';
 export '../../faetures/self_assessment/widgets/assessment_grid_widget.dart';
 export '../../faetures/self_assessment/widgets/review_result_action_buttons_widget.dart';
@@ -126,14 +127,3 @@ export '../../faetures/splash/controllers/splash_controller.dart';
 export '../../faetures/splash/view/splash_screen.dart';
 
 // Feature: Subscription
-export '../../faetures/subscription/binding/plan_details_binding.dart';
-export '../../faetures/subscription/binding/subscription_binding.dart';
-export '../../faetures/subscription/controller/plan_details_controller.dart';
-export '../../faetures/subscription/controller/subscription_controller.dart';
-export '../../faetures/subscription/models/plan_model.dart';
-export '../../faetures/subscription/view/plan_details_screen.dart';
-export '../../faetures/subscription/view/subscription_screen.dart';
-export '../../faetures/subscription/widgets/plan_details_header_widget.dart';
-export '../../faetures/subscription/widgets/plan_feature_card_widget.dart';
-export '../../faetures/subscription/widgets/plan_meta_needs_section_widget.dart';
-export '../../faetures/subscription/widgets/subscription_card_widget.dart';

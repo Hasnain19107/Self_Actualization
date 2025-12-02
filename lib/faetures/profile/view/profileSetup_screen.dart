@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import '../controllers/onboarding_controller.dart';
+import '../controller/profile_controller.dart';
+import '../binding/profile_binding.dart';
 import '../../../core/const/app_exports.dart';
 
 class ProfileSetupScreen extends StatelessWidget {
   ProfileSetupScreen({super.key});
 
   final AppSizes appSizes = AppSizes();
-  final controller = Get.find<OnboardingController>();
 
   @override
   Widget build(BuildContext context) {
+    ProfileBinding().dependencies();
+    final controller = Get.find<ProfileController>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       body: SafeArea(
@@ -29,14 +32,34 @@ class ProfileSetupScreen extends StatelessWidget {
                     children: [
                       Gap(Get.height * 0.04),
                       // Title
-                      CustomTextWidget(
-                        text: 'Profile Setup',
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        textColor: AppColors.black,
-                        textAlign: TextAlign.left,
+                      Obx(
+                        () => CustomTextWidget(
+                          text: controller.hasExistingProfile.value
+                              ? 'Edit Profile'
+                              : 'Profile Setup',
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          textColor: AppColors.black,
+                          textAlign: TextAlign.left,
+                        ),
                       ),
                       Gap(32),
+                      // Loading indicator while fetching user data
+                      Obx(
+                        () => controller.isLoadingUserData.value
+                            ? const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(20.0),
+                                  child: CustomProgressIndicator(),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                      Obx(
+                        () => controller.isLoadingUserData.value
+                            ? const Gap(16)
+                            : const SizedBox.shrink(),
+                      ),
                       // Full Name Section
                       CustomTextWidget(
                         text: 'Full Name',
@@ -261,7 +284,25 @@ class ProfileSetupScreen extends StatelessWidget {
                                 ),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(10),
-                                  child: _getAvatarImage(avatar),
+                                  child: Image.asset(
+                                    controller.getAvatarImagePath(avatar),
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: AppColors.lightGray,
+                                        child: Center(
+                                          child: CustomTextWidget(
+                                            text: avatar.replaceAll('avatar', ''),
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w600,
+                                            textColor: AppColors.black,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             );
@@ -271,12 +312,15 @@ class ProfileSetupScreen extends StatelessWidget {
                       Gap(32),
                       Obx(
                         () => CustomElevatedButton(
-                          text: 'Finish Setup',
+                          text: controller.hasExistingProfile.value
+                              ? 'Update Profile'
+                              : 'Finish Setup',
                           backgroundColor: AppColors.blue,
                           textColor: AppColors.white,
                           onPress: controller.submitProfileSetup,
                           width: double.infinity,
-                          isLoading: controller.isProfileSubmitting.value,
+                          isLoading: controller.isProfileSubmitting.value ||
+                              controller.isLoadingUserData.value,
                         ),
                       ),
                     ],
@@ -289,49 +333,6 @@ class ProfileSetupScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _getAvatarImage(String avatar) {
-    String imagePath;
-    switch (avatar) {
-      case 'avatar1':
-        imagePath = AppImages.avatar1;
-        break;
-      case 'avatar2':
-        imagePath = AppImages.avatar2;
-        break;
-      case 'avatar3':
-        imagePath = AppImages.avatar3;
-        break;
-      case 'avatar4':
-        imagePath = AppImages.avatar4;
-        break;
-      case 'avatar5':
-        imagePath = AppImages.avatar5;
-        break;
-      default:
-        imagePath = AppImages.avatar1; // Default fallback
-    }
-
-    return Image.asset(
-      imagePath,
-      width: 60,
-      height: 60,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        return Container(
-          color: AppColors.lightGray,
-          child: Center(
-            child: CustomTextWidget(
-              text: avatar.replaceAll('avatar', ''),
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              textColor: AppColors.black,
-            ),
-          ),
-        );
-      },
     );
   }
 }

@@ -1,43 +1,17 @@
+import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/const/app_exports.dart';
 
-// Audio file data model
-class AudioFile {
-  final String id;
-  final String title;
-  final String emoji;
-  final String currentTime;
-  final String totalDuration;
-  final RxBool isPlaying;
-
-  AudioFile({
-    required this.id,
-    required this.title,
-    required this.emoji,
-    required this.currentTime,
-    required this.totalDuration,
-    required this.isPlaying,
-  });
-}
-
-// Video file data model
-class VideoFile {
-  final String id;
-  final String title;
-  final String description;
-  final String emoji;
-  final String duration;
-
-  VideoFile({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.emoji,
-    required this.duration,
-  });
-}
+import '../../../data/repository/learn_grow_repository.dart';
+import '../../../data/models/audio/audio_model.dart';
+import '../../../data/models/learn_and_grow/video_model.dart';
+import '../../../data/models/learn_and_grow/article_model.dart';
 
 class LearnGrowController extends GetxController {
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
   // Selected filter tab
   final RxString selectedTab = 'Audios'.obs;
 
@@ -48,10 +22,62 @@ class LearnGrowController extends GetxController {
     {'name': 'Videos', 'icon': Icons.play_circle_outline},
   ];
 
-  final RxList<AudioFile> audioFiles = <AudioFile>[].obs;
+  final RxList<AudioModel> audioFiles = <AudioModel>[].obs;
   final RxString selectedAudioId = ''.obs;
-  final RxList<VideoFile> videoFiles = <VideoFile>[].obs;
-  final RxList<VideoFile> articleFiles = <VideoFile>[].obs;
+  final RxList<VideoModel> videoFiles = <VideoModel>[].obs;
+  final RxList<ArticleModel> articleFiles = <ArticleModel>[].obs;
+  final RxBool isLoadingAudios = false.obs;
+  final RxBool isLoadingVideos = false.obs;
+  final RxBool isLoadingArticles = false.obs;
+
+  // Search query
+  final RxString searchQuery = ''.obs;
+
+  // UI state for audio playback (tracked separately since models are immutable)
+  final RxMap<String, RxString> audioCurrentTime = <String, RxString>{}.obs;
+  final RxMap<String, RxString> audioTotalDuration = <String, RxString>{}.obs;
+  final RxMap<String, RxBool> audioIsPlaying = <String, RxBool>{}.obs;
+
+  // Filtered lists based on search query
+  List<AudioModel> get filteredAudios {
+    if (searchQuery.value.isEmpty) {
+      return audioFiles;
+    }
+    final query = searchQuery.value.toLowerCase();
+    return audioFiles.where((audio) {
+      return audio.title.toLowerCase().contains(query) ||
+          audio.description.toLowerCase().contains(query) ||
+          audio.category.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  List<VideoModel> get filteredVideos {
+    if (searchQuery.value.isEmpty) {
+      return videoFiles;
+    }
+    final query = searchQuery.value.toLowerCase();
+    return videoFiles.where((video) {
+      return video.title.toLowerCase().contains(query) ||
+          video.description.toLowerCase().contains(query) ||
+          video.category.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  List<ArticleModel> get filteredArticles {
+    if (searchQuery.value.isEmpty) {
+      return articleFiles;
+    }
+    final query = searchQuery.value.toLowerCase();
+    return articleFiles.where((article) {
+      return article.title.toLowerCase().contains(query) ||
+          article.content.toLowerCase().contains(query) ||
+          article.category.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  void updateSearchQuery(String query) {
+    searchQuery.value = query;
+  }
 
   @override
   void onInit() {
@@ -59,115 +85,269 @@ class LearnGrowController extends GetxController {
     _initializeAudioFiles();
     _initializeVideoFiles();
     _initializeArticleFiles();
+    _setupAudioPlayerListeners();
   }
 
-  void _initializeAudioFiles() {
-    audioFiles.value = [
-      AudioFile(
-        id: '1',
-        title: 'Daily Motivation',
-        emoji: '🧘‍♂️',
-        currentTime: '3:20',
-        totalDuration: '10:12',
-        isPlaying: false.obs,
-      ),
-      AudioFile(
-        id: '2',
-        title: 'Daily Motivation',
-        emoji: '👊',
-        currentTime: '3:20',
-        totalDuration: '10:12',
-        isPlaying: true.obs,
-      ),
-      AudioFile(
-        id: '3',
-        title: 'Daily Motivation',
-        emoji: '🧘‍♂️',
-        currentTime: '3:20',
-        totalDuration: '10:12',
-        isPlaying: false.obs,
-      ),
-      AudioFile(
-        id: '4',
-        title: 'Daily Motivation',
-        emoji: '🧘‍♂️',
-        currentTime: '3:20',
-        totalDuration: '10:12',
-        isPlaying: false.obs,
-      ),
-    ];
-    selectedAudioId.value = '2'; // Second audio is selected/playing
+  @override
+  void onClose() {
+    _audioPlayer.dispose();
+    super.onClose();
   }
 
-  void _initializeVideoFiles() {
-    videoFiles.value = [
-      VideoFile(
-        id: '1',
-        title: 'Calm the Racing Mind',
-        description: 'Immerse yourself in peace and harmony with this...',
-        emoji: '🧘‍♀️',
-        duration: '8 min',
-      ),
-      VideoFile(
-        id: '2',
-        title: 'Calm the Racing Mind',
-        description: 'Immerse yourself in peace and harmony with this...',
-        emoji: '🧘‍♀️',
-        duration: '8 min',
-      ),
-      VideoFile(
-        id: '3',
-        title: 'Calm the Racing Mind',
-        description: 'Immerse yourself in peace and harmony with this...',
-        emoji: '🧘‍♀️',
-        duration: '8 min',
-      ),
-    ];
+  void _setupAudioPlayerListeners() {
+    // Listen to position changes
+    _audioPlayer.onPositionChanged.listen((duration) {
+      if (selectedAudioId.value.isNotEmpty) {
+        final audioId = selectedAudioId.value;
+        if (audioCurrentTime.containsKey(audioId)) {
+          final minutes = duration.inMinutes;
+          final seconds = duration.inSeconds % 60;
+          audioCurrentTime[audioId]!.value =
+              '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+        }
+      }
+    });
+
+    // Listen to player state changes
+    _audioPlayer.onPlayerStateChanged.listen((state) {
+      if (selectedAudioId.value.isNotEmpty) {
+        final audioId = selectedAudioId.value;
+        if (audioIsPlaying.containsKey(audioId)) {
+          audioIsPlaying[audioId]!.value = state == PlayerState.playing;
+        }
+      }
+    });
+
+    // Listen to duration changes (when audio loads, get actual duration from URL)
+    _audioPlayer.onDurationChanged.listen((duration) {
+      if (selectedAudioId.value.isNotEmpty && duration != Duration.zero) {
+        final audioId = selectedAudioId.value;
+        if (audioTotalDuration.containsKey(audioId)) {
+          final minutes = duration.inMinutes;
+          final seconds = duration.inSeconds % 60;
+          audioTotalDuration[audioId]!.value =
+              '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+        }
+      }
+    });
+
+    // Listen for audio completion and restart from beginning
+    _audioPlayer.onPlayerComplete.listen((_) {
+      if (selectedAudioId.value.isNotEmpty) {
+        // Reset to beginning and play again
+        _audioPlayer.seek(Duration.zero);
+        _audioPlayer.resume();
+      }
+    });
   }
 
-  void _initializeArticleFiles() {
-    articleFiles.value = [
-      VideoFile(
-        id: '1',
-        title: 'Calm the Racing Mind',
-        description: 'Immerse yourself in peace and harmony with this...',
-        emoji: '🧘‍♀️',
-        duration: '8 min',
-      ),
-      VideoFile(
-        id: '2',
-        title: 'Calm the Racing Mind',
-        description: 'Immerse yourself in peace and harmony with this...',
-        emoji: '🧘‍♀️',
-        duration: '8 min',
-      ),
-      VideoFile(
-        id: '3',
-        title: 'Calm the Racing Mind',
-        description: 'Immerse yourself in peace and harmony with this...',
-        emoji: '🧘‍♀️',
-        duration: '8 min',
-      ),
-    ];
+  Future<void> _initializeAudioFiles() async {
+    isLoadingAudios.value = true;
+    try {
+      final response = await LearnGrowRepository().getAudios(page: 1, limit: 20);
+
+      if (response.success && response.data != null) {
+        audioFiles.value = response.data!;
+        // Initialize UI state for each audio
+        // Note: We don't use API's durationSeconds - duration is fetched from actual audio file URL
+        for (var audio in audioFiles) {
+          audioCurrentTime[audio.id] = '00:00'.obs;
+          audioTotalDuration[audio.id] = '00:00'.obs;
+          audioIsPlaying[audio.id] = false.obs;
+          
+          // Fetch duration from URL without playing
+          _fetchDurationFromUrl(audio.id, audio.audioUrl);
+        }
+      } else {
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Failed to load audios',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Error loading audios: ${e.toString()}',
+        type: ToastType.error,
+      );
+    } finally {
+      isLoadingAudios.value = false;
+    }
   }
 
+  /// Fetch duration from audio URL without playing
+  Future<void> _fetchDurationFromUrl(String audioId, String audioUrl) async {
+    try {
+      // Create a temporary player instance to get duration
+      final tempPlayer = AudioPlayer();
+      
+      // Listen to duration changes
+      final completer = Completer<Duration>();
+      late StreamSubscription subscription;
+      
+      subscription = tempPlayer.onDurationChanged.listen((duration) {
+        if (duration != Duration.zero && !completer.isCompleted) {
+          completer.complete(duration);
+        }
+      });
+      
+      // Set the source
+      await tempPlayer.setSource(UrlSource(audioUrl));
+      
+      // Wait for duration with timeout
+      final duration = await completer.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => Duration.zero,
+      );
+      
+      // Cancel subscription
+      await subscription.cancel();
+      
+      // Update duration if valid
+      if (duration != Duration.zero && audioTotalDuration.containsKey(audioId)) {
+        final minutes = duration.inMinutes;
+        final seconds = duration.inSeconds % 60;
+        audioTotalDuration[audioId]!.value =
+            '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+      }
+      
+      // Dispose the temporary player
+      await tempPlayer.dispose();
+    } catch (e) {
+      // If fetching duration fails, it will be updated when audio is played
+      DebugUtils.logWarning(
+        'Failed to fetch duration for audio $audioId: ${e.toString()}',
+        tag: 'LearnGrowController._fetchDurationFromUrl',
+      );
+    }
+  }
+
+  Future<void> _initializeVideoFiles() async {
+    isLoadingVideos.value = true;
+    try {
+      final response = await LearnGrowRepository().getVideos(page: 1, limit: 20);
+
+      if (response.success && response.data != null) {
+        videoFiles.value = response.data!;
+      } else {
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Failed to load videos',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Error loading videos: ${e.toString()}',
+        type: ToastType.error,
+      );
+    } finally {
+      isLoadingVideos.value = false;
+    }
+  }
+
+  Future<void> _initializeArticleFiles() async {
+    isLoadingArticles.value = true;
+    try {
+      final response = await LearnGrowRepository().getArticles(page: 1, limit: 20);
+
+      if (response.success && response.data != null) {
+        articleFiles.value = response.data!;
+      } else {
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Failed to load articles',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Error loading articles: ${e.toString()}',
+        type: ToastType.error,
+      );
+    } finally {
+      isLoadingArticles.value = false;
+    }
+  }
+  
   void selectTab(String tabName) {
     selectedTab.value = tabName;
   }
 
-  void toggleAudio(String audioId) {
-    // If clicking the same audio, toggle play/pause
-    if (selectedAudioId.value == audioId) {
+  Future<void> toggleAudio(String audioId) async {
+    try {
       final audio = audioFiles.firstWhereOrNull((a) => a.id == audioId);
-      if (audio != null) {
-        audio.isPlaying.value = !audio.isPlaying.value;
+      if (audio == null) return;
+
+      // If clicking the same audio, toggle play/pause
+      if (selectedAudioId.value == audioId) {
+        if (audioIsPlaying[audioId]?.value ?? false) {
+          // Pause
+          await _audioPlayer.pause();
+        } else {
+          // Resume
+          await _audioPlayer.resume();
+        }
+      } else {
+        // Stop current audio if playing
+        if (selectedAudioId.value.isNotEmpty) {
+          await _audioPlayer.stop();
+          final currentAudioId = selectedAudioId.value;
+          if (audioIsPlaying.containsKey(currentAudioId)) {
+            audioIsPlaying[currentAudioId]!.value = false;
+          }
+          if (audioCurrentTime.containsKey(currentAudioId)) {
+            audioCurrentTime[currentAudioId]!.value = '00:00';
+          }
+        }
+
+        // Select new audio and start playing
+        selectedAudioId.value = audioId;
+        for (var a in audioFiles) {
+          if (audioIsPlaying.containsKey(a.id)) {
+            audioIsPlaying[a.id]!.value = a.id == audioId;
+          }
+        }
+
+        // Start playing the new audio
+        await _audioPlayer.play(UrlSource(audio.audioUrl));
       }
-    } else {
-      // Select new audio and pause others
-      selectedAudioId.value = audioId;
-      for (var audio in audioFiles) {
-        audio.isPlaying.value = audio.id == audioId;
-      }
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Error playing audio: ${e.toString()}',
+        type: ToastType.error,
+      );
     }
+  }
+
+  // Helper methods to get UI state for audio
+  String getAudioCurrentTime(String audioId) {
+    return audioCurrentTime[audioId]?.value ?? '00:00';
+  }
+
+  String getAudioTotalDuration(String audioId) {
+    return audioTotalDuration[audioId]?.value ?? '00:00';
+  }
+
+  bool isAudioPlaying(String audioId) {
+    return audioIsPlaying[audioId]?.value ?? false;
+  }
+
+  // Helper method to get emoji based on category
+  String getEmojiForCategory(String category) {
+    final lowerCategory = category.toLowerCase();
+    if (lowerCategory.contains('motivation')) {
+      return '🧘‍♂️';
+    } else if (lowerCategory.contains('meditation')) {
+      return '🧘‍♀️';
+    } else if (lowerCategory.contains('focus')) {
+      return '👊';
+    } else if (lowerCategory.contains('calm')) {
+      return '🧘‍♀️';
+    }
+    return '🎵';
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pixsa_petrol_pump/faetures/subscription/view/subscription_screen.dart';
+import 'package:pixsa_petrol_pump/faetures/subscription/view/select_plan.dart';
+
 import '../../../core/const/app_exports.dart';
 
 class MainNavScreen extends StatelessWidget {
@@ -38,7 +39,7 @@ class MainNavScreen extends StatelessWidget {
         case 2:
           return AchievementScreen();
         case 3:
-          return const SubscriptionScreen(); // or use any other appropriate widget, e.g., SizedBox.shrink()
+          return const SelectPlanScreen(showHeader: true); // Show header when accessed from bottom nav
         default:
           return const HomeScreen();
       }

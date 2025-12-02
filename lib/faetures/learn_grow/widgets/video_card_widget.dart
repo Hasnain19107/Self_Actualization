@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../core/const/app_colors.dart';
-import '../../../core/const/app_images.dart';
+import '../../../core/const/app_exports.dart';
 import '../../../core/widgets/custom_text_widget.dart';
-import '../controller/learn_grow_controller.dart';
+import '../view/video_player_screen.dart';
+import '../../../data/models/learn_and_grow/video_model.dart';
 
 class VideoCardWidget extends StatelessWidget {
-  final VideoFile video;
+  final VideoModel video;
 
   const VideoCardWidget({super.key, required this.video});
 
@@ -13,7 +15,13 @@ class VideoCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Handle video tap
+        Get.to(
+          () => VideoPlayerScreen(
+            videoUrl: video.videoUrl,
+            title: video.title,
+            description: video.description,
+          ),
+        );
       },
       child: Container(
         width: double.infinity,
@@ -21,10 +29,18 @@ class VideoCardWidget extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          image: DecorationImage(
-            image: AssetImage(AppImages.videocardimage),
-            fit: BoxFit.cover,
-          ),
+          image: video.thumbnailUrl.isNotEmpty
+              ? DecorationImage(
+                  image: NetworkImage(video.thumbnailUrl),
+                  fit: BoxFit.cover,
+                  onError: (exception, stackTrace) {
+                    // Fallback to asset image if network image fails
+                  },
+                )
+              : DecorationImage(
+                  image: AssetImage(AppImages.videocardimage),
+                  fit: BoxFit.cover,
+                ),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
@@ -67,7 +83,7 @@ class VideoCardWidget extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       CustomTextWidget(
-                        text: video.duration,
+                        text: video.formattedDurationMin,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         textColor: AppColors.mediumGray,

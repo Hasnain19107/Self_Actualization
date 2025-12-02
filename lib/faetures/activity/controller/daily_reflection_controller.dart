@@ -19,38 +19,36 @@ class DailyReflectionController extends GetxController {
   final RxBool isListening = false.obs;
   final RxBool isAvailable = false.obs;
 
-  // Mood emojis for selection (6 moods, no day labels)
+  // Mood emojis for selection (6 moods matching API: angry, anxious, sad, stressed, neutral, happy)
   final List<Map<String, dynamic>> moodOptions = [
     {
       'imagePath': AppImages.sleepEmoji,
-      'bgColor': const Color(0xFFFFB74D),
-      'mood': 'sleepy',
-    }, // Orange - sleeping
+      'mood': 'stressed',
+    }, // Orange - stressed/tired
     {
-      'imagePath': AppImages.teethEmoji,
-      'bgColor': const Color(0xFFFFEE58),
+      'imagePath': AppImages.teethEmoji,      
       'mood': 'anxious',
-    }, // Yellow - grimacing
+    }, // Yellow - anxious
     {
       'imagePath': AppImages.silentEmoji,
-      'bgColor': const Color(0xFF81D4FA),
+   
       'mood': 'sad',
     }, // Light Blue - sad
     {
       'imagePath': AppImages.wonderEmoji,
-      'bgColor': const Color(0xFFF8BBD0),
-      'mood': 'confused',
-    }, // Light Pink - blushing/sweating
+      
+      'mood': 'anxious',
+    }, // Light Pink - angry/frustrated
     {
       'imagePath': AppImages.hardEmoji,
-      'bgColor': const Color(0xFF42A5F5),
-      'mood': 'neutral',
+      
+      'mood': 'angry',
     }, // Dark Blue - neutral
     {
       'imagePath': AppImages.happyEmoji,
-      'bgColor': const Color(0xFFFFEE58),
+     
       'mood': 'happy',
-    }, // Yellow - laughing
+    }, // Yellow - happy
   ];
   
   // Get mood string from selected mood image path
@@ -409,7 +407,7 @@ class DailyReflectionController extends GetxController {
   }
 
   void addNewReflection() {
-    Get.toNamed(AppRoutes.addReflectionScreen);
+    Get.offNamed(AppRoutes.addReflectionScreen);
   }
 
   void viewReflectionHistory() {

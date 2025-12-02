@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import '../binding/home_binding.dart';
+
 import '../../../core/const/app_exports.dart';
-import '../controller/home_controller.dart';
-import '../widgtes/action_cards_widget.dart';
-import '../../../core/widgets/needs_slider_widget.dart';
+
 import '../../../core/controllers/user_controller.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -54,11 +52,13 @@ class HomeScreen extends StatelessWidget {
                         textColor: AppColors.black,
                         textAlign: TextAlign.left,
                       ),
-                    ],
+                    ]
                   ],
                 );
               }),
+              const Gap(16),
               // Action Cards
+
               ActionCardsWidget(
                 actionCards: controller.actionCards,
                 onTap: controller.onActionCardTap,
@@ -66,13 +66,32 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 24),
               // Needs Sliders
               Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: controller.needs
-                        .map((need) => NeedsSliderWidget(need: need))
-                        .toList(),
-                  ),
-                ),
+                child: Obx(() {
+                  if (controller.isLoadingNeeds.value) {
+                    return const Center(
+                      child: CustomProgressIndicator(),
+                    );
+                  }
+
+                  if (controller.needs.isEmpty) {
+                    return Center(
+                      child: CustomTextWidget(
+                        text: 'No assessment data available',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        textColor: AppColors.grey,
+                      ),
+                    );
+                  }
+
+                  return SingleChildScrollView(
+                    child: Column(
+                      children: controller.needs
+                          .map((need) => NeedsSliderWidget(need: need))
+                          .toList(),
+                    ),
+                  );
+                }),
               ),
             ],
           ),

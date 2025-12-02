@@ -15,22 +15,41 @@ class QuestionRepository {
   QuestionRepository({ApiService? apiService})
       : _apiService = apiService ?? ApiService();
 
-  /// Get questions, optionally filtered by category
+  /// Get questions, optionally filtered by category or categories
   Future<ApiResponseModel<List<QuestionModel>>> getQuestions({
     String? category,
+    List<String>? categories,
+    int? limit,
+    int? page,
   }) async {
     try {
       DebugUtils.logInfo(
         'Starting to fetch questions'
-        '${category != null ? ' for category: $category' : ''}',
+        '${category != null ? ' for category: $category' : ''}'
+        '${categories != null && categories.isNotEmpty ? ' for categories: ${categories.join(",")}' : ''}',
         tag: 'QuestionRepository.getQuestions',
       );
 
+      final queryParameters = <String, String>{};
+      
+      if (category != null) {
+        queryParameters['category'] = category;
+      } else if (categories != null && categories.isNotEmpty) {
+        queryParameters['categories'] = categories.join(',');
+      }
+      
+      if (limit != null) {
+        queryParameters['limit'] = limit.toString();
+      }
+      
+      if (page != null) {
+        queryParameters['page'] = page.toString();
+      }
+
       final response = await _apiService.get<List<QuestionModel>>(
         endpoint: ApiConstants.questionsEndpoint,
-        queryParameters:
-            category != null ? {'category': category} : null,
-        includeAuth: false,
+        queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
+        includeAuth: true, // Questions now require auth when using categories
         fromJsonT: (data) {
           // The API returns { success, total, data: [...] }
           // The 'data' field is already extracted by ApiResponseModel

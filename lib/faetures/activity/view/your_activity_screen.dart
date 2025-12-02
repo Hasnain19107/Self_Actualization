@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import '../binding/your_activity_binding.dart';
-import '../controller/your_activity_controller.dart';
-import '../widgets/activity_card_widget.dart';
-import '../../goal/widgets/goal_item_widget.dart';
+
 import '../../../core/const/app_exports.dart';
 
 class YourActivityScreen extends StatelessWidget {
@@ -18,186 +15,231 @@ class YourActivityScreen extends StatelessWidget {
     YourActivityBinding().dependencies();
     final controller = Get.find<YourActivityController>();
 
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: appSizes.getWidthPercentage(3),
-            vertical: appSizes.getHeightPercentage(2),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header: Avatar, Title, Notification Bell
-                AppHeaderWidget(
-                  title: 'Your Activity',
-                  onNotificationTap: () {
-                    // Handle notification tap
-                  },
-                ),
-                const Gap(12),
-                SearchBarWidget(
-                  searchController: searchController,
-                  onChanged: (value) {
-                    // Handle search input
-                  },
-                  onMicTap: () {
-                    // Handle mic tap
-                  },
-                ),
-                const Gap(24),
-
-                // Date Picker
-                SizedBox(
-                  height: 40,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: controller.dates.length,
-                    separatorBuilder: (context, index) => const Gap(8),
-                    itemBuilder: (context, index) {
-                      final date = controller.dates[index];
-                      return Obx(() {
-                        final isSelected =
-                            controller.selectedDate.value == date;
-                        return GestureDetector(
-                          onTap: () => controller.selectDate(date),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppColors.white
-                                  : AppColors.inputBorderGrey.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isSelected
-                                    ? AppColors.blue
-                                    : Colors.transparent,
-                                width: isSelected ? 1.5 : 0,
-                              ),
-                            ),
-                            child: Center(
-                              child: CustomTextWidget(
-                                text: date,
-                                fontSize: 14,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.w400,
-                                textColor: isSelected
-                                    ? AppColors.blue
-                                    : AppColors.black,
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        );
-                      });
+    return RefreshIndicator(
+      onRefresh: () async {
+        await controller.fetchGoals();
+       
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.white,
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: appSizes.getWidthPercentage(3),
+              vertical: appSizes.getHeightPercentage(2),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header: Avatar, Title, Notification Bell
+                  AppHeaderWidget(
+                    title: 'Your Activity',
+                    onNotificationTap: () {
+                      // Handle notification tap
                     },
                   ),
-                ),
-                const Gap(24),
-
-                // Activity Cards
-                Row(
-                  children: [
-                    Expanded(
-                      child: ActivityCardWidget(
-                        icon1: controller.activityCardsData[0]['icon1'],
-                        icon1Color:
-                            controller.activityCardsData[0]['icon1Color'],
-                        icon2: controller.activityCardsData[0]['icon2'],
-                        icon2Color:
-                            controller.activityCardsData[0]['icon2Color'],
-                        title: controller.activityCardsData[0]['title'],
-                        subtitle: controller.activityCardsData[0]['subtitle'],
-                        backgroundColor: AppColors.lightBlue.withOpacity(0.5),
-                      ),
-                    ),
-                    const Gap(16),
-                    Expanded(
-                      child: ActivityCardWidget(
-                        icon1: controller.activityCardsData[1]['icon1'],
-                        icon1Color:
-                            controller.activityCardsData[1]['icon1Color'],
-                        icon2: controller.activityCardsData[1]['icon2'],
-                        icon2Color:
-                            controller.activityCardsData[1]['icon2Color'],
-                        icon2BgColor:
-                            controller.activityCardsData[1]['icon2BgColor'],
-                        title: controller.activityCardsData[1]['title'],
-                        subtitle: controller.activityCardsData[1]['subtitle'],
-                        backgroundColor: AppColors.lightBlue.withOpacity(0.5),
-                        onTap: () {
-                          Get.toNamed(AppRoutes.dailyReflectionScreen);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const Gap(32),
-
-                // Goals Tracker Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const CustomTextWidget(
-                      text: 'Goals Tracker',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      textColor: AppColors.black,
-                      textAlign: TextAlign.left,
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        Get.toNamed(AppRoutes.goalScreen);
-                      },
-                      icon: const Icon(
-                        Icons.arrow_forward,
-                        color: AppColors.black,
-                        size: 24,
-                      ),
-                    ),
-                  ],
-                ),
-                const Gap(16),
-
-                // Goals List and Circular Chart
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: controller.goalsData.map((goal) {
-                          return GoalItemWidget(
-                            barColor: goal['barColor'],
-                            title: goal['title'],
-                            subtitle: goal['subtitle'],
+                  const Gap(12),
+                
+      
+                  // Date Picker (Current Week Only)
+                  SizedBox(
+                    height: 40,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: controller.dates.length,
+                      separatorBuilder: (context, index) => const Gap(8),
+                      itemBuilder: (context, index) {
+                        final dateData = controller.dates[index];
+                        final date = dateData['date'] as DateTime;
+                        final displayText = dateData['displayText'] as String;
+                        final isToday = dateData['isToday'] as bool;
+                        
+                        return Obx(() {
+                          final isSelected = controller.isSameDay(date, controller.selectedDate.value);
+                          
+                          return GestureDetector(
+                            onTap: () => controller.selectDate(date),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppColors.white
+                                    : AppColors.inputBorderGrey.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? AppColors.blue
+                                      : Colors.transparent,
+                                  width: isSelected ? 1.5 : 0,
+                                ),
+                              ),
+                              child: Center(
+                                child: CustomTextWidget(
+                                  text: displayText,
+                                  fontSize: 14,
+                                  fontWeight: isSelected || isToday
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                  textColor: isSelected
+                                      ? AppColors.blue
+                                      : AppColors.black,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
                           );
-                        }).toList(),
-                      ),
+                        });
+                      },
                     ),
-                    const Gap(8),
-                    const CircularProgressChartWidget(),
-                  ],
-                ),
-                const Gap(32),
-
-                // Mood Tracker / Daily Emojis
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: controller.moodEmojisData.map((mood) {
-                    return MoodEmojiWidget(
-                      day: mood['day'],
-                      imagePath: mood['imagePath'] as String?,
+                  ),
+                  const Gap(24),
+      
+                  // Activity Cards
+                  Obx(() {
+                    final cardsData = controller.activityCardsData;
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: ActivityCardWidget(
+                            icon1: cardsData[0]['icon1'] as IconData,
+                            icon1Color: cardsData[0]['icon1Color'] as Color,
+                            icon2: cardsData[0]['icon2'] as IconData?,
+                            icon2Color: cardsData[0]['icon2Color'] as Color?,
+                            title: cardsData[0]['title'] as String,
+                            subtitle: cardsData[0]['subtitle'] as String,
+                            backgroundColor: AppColors.lightBlue.withOpacity(0.5),
+                          ),
+                        ),
+                        const Gap(16),
+                        Expanded(
+                          child: ActivityCardWidget(
+                            icon1: cardsData[1]['icon1'] as IconData,
+                            icon1Color: cardsData[1]['icon1Color'] as Color,
+                            icon2: cardsData[1]['icon2'] as IconData?,
+                            icon2Color: cardsData[1]['icon2Color'] as Color?,
+                            icon2BgColor: cardsData[1]['icon2BgColor'] as Color?,
+                            title: cardsData[1]['title'] as String,
+                            subtitle: cardsData[1]['subtitle'] as String,
+                            backgroundColor: AppColors.lightBlue.withOpacity(0.5),
+                            onTap: () {
+                              Get.toNamed(AppRoutes.dailyReflectionScreen);
+                            },
+                          ),
+                        ),
+                      ],
                     );
-                  }).toList(),
-                ),
-                const Gap(20),
-              ],
+                  }),
+                  const Gap(32),
+      
+                  // Goals Tracker Section
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const CustomTextWidget(
+                        text: 'Goals Tracker',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        textColor: AppColors.black,
+                        textAlign: TextAlign.left,
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          Get.toNamed(AppRoutes.goalScreen);
+                        },
+                        icon: const Icon(
+                          Icons.arrow_forward,
+                          color: AppColors.black,
+                          size: 24,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Gap(16),
+      
+                  // Goals List and Circular Chart
+                  Obx(() {
+                    if (controller.isLoadingGoals.value) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CustomProgressIndicator(),
+                        ),
+                      );
+                    }
+      
+                    final currentGoals = controller.currentGoals;
+                    
+                    if (currentGoals.isEmpty) {
+                      return CustomTextWidget(
+                        text: 'No active goals yet. Add a new goal to get started!',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        textColor: AppColors.mediumGray,
+                        textAlign: TextAlign.left,
+                      );
+                    }
+      
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            children: currentGoals.map((goal) {
+                              return GoalItemWidget(
+                                barColor: controller.barColorForGoal(goal),
+                                title: goal.title,
+                                subtitle: controller.formattedDateRange(goal),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                        const Gap(8),
+                        Obx(() {
+                          // Observe goals to update chart
+                          final _ = controller.goals.length;
+                          return CircularProgressChartWidget(
+                            segments: controller.chartSegments,
+                          );
+                        }),
+                      ],
+                    );
+                  }),
+                  const Gap(32),
+      
+                  // Mood Tracker / Daily Emojis
+                  Obx(() {
+                    final moodsWithReflections = controller.moodsWithReflections;
+                    
+                    if (controller.isLoadingReflections) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CustomProgressIndicator(),
+                        ),
+                      );
+                    }
+                    
+                    if (moodsWithReflections.isEmpty) {
+                      return const SizedBox.shrink(); // Show nothing when empty, like daily_reflection_screen
+                    }
+                    
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: moodsWithReflections.map((mood) {
+                        return MoodEmojiWidget(
+                          day: mood['day'] as String? ?? '',
+                          imagePath: mood['imagePath'] as String?,
+                        );
+                      }).toList(),
+                    );
+                  }),
+                  const Gap(20),
+                ],
+              ),
             ),
           ),
         ),

@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:pixsa_petrol_pump/faetures/subscription/controllers/onboarding_controller.dart';
+import 'package:pixsa_petrol_pump/faetures/subscription/widgets/subscription_card_widget.dart';
+
 
 import '../../../core/const/app_exports.dart';
 
 class SelectPlanScreen extends StatelessWidget {
-  const SelectPlanScreen({super.key});
+  final bool showHeader;
+  
+  const SelectPlanScreen({super.key, this.showHeader = false});
 
   @override
   Widget build(BuildContext context) {
     final AppSizes appSizes = AppSizes();
-    final controller = Get.find<OnboardingController>();
+    final controller = Get.put(SubscriptionController());
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -23,22 +28,28 @@ class SelectPlanScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Gap(appSizes.getHeightPercentage(2)),
-              CustomTextWidget(
-                text: 'Select Subscription',
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                textColor: AppColors.black,
-                textAlign: TextAlign.left,
-              ),
-              Gap(12),
-              CustomTextWidget(
-                text: 'Change Plan',
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                textColor: AppColors.black,
-                textAlign: TextAlign.left,
-              ),
+              if (showHeader)
+                AppHeaderWidget(
+                  title: 'Select Subscription',
+                )
+              else ...[
+                Gap(appSizes.getHeightPercentage(2)),
+                CustomTextWidget(
+                  text: 'Select Subscription',
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  textColor: AppColors.black,
+                  textAlign: TextAlign.left,
+                ),
+                Gap(12),
+                CustomTextWidget(
+                  text: 'Change Plan',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  textColor: AppColors.black,
+                  textAlign: TextAlign.left,
+                ),
+              ],
               Gap(24),
               Expanded(
                 child: ListView.separated(
@@ -94,17 +105,22 @@ class SelectPlanScreen extends StatelessWidget {
                 );
               }),
               Gap(24),
-              CustomElevatedButton(
-                text: 'Continue',
-                backgroundColor: AppColors.blue,
-                textColor: AppColors.white,
-                hasRightIcon: true,
-                iconData: Icons.arrow_forward,
-                iconColor: AppColors.white,
-                iconSize: 20,
-                onPress: controller.handlePlanContinue,
-                width: double.infinity,
-              ),
+              Obx(() {
+                final isProcessing = controller.isProcessingPayment.value || 
+                                    controller.isCreatingSubscription.value;
+                return CustomElevatedButton(
+                  text: 'Change Plan',
+                  backgroundColor: AppColors.blue,
+                  textColor: AppColors.white,
+                  hasRightIcon: !isProcessing,
+                  iconData: Icons.arrow_forward,
+                  iconColor: AppColors.white,
+                  iconSize: 20,
+                  isLoading: isProcessing,
+                  onPress: controller.handlePlanContinue,
+                  width: double.infinity,
+                );
+              }),
               Gap(appSizes.getHeightPercentage(2)),
             ],
           ),

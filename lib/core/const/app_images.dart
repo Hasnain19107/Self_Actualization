@@ -9,10 +9,10 @@ class AppImages {
   static get facebook => 'facebook'.toSvg;
   static get videocardimage => 'videocardimage'.toJpg;
 
-  static get focusStreak1 => 'focusStreak1'.toPng;
-  static get focusStreak2 => 'focusStreak2'.toPng;
-  static get focusStreak3 => 'focusStreak3'.toPng;
-  static get focusStreak4 => 'focusStreak4'.toPng;
+  static get focusStreakLevel1 => 'focusStreakl1'.toPng;
+  static get focusStreakLevel2 => 'focusStreakl2'.toPng;
+  static get focusStreakLevel3 => 'focusStreakl3'.toPng;
+  static get focusStreakLevel4 => 'focusStreakl4'.toPng;
 
   /// Emoji Images
   static get sleepEmoji => 'sleepEmoji'.toPng;

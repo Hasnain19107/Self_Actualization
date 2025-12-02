@@ -100,6 +100,8 @@ class AuthController extends GetxController {
       isLoading.value = false;
 
       if (response.success && response.data != null) {
+        final user = response.data!;
+        
         // Clear controllers
         signinEmailController.clear();
         signinPasswordController.clear();
@@ -112,8 +114,19 @@ class AuthController extends GetxController {
           type: ToastType.success,
         );
 
-        // Navigate to welcome screen on success
-        Get.toNamed(AppRoutes.welcomeScreen);
+        // Check if user has subscription and completed assessment
+        final hasSubscription = user.currentSubscriptionType != null && 
+                               user.currentSubscriptionType!.isNotEmpty;
+        final hasCompletedAssessment = user.hasCompletedAssessment == true;
+
+        // Navigate based on user status
+        if (hasSubscription && hasCompletedAssessment) {
+          // Navigate directly to main navigation screen
+          Get.offAllNamed(AppRoutes.mainNavScreen);
+        } else {
+          // Navigate to welcome screen for onboarding
+          Get.toNamed(AppRoutes.welcomeScreen);
+        }
       } else {
         // Show error message
         ToastClass.showCustomToast(

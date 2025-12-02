@@ -10,6 +10,10 @@ class UserModel {
   final List<String>? focusAreas;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final bool? hasCompletedAssessment;
+  final String? currentSubscriptionType;
+  final DateTime? assessmentCompletedAt;
+  final DateTime? lastLogin;
 
   UserModel({
     required this.id,
@@ -21,6 +25,10 @@ class UserModel {
     this.focusAreas,
     this.createdAt,
     this.updatedAt,
+    this.hasCompletedAssessment,
+    this.currentSubscriptionType,
+    this.assessmentCompletedAt,
+    this.lastLogin,
   });
 
   /// Create from JSON
@@ -43,6 +51,14 @@ class UserModel {
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'].toString())
           : null,
+      hasCompletedAssessment: json['hasCompletedAssessment'] as bool? ?? false,
+      currentSubscriptionType: json['currentSubscriptionType'] as String?,
+      assessmentCompletedAt: json['assessmentCompletedAt'] != null
+          ? DateTime.tryParse(json['assessmentCompletedAt'].toString())
+          : null,
+      lastLogin: json['lastLogin'] != null
+          ? DateTime.tryParse(json['lastLogin'].toString())
+          : null,
     );
   }
 
@@ -58,6 +74,10 @@ class UserModel {
       'focusAreas': focusAreas,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'hasCompletedAssessment': hasCompletedAssessment,
+      'currentSubscriptionType': currentSubscriptionType,
+      'assessmentCompletedAt': assessmentCompletedAt?.toIso8601String(),
+      'lastLogin': lastLogin?.toIso8601String(),
     };
   }
 
@@ -72,6 +92,10 @@ class UserModel {
     List<String>? focusAreas,
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? hasCompletedAssessment,
+    String? currentSubscriptionType,
+    DateTime? assessmentCompletedAt,
+    DateTime? lastLogin,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -83,6 +107,10 @@ class UserModel {
       focusAreas: focusAreas ?? this.focusAreas,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      hasCompletedAssessment: hasCompletedAssessment ?? this.hasCompletedAssessment,
+      currentSubscriptionType: currentSubscriptionType ?? this.currentSubscriptionType,
+      assessmentCompletedAt: assessmentCompletedAt ?? this.assessmentCompletedAt,
+      lastLogin: lastLogin ?? this.lastLogin,
     );
   }
 }

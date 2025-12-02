@@ -8,10 +8,16 @@ class SelfAssessmentScreen extends StatelessWidget {
   SelfAssessmentScreen({super.key});
 
   final AppSizes appSizes = AppSizes();
-  final controller = Get.find<SelfAssessmentController>();
 
   @override
   Widget build(BuildContext context) {
+    // Get or create controller
+    final controller = Get.put(SelfAssessmentController());
+    
+    // Initialize and fetch questions when screen is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.initializeForAssessment();
+    });
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       body: SafeArea(
@@ -63,7 +69,7 @@ class SelfAssessmentScreen extends StatelessWidget {
                 child: Obx(
                   () => controller.isLoading.value
                       ? const Center(
-                          child: CircularProgressIndicator(),
+                          child: CustomProgressIndicator(),
                         )
                       : controller.questions.isEmpty
                           ? Center(

@@ -1,36 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../core/const/app_colors.dart';
-import '../../../core/const/app_images.dart';
+import '../../../core/const/app_exports.dart';
 import '../../../core/widgets/custom_text_widget.dart';
-import '../controller/learn_grow_controller.dart';
+import '../view/article_view_screen.dart';
+import '../../../data/models/learn_and_grow/article_model.dart';
 
 class ArticleCardWidget extends StatelessWidget {
-  final VideoFile video;
+  final ArticleModel article;
 
-  const ArticleCardWidget({super.key, required this.video});
+  const ArticleCardWidget({super.key, required this.article});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Handle video tap
+        Get.to(
+          () => ArticleViewScreen(
+            title: article.title,
+            content: article.content,
+            thumbnailUrl: article.thumbnailUrl,
+            readTimeMinutes: article.readTimeMinutes,
+          ),
+        );
       },
       child: Container(
         width: double.infinity,
-        height: 128,
+        height: 200,
         margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          image: DecorationImage(
-            image: AssetImage(AppImages.videocardimage),
-            fit: BoxFit.cover,
-          ),
+          image: article.thumbnailUrl.isNotEmpty
+              ? DecorationImage(
+                  image: NetworkImage(article.thumbnailUrl),
+                  fit: BoxFit.cover,
+                  onError: (exception, stackTrace) {
+                    // Fallback handled in errorBuilder
+                  },
+                )
+              : null,
+          color: article.thumbnailUrl.isEmpty ? AppColors.lightGray : null,
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: Stack(
             children: [
-              // ✅ Gradient overlay directly on top of image
+              // Gradient overlay
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -44,7 +59,7 @@ class ArticleCardWidget extends StatelessWidget {
                 ),
               ),
 
-              // Duration badge (top right)
+              // Read time badge (top right)
               Positioned(
                 top: 12,
                 right: 12,
@@ -67,7 +82,7 @@ class ArticleCardWidget extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       CustomTextWidget(
-                        text: 'Read Time: ${video.duration}',
+                        text: '${article.readTimeMinutes} min',
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         textColor: AppColors.mediumGray,
@@ -78,31 +93,57 @@ class ArticleCardWidget extends StatelessWidget {
                 ),
               ),
 
-              // Play button (center)
+              // Article icon (center if no thumbnail)
+              if (article.thumbnailUrl.isEmpty)
+                Center(
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: const BoxDecoration(
+                      color: AppColors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.article,
+                        size: 32,
+                        color: AppColors.black,
+                      ),
+                    ),
+                  ),
+                ),
 
-              // Title & description at bottom with dark gradient
+              // Title & description at bottom
               Positioned(
                 bottom: 0,
                 left: 0,
                 right: 0,
                 child: Container(
                   padding: const EdgeInsets.all(16),
-
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomTextWidget(
-                        text: video.title,
+                        text: article.title,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        textColor: AppColors.black,
+                        textColor: AppColors.white,
+                        maxLines: 2,
+                        textOverflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
                       CustomTextWidget(
-                        text: video.description,
-                        fontSize: 14,
+                        text: 'Tap to read full article',
+                        fontSize: 12,
                         fontWeight: FontWeight.w400,
-                        textColor: AppColors.black,
+                        textColor: AppColors.white.withOpacity(0.8),
                       ),
                     ],
                   ),

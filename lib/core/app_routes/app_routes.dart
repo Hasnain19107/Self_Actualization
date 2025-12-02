@@ -31,6 +31,7 @@ class AppRoutes {
 
   /// Learn & Grow
   static const String learnGrowScreen = "/learnGrowScreen";
+  static const String videoPlayerScreen = "/videoPlayerScreen";
 
   /// Notification
   static const String notificationScreen = "/notificationScreen";

@@ -52,7 +52,7 @@ class AchievementProgressCardWidget extends StatelessWidget {
                   ),
                   child: Center(
                     child: CustomTextWidget(
-                      text: '${controller.currentLevel.value}',
+                      text: '${controller.currentLevel}',
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       textColor: const Color(0xFFFFEB3B), // Light yellow
@@ -67,7 +67,7 @@ class AchievementProgressCardWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomTextWidget(
-                        text: controller.currentBadge.value,
+                        text: controller.currentBadge,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         textColor: AppColors.black,
@@ -76,7 +76,7 @@ class AchievementProgressCardWidget extends StatelessWidget {
                       const SizedBox(height: 4),
                       CustomTextWidget(
                         text:
-                            '${controller.pointsToNext.value} Points to next achievemnt',
+                            '${controller.pointsToNext} Points to next achievement',
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                         textColor: AppColors.black,
@@ -97,14 +97,8 @@ class AchievementProgressCardWidget extends StatelessWidget {
   }
 
   Widget _buildProgressBar(AchievementController controller) {
-    // Define range values
-    final minValue = 0.0;
-    final maxValue = controller.totalPoints.value.toDouble();
-    final currentValue = controller.currentPoints.value.toDouble();
-
-    // Calculate progress percentage within range
-    final progressValue = (currentValue - minValue) / (maxValue - minValue);
-    final clampedProgress = progressValue.clamp(0.0, 1.0);
+    // Use progress percentage from API (already calculated)
+    final clampedProgress = controller.progressPercentage;
 
     return Expanded(
       child: LayoutBuilder(
@@ -153,18 +147,18 @@ class AchievementProgressCardWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Current level badge (on filled portion)
-                    _buildLevelBadge(controller.currentLevel.value),
+                    _buildLevelBadge(controller.currentLevel),
                     // Points text
                     CustomTextWidget(
                       text:
-                          '${controller.currentPoints.value}/${controller.totalPoints.value}',
+                          '${controller.currentPoints}/${controller.totalPoints}',
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       textColor: AppColors.black,
                       textAlign: TextAlign.center,
                     ),
                     // Next level badge (on unfilled portion)
-                    _buildLevelBadge(controller.nextLevel.value),
+                    _buildLevelBadge(controller.nextLevel),
                   ],
                 ),
               ),

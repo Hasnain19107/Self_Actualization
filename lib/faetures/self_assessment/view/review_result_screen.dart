@@ -69,7 +69,7 @@ class ReviewResultScreen extends StatelessWidget {
                         return SizedBox(
                           height: screenHeight * 0.6,
                           child: const Center(
-                            child: CircularProgressIndicator(),
+                            child: CustomProgressIndicator(),
                           ),
                         );
                       }

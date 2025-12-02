@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:pixsa_petrol_pump/faetures/On_boarding/view/select_plan.dart';
+
 import '../../../core/const/app_exports.dart';
 
 class WelcomeScreen extends StatelessWidget {

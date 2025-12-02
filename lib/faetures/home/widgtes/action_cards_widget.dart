@@ -27,15 +27,10 @@ class ActionCardsWidget extends StatelessWidget {
               textColor: AppColors.black,
               textAlign: TextAlign.left,
             ),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.more_vert, color: AppColors.black),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
+           
           ],
         ),
-
+        const Gap(16),
         Row(
           children: actionCards.asMap().entries.map((entry) {
             final card = entry.value;

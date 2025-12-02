@@ -34,30 +34,58 @@ class AchievementScreen extends StatelessWidget {
               const Gap(24),
 
               // Achievement Progress Card
-              const AchievementProgressCardWidget(),
+              Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(40.0),
+                      child: CustomProgressIndicator(),
+                    ),
+                  );
+                }
+                return const AchievementProgressCardWidget();
+              }),
               const Gap(24),
 
               // Achievement Cards Grid
               Expanded(
                 child: Obx(
-                  () => GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 0.85,
-                        ),
-                    itemCount: controller.achievements.length,
-                    itemBuilder: (context, index) {
-                      final achievement = controller.achievements[index];
-                      return AchievementCardWidget(
-                        imagePath: achievement['imagePath'] as String?,
-                        title: achievement['title'] as String,
-                        subtitle: achievement['subtitle'] as String,
+                  () {
+                    if (controller.isLoading.value) {
+                      return const Center(
+                        child: CustomProgressIndicator(),
                       );
-                    },
-                  ),
+                    }
+                    final achievements = controller.achievements;
+                    if (achievements.isEmpty) {
+                      return Center(
+                        child: CustomTextWidget(
+                          text: 'No achievements available',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          textColor: AppColors.grey,
+                        ),
+                      );
+                    }
+                    return GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.85,
+                          ),
+                      itemCount: achievements.length,
+                      itemBuilder: (context, index) {
+                        final achievement = achievements[index];
+                        return AchievementCardWidget(
+                          imagePath: achievement['imagePath'] as String?,
+                          title: achievement['title'] as String,
+                          subtitle: achievement['subtitle'] as String,
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
             ],
