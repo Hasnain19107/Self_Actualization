@@ -8,11 +8,11 @@ import '../../../data/repository/subscription_repository.dart';
 
 class SelfAssessmentController extends GetxController {
   static const List<String> _questionCategoryOrder = [
-    'Survival',
-    'Safety',
-    'Social',
-    'Self',
     'Meta-Needs',
+    'Self',
+    'Social',
+    'Safety',
+    'Survival',
   ];
 
   // Repositories

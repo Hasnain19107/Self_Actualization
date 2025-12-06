@@ -74,7 +74,10 @@ class WelcomeScreen extends StatelessWidget {
                   backgroundColor: AppColors.blue,
                   textColor: AppColors.white,
                   onPress: () {
-                    Get.toNamed(AppRoutes.selectPlanScreen);
+                    Get.toNamed(
+                      AppRoutes.profileSetupScreen,
+                      arguments: {'fromWelcome': true},
+                    );
                   },
                   hasRightIcon: true,
                   iconColor: AppColors.white,

@@ -68,11 +68,11 @@ class DailyReflectionController extends GetxController {
     super.onInit();
     reflectionController.addListener(_updateCharacterCount);
     _initializeSpeech();
-    _fetchReflections();
+    fetchReflections();
   }
 
   // Fetch reflections from API
-  Future<void> _fetchReflections() async {
+  Future<void> fetchReflections() async {
     try {
       isLoadingReflections.value = true;
 
@@ -203,13 +203,13 @@ class DailyReflectionController extends GetxController {
       }
     }
     
-    // Convert to list and sort by date (most recent first)
+    // Convert to list and sort by date (oldest first, then next day)
     final sortedReflections = dayReflectionsMap.values.toList()
       ..sort((a, b) {
         final dateA = a['dateTime'] as DateTime?;
         final dateB = b['dateTime'] as DateTime?;
         if (dateA == null || dateB == null) return 0;
-        return dateB.compareTo(dateA); // Most recent first
+        return dateA.compareTo(dateB); // Oldest first (first day first, then next)
       });
     
     // Take only last 7 days
@@ -388,7 +388,7 @@ class DailyReflectionController extends GetxController {
         );
         
         // Refresh reflections from API to get the latest data
-        _fetchReflections();
+        fetchReflections();
         
         Get.offNamed(AppRoutes.dailyReflectionScreen);
       } else {

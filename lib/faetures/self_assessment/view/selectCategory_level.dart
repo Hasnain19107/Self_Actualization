@@ -87,13 +87,17 @@ class SelectCategoryLevelScreen extends StatelessWidget {
                           );
                         }
 
+                        // Reverse categories so Survival appears at bottom
+                        final reversedCategories = categories.toList().reversed.toList();
+                        
                         return Column(
-                          children: categories.map((category) {
+                          children: reversedCategories.map((category) {
                             final isSelected = controller.isCategorySelected(category);
                             
                             // Get emoji for category
                             String categoryEmoji = '📋';
-                            if (category == 'Self') categoryEmoji = '✏️';
+                            if (category == 'Meta-Needs') categoryEmoji = '🌟';
+                            else if (category == 'Self') categoryEmoji = '✏️';
                             else if (category == 'Social') categoryEmoji = '💬';
                             else if (category == 'Safety') categoryEmoji = '💪';
                             else if (category == 'Survival') categoryEmoji = '😊';

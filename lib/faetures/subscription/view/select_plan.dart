@@ -8,9 +8,9 @@ import 'package:pixsa_petrol_pump/faetures/subscription/widgets/subscription_car
 import '../../../core/const/app_exports.dart';
 
 class SelectPlanScreen extends StatelessWidget {
-  final bool showHeader;
+ 
   
-  const SelectPlanScreen({super.key, this.showHeader = false});
+  
 
   @override
   Widget build(BuildContext context) {
@@ -28,11 +28,7 @@ class SelectPlanScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (showHeader)
-                AppHeaderWidget(
-                  title: 'Select Subscription',
-                )
-              else ...[
+              ...[
                 Gap(appSizes.getHeightPercentage(2)),
                 CustomTextWidget(
                   text: 'Select Subscription',

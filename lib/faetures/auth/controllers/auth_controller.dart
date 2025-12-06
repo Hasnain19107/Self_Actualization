@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../core/const/app_exports.dart';
+import '../../../core/controllers/user_controller.dart';
 import '../../../data/repository/user_repository.dart';
 import '../../../data/models/user/register_request_model.dart';
 import '../../../data/models/user/login_request_model.dart';
@@ -105,6 +106,16 @@ class AuthController extends GetxController {
         // Clear controllers
         signinEmailController.clear();
         signinPasswordController.clear();
+
+        // Initialize or refresh UserController to fetch user data
+        if (!Get.isRegistered<UserController>()) {
+          // Initialize UserController if not registered
+          Get.put(UserController(), permanent: true);
+        } else {
+          // Refresh user data if already registered
+          final userController = Get.find<UserController>();
+          await userController.refreshUserData();
+        }
 
         // Show success message
         ToastClass.showCustomToast(

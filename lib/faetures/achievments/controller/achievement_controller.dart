@@ -9,6 +9,9 @@ class AchievementController extends GetxController {
   // Achievement data from API
   final Rx<AchievementModel?> achievementData = Rx<AchievementModel?>(null);
   final RxBool isLoading = false.obs;
+  
+  // Error state
+  final RxString errorMessage = ''.obs;
 
   // Reactive getters for backward compatibility with existing UI
   String get currentBadge => 
@@ -35,7 +38,6 @@ class AchievementController extends GetxController {
       return <Map<String, dynamic>>[];
     }
 
-    final unlocked = achievementData.value!.unlockedAchievements;
     final focusStreak = achievementData.value!.focusStreak;
     final daysActive = achievementData.value!.activityCounts.daysActive;
 
@@ -82,15 +84,8 @@ class AchievementController extends GetxController {
       });
     }
 
-    // Add unlocked achievements from API
-    for (var unlockedAchievement in unlocked) {
-      achievementList.add({
-        'imagePath': unlockedAchievement.iconUrl ?? AppImages.focusStreakLevel1,
-        'isCompleted': true,
-        'title': unlockedAchievement.name,
-        'subtitle': unlockedAchievement.description,
-      });
-    }
+    // Note: Unlocked achievements from API are not displayed as cards
+    // They are only shown in the progress section
 
     return achievementList;
   }
@@ -108,26 +103,32 @@ class AchievementController extends GetxController {
 
   Future<void> fetchAchievements() async {
     isLoading.value = true;
+    errorMessage.value = ''; // Clear error on retry
     try {
       final response = await _achievementRepository.getAchievements();
+
+      isLoading.value = false;
 
       if (response.success && response.data != null) {
         achievementData.value = response.data;
       } else {
-        ToastClass.showCustomToast(
-          response.message.isNotEmpty
-              ? response.message
-              : 'Failed to load achievements',
-          type: ToastType.error,
-        );
+        errorMessage.value = response.message.isNotEmpty
+            ? response.message
+            : 'Failed to load achievements';
       }
     } catch (e) {
-      ToastClass.showCustomToast(
-        'Error loading achievements: ${e.toString()}',
-        type: ToastType.error,
-      );
-    } finally {
       isLoading.value = false;
+      errorMessage.value = 'An error occurred. Please try again.';
+      DebugUtils.logError(
+        'Error loading achievements',
+        tag: 'AchievementController.fetchAchievements',
+        error: e,
+      );
     }
+  }
+
+  void refreshData() {
+    errorMessage.value = '';
+    fetchAchievements();
   }
 }

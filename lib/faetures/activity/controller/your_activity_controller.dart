@@ -19,6 +19,9 @@ class YourActivityController extends GetxController {
   final RxList<GoalModel> goals = <GoalModel>[].obs;
   final RxBool isLoadingGoals = false.obs;
   
+  // Error state
+  final RxString errorMessage = ''.obs;
+  
   // Get current week dates (7 days starting from Monday)
   List<Map<String, dynamic>> get dates {
     final weekStart = currentWeekStart;
@@ -100,25 +103,31 @@ class YourActivityController extends GetxController {
   Future<void> fetchGoals() async {
     try {
       isLoadingGoals.value = true;
+      errorMessage.value = ''; // Clear error on retry
       final response = await _goalRepository.getGoals(status: 'active');
+      
+      isLoadingGoals.value = false;
       
       if (response.success && response.data != null) {
         allGoals.assignAll(response.data!);
         _filterGoalsForSelectedDate();
       } else {
+        errorMessage.value = response.message.isNotEmpty
+            ? response.message
+            : 'Failed to load goals';
         DebugUtils.logWarning(
           'Failed to fetch goals: ${response.message}',
           tag: 'YourActivityController.fetchGoals',
         );
       }
     } catch (e) {
+      isLoadingGoals.value = false;
+      errorMessage.value = 'An error occurred. Please try again.';
       DebugUtils.logError(
         'Error fetching goals',
         tag: 'YourActivityController.fetchGoals',
         error: e,
       );
-    } finally {
-      isLoadingGoals.value = false;
     }
   }
   
@@ -252,5 +261,20 @@ class YourActivityController extends GetxController {
     ];
   }
 
-
+  /// Refresh all data (goals, achievements, reflections)
+  Future<void> refreshData() async {
+    await fetchGoals();
+    
+    // Refresh achievements if controller exists
+    if (Get.isRegistered<AchievementController>()) {
+      final achievementController = Get.find<AchievementController>();
+      achievementController.refreshData();
+    }
+    
+    // Refresh reflections if controller exists
+    if (Get.isRegistered<DailyReflectionController>()) {
+      final reflectionController = Get.find<DailyReflectionController>();
+      reflectionController.fetchReflections();
+    }
+  }
 }

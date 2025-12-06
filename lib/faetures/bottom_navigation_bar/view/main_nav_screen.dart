@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pixsa_petrol_pump/faetures/subscription/view/select_plan.dart';
+import 'dart:io';
 
 import '../../../core/const/app_exports.dart';
+import '../../profile/view/profile_screen.dart';
 
 class MainNavScreen extends StatelessWidget {
   final int? initialIndex;
@@ -22,9 +23,33 @@ class MainNavScreen extends StatelessWidget {
     }
     final index = initialIndex ?? indexFromArgs;
 
-    return Scaffold(
-      body: _buildBody(),
-      bottomNavigationBar: CustomBottomNavBar(initialIndex: index),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
+
+        // Get controller safely
+        if (!Get.isRegistered<BottomNavController>()) {
+          return;
+        }
+
+        final controller = Get.find<BottomNavController>();
+
+        // If not on home tab (index 0), navigate to home
+        if (controller.currentIndex.value != 0) {
+          controller.changeIndex(0);
+        } else {
+          // If on home tab, show exit dialog
+          final shouldExit = await ExitDialogWidget.show();
+          if (shouldExit == true) {
+            exit(0);
+          }
+        }
+      },
+      child: Scaffold(
+        body: _buildBody(),
+        bottomNavigationBar: CustomBottomNavBar(initialIndex: index),
+      ),
     );
   }
 
@@ -39,7 +64,7 @@ class MainNavScreen extends StatelessWidget {
         case 2:
           return AchievementScreen();
         case 3:
-          return const SelectPlanScreen(showHeader: true); // Show header when accessed from bottom nav
+          return const ProfileScreen();
         default:
           return const HomeScreen();
       }
