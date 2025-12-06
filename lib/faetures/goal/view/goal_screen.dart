@@ -215,9 +215,8 @@ class GoalScreen extends StatelessWidget {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: GoalCardWidget(
+                            goal: goal,
                             emoji: controller.emojiForGoal(goal),
-                            title: goal.title,
-                            category: goal.type,
                             date: controller.formattedStartDate(goal),
                           ),
                         );

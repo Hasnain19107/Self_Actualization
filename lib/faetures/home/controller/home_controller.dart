@@ -22,6 +22,9 @@ class HomeController extends GetxController {
 
   // Loading state
   final RxBool isLoadingNeeds = false.obs;
+  
+  // Error state
+  final RxString errorMessage = ''.obs;
 
   @override
   void onInit() {
@@ -38,12 +41,16 @@ class HomeController extends GetxController {
       final response = await _questionRepository.getAssessmentResult();
 
       isLoadingNeeds.value = false;
+      errorMessage.value = ''; // Clear error on success
 
       if (response.success && response.data != null) {
         assessmentResult.value = response.data;
         _updateSliderNeeds();
       } else {
-        // If API fails, keep empty list or show error
+        // If API fails, set error message
+        errorMessage.value = response.message.isNotEmpty
+            ? response.message
+            : 'Failed to load assessment data';
         DebugUtils.logWarning(
           'Failed to load assessment result: ${response.message}',
           tag: 'HomeController.fetchAssessmentResult',
@@ -52,6 +59,7 @@ class HomeController extends GetxController {
     } catch (e) {
       isLoadingNeeds.value = false;
       needs.clear();
+      errorMessage.value = 'An error occurred. Please try again.';
       DebugUtils.logError(
         'Error fetching assessment result',
         tag: 'HomeController.fetchAssessmentResult',
@@ -139,19 +147,26 @@ class HomeController extends GetxController {
       return;
     }
 
-    final mapped = categories.map((category) {
-      final title = category['category'] as String? ?? '';
-      final score = (category['score'] as num?)?.toDouble() ?? 0.0;
-      final sliderValue = _normalizeScoreForSlider(score);
+    // Filter out categories with score 0 and map to NeedData
+    final mapped = categories
+        .where((category) {
+          final score = (category['score'] as num?)?.toDouble() ?? 0.0;
+          return score > 0; // Only include categories with score > 0
+        })
+        .map((category) {
+          final title = category['category'] as String? ?? '';
+          final score = (category['score'] as num?)?.toDouble() ?? 0.0;
+          final sliderValue = _normalizeScoreForSlider(score);
 
-      return NeedData(
-        id: title,
-        title: title,
-        vValue: sliderValue.obs,
-        qValue: sliderValue.obs,
-        isGreen: false,
-      );
-    }).toList();
+          return NeedData(
+            id: title,
+            title: title,
+            vValue: sliderValue.obs,
+            qValue: sliderValue.obs,
+            isGreen: false,
+          );
+        })
+        .toList();
 
     needs.assignAll(mapped);
   }
@@ -203,5 +218,10 @@ class HomeController extends GetxController {
     } else {
       Get.toNamed(AppRoutes.categoryLevelScreen);
     }
+  }
+
+  void refreshData() {
+    errorMessage.value = '';
+    fetchAssessmentResult();
   }
 }

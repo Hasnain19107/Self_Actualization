@@ -15,47 +15,48 @@ class AchievementScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: appSizes.getWidthPercentage(3),
-            vertical: appSizes.getHeightPercentage(2),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              AppHeaderWidget(),
-              CustomTextWidget(
-                text: 'Achievements',
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                textColor: AppColors.black,
-              ),
-              const Gap(24),
+        child: Obx(() {
+          // Show loading for entire screen
+          if (controller.isLoading.value) {
+            return const Center(
+              child: CustomProgressIndicator(),
+            );
+          }
 
-              // Achievement Progress Card
-              Obx(() {
-                if (controller.isLoading.value) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(40.0),
-                      child: CustomProgressIndicator(),
-                    ),
-                  );
-                }
-                return const AchievementProgressCardWidget();
-              }),
-              const Gap(24),
+          // Show error screen for entire screen
+          if (controller.errorMessage.value.isNotEmpty) {
+            return ErrorScreenWidget(
+              errorMessage: controller.errorMessage.value,
+              onRetry: () => controller.refreshData(),
+            );
+          }
 
-              // Achievement Cards Grid
-              Expanded(
-                child: Obx(
-                  () {
-                    if (controller.isLoading.value) {
-                      return const Center(
-                        child: CustomProgressIndicator(),
-                      );
-                    }
+          // Show content
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: appSizes.getWidthPercentage(3),
+              vertical: appSizes.getHeightPercentage(2),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                AppHeaderWidget(),
+                CustomTextWidget(
+                  text: 'Achievements',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  textColor: AppColors.black,
+                ),
+                const Gap(24),
+
+                // Achievement Progress Card
+                const AchievementProgressCardWidget(),
+                const Gap(24),
+
+                // Achievement Cards Grid
+                Expanded(
+                  child: Obx(() {
                     final achievements = controller.achievements;
                     if (achievements.isEmpty) {
                       return Center(
@@ -85,12 +86,12 @@ class AchievementScreen extends StatelessWidget {
                         );
                       },
                     );
-                  },
+                  }),
                 ),
-              ),
-            ],
-          ),
-        ),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }

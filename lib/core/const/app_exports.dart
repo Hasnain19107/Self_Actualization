@@ -37,6 +37,8 @@ export '../widgets/custom_svg_icon.dart';
 export '../widgets/custom_text_widget.dart';
 export '../widgets/custom_toast_show.dart';
 export '../widgets/custom_progress_indicator.dart';
+export '../widgets/error_screen_widget.dart';
+export '../widgets/exit_dialog_widget.dart';
 export '../widgets/mood_emoji_widget.dart';
 export '../widgets/plan_card_widget.dart';
 export '../widgets/search_bar_widget.dart';

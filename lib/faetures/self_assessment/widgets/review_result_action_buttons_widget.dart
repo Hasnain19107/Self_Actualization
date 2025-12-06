@@ -106,7 +106,7 @@ class ReviewResultActionButtonsWidget extends StatelessWidget {
         // Continue Button
         GestureDetector(
           onTap: () {
-            Get.toNamed(AppRoutes.profileSetupScreen);
+            Get.to(MainNavScreen(initialIndex: 0));
           },
           child: Container(
             width: double.infinity,

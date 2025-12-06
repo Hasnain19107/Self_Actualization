@@ -18,84 +18,92 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: appSizes.getWidthPercentage(3),
-            vertical: appSizes.getHeightPercentage(2),
-          ),
-          child: Column(
-            children: [
-              // Header with user avatar
-              AppHeaderWidget(),
+        child: Obx(() {
+          // Show loading for entire screen
+          if (controller.isLoadingNeeds.value) {
+            return const Center(
+              child: CustomProgressIndicator(),
+            );
+          }
 
-              // Greeting with user name
-              Obx(() {
-                final userController = Get.isRegistered<UserController>()
-                    ? Get.find<UserController>()
-                    : null;
-                final userName = userController?.userName ?? '';
-                return Row(
-                  children: [
-                    CustomTextWidget(
-                      text: 'Good morning',
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      textColor: AppColors.black,
-                      textAlign: TextAlign.left,
-                    ),
-                    if (userName.isNotEmpty) ...[
-                      const Gap(8),
+          // Show error screen for entire screen
+          if (controller.errorMessage.value.isNotEmpty) {
+            return ErrorScreenWidget(
+              errorMessage: controller.errorMessage.value,
+              onRetry: () => controller.refreshData(),
+            );
+          }
+
+          // Show content
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: appSizes.getWidthPercentage(3),
+              vertical: appSizes.getHeightPercentage(2),
+            ),
+            child: Column(
+              children: [
+                // Header with user avatar
+                AppHeaderWidget(),
+
+                // Greeting with user name
+                Obx(() {
+                  final userController = Get.isRegistered<UserController>()
+                      ? Get.find<UserController>()
+                      : null;
+                  final userName = userController?.userName ?? '';
+                  return Row(
+                    children: [
                       CustomTextWidget(
-                        text: '@$userName 🌞',
-                        fontSize: 14,
+                        text: 'Good morning',
+                        fontSize: 20,
                         fontWeight: FontWeight.w700,
                         textColor: AppColors.black,
                         textAlign: TextAlign.left,
                       ),
-                    ]
-                  ],
-                );
-              }),
-              const Gap(16),
-              // Action Cards
-
-              ActionCardsWidget(
-                actionCards: controller.actionCards,
-                onTap: controller.onActionCardTap,
-              ),
-              const SizedBox(height: 24),
-              // Needs Sliders
-              Expanded(
-                child: Obx(() {
-                  if (controller.isLoadingNeeds.value) {
-                    return const Center(
-                      child: CustomProgressIndicator(),
-                    );
-                  }
-
-                  if (controller.needs.isEmpty) {
-                    return Center(
-                      child: CustomTextWidget(
-                        text: 'No assessment data available',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        textColor: AppColors.grey,
-                      ),
-                    );
-                  }
-
-                  return SingleChildScrollView(
-                    child: Column(
-                      children: controller.needs
-                          .map((need) => NeedsSliderWidget(need: need))
-                          .toList(),
-                    ),
+                      if (userName.isNotEmpty) ...[
+                        const Gap(8),
+                        CustomTextWidget(
+                          text: '@$userName 🌞',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          textColor: AppColors.black,
+                          textAlign: TextAlign.left,
+                        ),
+                      ]
+                    ],
                   );
                 }),
-              ),
-            ],
-          ),
-        ),
+                const Gap(16),
+                // Action Cards
+
+                ActionCardsWidget(
+                  actionCards: controller.actionCards,
+                  onTap: controller.onActionCardTap,
+                ),
+                const SizedBox(height: 24),
+                // Needs Sliders
+                Expanded(
+                  child: controller.needs.isEmpty
+                      ? Center(
+                          child: CustomTextWidget(
+                            text: 'No assessment data available',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            textColor: AppColors.grey,
+                          ),
+                        )
+                      : SingleChildScrollView(
+                          child: Column(
+                            children: controller.needs
+                                .map((need) => NeedsSliderWidget(need: need))
+                                .toList(),
+                          ),
+                        ),
+                ),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }

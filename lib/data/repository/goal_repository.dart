@@ -107,5 +107,132 @@ class GoalRepository {
       );
     }
   }
+
+  /// Get a single goal by ID
+  Future<ApiResponseModel<GoalModel>> getGoalById(String goalId) async {
+    try {
+      DebugUtils.logInfo(
+        'Fetching goal by ID: $goalId',
+        tag: 'GoalRepository.getGoalById',
+      );
+
+      final response = await _apiService.get<GoalModel>(
+        endpoint: '${ApiConstants.goalsEndpoint}/$goalId',
+        includeAuth: true,
+        fromJsonT: (data) => GoalModel.fromJson(data as Map<String, dynamic>),
+      );
+
+      if (response.success && response.data != null) {
+        DebugUtils.logInfo(
+          'Goal fetched successfully',
+          tag: 'GoalRepository.getGoalById',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Failed to fetch goal: ${response.message}',
+          tag: 'GoalRepository.getGoalById',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Error fetching goal',
+        tag: 'GoalRepository.getGoalById',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<GoalModel>(
+        success: false,
+        message: 'Failed to fetch goal: ${e.toString()}',
+      );
+    }
+  }
+
+  /// Complete a goal
+  Future<ApiResponseModel<GoalModel>> completeGoal(String goalId) async {
+    try {
+      DebugUtils.logInfo(
+        'Completing goal: $goalId',
+        tag: 'GoalRepository.completeGoal',
+      );
+
+      final response = await _apiService.post<GoalModel>(
+        endpoint: '${ApiConstants.goalsEndpoint}/$goalId',
+        body: {'isCompleted': true},
+        includeAuth: true,
+        fromJsonT: (data) => GoalModel.fromJson(data as Map<String, dynamic>),
+      );
+
+      if (response.success) {
+        DebugUtils.logInfo(
+          'Goal completed successfully',
+          tag: 'GoalRepository.completeGoal',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Failed to complete goal: ${response.message}',
+          tag: 'GoalRepository.completeGoal',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Error completing goal',
+        tag: 'GoalRepository.completeGoal',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<GoalModel>(
+        success: false,
+        message: 'Failed to complete goal: ${e.toString()}',
+      );
+    }
+  }
+
+  /// Delete a goal
+  Future<ApiResponseModel<dynamic>> deleteGoal(String goalId) async {
+    try {
+      DebugUtils.logInfo(
+        'Deleting goal: $goalId',
+        tag: 'GoalRepository.deleteGoal',
+      );
+
+      final response = await _apiService.delete<dynamic>(
+        endpoint: '${ApiConstants.goalsEndpoint}/$goalId',
+        includeAuth: true,
+        fromJsonT: (data) => data,
+      );
+
+      if (response.success) {
+        DebugUtils.logInfo(
+          'Goal deleted successfully',
+          tag: 'GoalRepository.deleteGoal',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Failed to delete goal: ${response.message}',
+          tag: 'GoalRepository.deleteGoal',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Error deleting goal',
+        tag: 'GoalRepository.deleteGoal',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<dynamic>(
+        success: false,
+        message: 'Failed to delete goal: ${e.toString()}',
+      );
+    }
+  }
 }
 

@@ -7,6 +7,7 @@ import '../../../core/controllers/user_controller.dart';
 import '../../../data/models/user/profile_update_request_model.dart';
 import '../../../data/repository/user_repository.dart';
 import '../../../data/services/shared_preference_services.dart';
+import '../widgets/logout_dialog_widget.dart';
 
 class ProfileController extends GetxController {
   final UserRepository _userRepository = UserRepository();
@@ -19,6 +20,9 @@ class ProfileController extends GetxController {
   final RxBool isProfileSubmitting = false.obs;
   final RxBool isLoadingUserData = false.obs;
   final RxBool hasExistingProfile = false.obs;
+  final RxBool isLoggingOut = false.obs;
+  final RxBool fromWelcome = false.obs;
+  final RxString errorMessage = ''.obs;
 
   // Available focus areas
   final List<String> focusAreas = [
@@ -53,8 +57,11 @@ class ProfileController extends GetxController {
   // Load user data and pre-populate form
   Future<void> loadUserData() async {
     isLoadingUserData.value = true;
+    errorMessage.value = ''; // Clear error on retry
     try {
       final response = await _userRepository.getUserData();
+
+      isLoadingUserData.value = false;
 
       if (response.success && response.data != null) {
         final user = response.data!;
@@ -83,16 +90,25 @@ class ProfileController extends GetxController {
         
         // Mark that we have existing profile data
         hasExistingProfile.value = true;
+      } else {
+        errorMessage.value = response.message.isNotEmpty
+            ? response.message
+            : 'Failed to load user data';
       }
     } catch (e) {
+      isLoadingUserData.value = false;
+      errorMessage.value = 'An error occurred. Please try again.';
       DebugUtils.logError(
         'Error loading user data for profile setup',
         tag: 'ProfileController.loadUserData',
         error: e,
       );
-    } finally {
-      isLoadingUserData.value = false;
     }
+  }
+
+  void refreshData() {
+    errorMessage.value = '';
+    loadUserData();
   }
 
   // Map avatar path (e.g., "assets/images/avatar4.jpg") back to key (e.g., "avatar4")
@@ -150,6 +166,11 @@ class ProfileController extends GetxController {
   // Check if avatar is selected
   bool isAvatarSelected(String avatar) {
     return selectedAvatar.value == avatar;
+  }
+
+  // Set flag for navigation from welcome screen
+  void setFromWelcomeFlag(bool value) {
+    fromWelcome.value = value;
   }
 
   // Increment age
@@ -232,9 +253,14 @@ class ProfileController extends GetxController {
         await userController.refreshUserData();
       }
       
-      // Navigate to main navigation screen - clear all previous routes
-      // Use Get.offAll to ensure all routes are cleared
-      Get.offAll(() => const MainNavScreen());
+      // Navigate based on where user came from
+      if (fromWelcome.value) {
+        // If coming from welcome screen, navigate to select plan screen
+        Get.offNamed(AppRoutes.selectPlanScreen);
+      } else {
+        // Otherwise, go back to previous screen
+        Get.back();
+      }
     } catch (e) {
       ToastClass.showCustomToast(
         'Failed to save profile setup. Please try again.',
@@ -242,6 +268,45 @@ class ProfileController extends GetxController {
       );
     } finally {
       isProfileSubmitting.value = false;
+    }
+  }
+
+  // Handle logout
+  Future<void> handleLogout() async {
+    try {
+      isLoggingOut.value = true;
+
+      // Show confirmation dialog
+      final shouldLogout = await LogoutDialogWidget.show();
+
+      if (shouldLogout != true) {
+        isLoggingOut.value = false;
+        return;
+      }
+
+      // Clear user data from UserController if registered
+      if (Get.isRegistered<UserController>()) {
+        final userController = Get.find<UserController>();
+        userController.currentUser.value = null;
+      }
+
+      // Logout from repository
+      await _userRepository.logout();
+
+      // Clear all GetX controllers and routes
+      Get.offAllNamed(AppRoutes.loginScreen);
+
+      ToastClass.showCustomToast(
+        'Logged out successfully',
+        type: ToastType.success,
+      );
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Failed to logout. Please try again.',
+        type: ToastType.error,
+      );
+    } finally {
+      isLoggingOut.value = false;
     }
   }
 }

@@ -38,4 +38,9 @@ class AppRoutes {
 
   /// Subscription
   static const String planDetailsScreen = "/planDetailsScreen";
+
+  /// Profile
+  static const String profileScreen = "/profileScreen";
+  static const String profileDetailScreen = "/profileDetailScreen";
+  static const String subscriptionScreen = "/subscriptionScreen";
 }

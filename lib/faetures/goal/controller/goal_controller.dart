@@ -16,7 +16,7 @@ class GoalController extends GetxController {
   final TextEditingController endDateController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
-  final RxString selectedGoalType = 'Personal'.obs;
+  final RxString selectedGoalType = 'Self'.obs;
   final RxString startDate = ''.obs;
   final RxString endDate = ''.obs;
   final RxInt characterCount = 0.obs;
@@ -25,11 +25,19 @@ class GoalController extends GetxController {
 
   final GoalRepository _goalRepository = GoalRepository();
 
-  final List<String> goalTypes = ['Career', 'Health', 'Personal', 'Spiritual'];
+  // Self-actualization categories (Survival at bottom)
+  final List<String> goalTypes = ['Meta-Needs', 'Self', 'Social', 'Safety', 'Survival'];
 
   final RxList<GoalModel> goals = <GoalModel>[].obs;
   final RxBool isLoadingGoals = false.obs;
   final RxString selectedStatus = 'active'.obs;
+  
+  // Expanded goal tracking
+  final RxSet<String> expandedGoalIds = <String>{}.obs;
+  final RxMap<String, GoalModel> goalDetails = <String, GoalModel>{}.obs;
+  final RxMap<String, bool> isLoadingGoalDetails = <String, bool>{}.obs;
+  final RxMap<String, bool> isCompletingGoal = <String, bool>{}.obs;
+  final RxMap<String, bool> isDeletingGoal = <String, bool>{}.obs;
 
   @override
   void onInit() {
@@ -198,14 +206,16 @@ class GoalController extends GetxController {
 
   String _getEmojiForType(String type) {
     switch (type) {
-      case 'Career':
-        return '💼';
-      case 'Health':
-        return '🏃';
-      case 'Personal':
-        return '🎯';
-      case 'Spiritual':
-        return '🧘';
+      case 'Meta-Needs':
+        return '🌟';
+      case 'Self':
+        return '✏️';
+      case 'Social':
+        return '💬';
+      case 'Safety':
+        return '💪';
+      case 'Survival':
+        return '😊';
       default:
         return '🎯';
     }
@@ -232,13 +242,16 @@ class GoalController extends GetxController {
 
   Color _getBarColorForType(String type) {
     switch (type) {
-      case 'Career':
-        return const Color(0xFFD3E85D);
-      case 'Health':
-        return const Color(0xFF7AC4E6);
-      case 'Spiritual':
-        return const Color(0xFFE9C6F2);
-      case 'Personal':
+      case 'Meta-Needs':
+        return const Color(0xFFE9C6F2); // Purple
+      case 'Self':
+        return const Color(0xFFD3E85D); // Yellow-green
+      case 'Social':
+        return const Color(0xFF7AC4E6); // Blue
+      case 'Safety':
+        return const Color(0xFFFFCBA4); // Orange
+      case 'Survival':
+        return const Color(0xFFF9CFFD); // Pink
       default:
         return const Color(0xFFFFCBA4);
     }
@@ -248,6 +261,154 @@ class GoalController extends GetxController {
   String emojiForGoal(GoalModel goal) => _getEmojiForType(goal.type);
   String formattedStartDate(GoalModel goal) => _formatDate(goal.startDate);
   String formattedDateRange(GoalModel goal) => _formatDateRange(goal);
+
+  // Toggle goal expansion
+  Future<void> toggleGoalExpansion(String goalId) async {
+    if (expandedGoalIds.contains(goalId)) {
+      // Collapse
+      expandedGoalIds.remove(goalId);
+    } else {
+      // Expand - fetch goal details
+      expandedGoalIds.add(goalId);
+      await fetchGoalDetails(goalId);
+    }
+  }
+
+  // Fetch goal details by ID
+  Future<void> fetchGoalDetails(String goalId) async {
+    // Check if already loaded
+    if (goalDetails.containsKey(goalId)) {
+      return;
+    }
+
+    try {
+      isLoadingGoalDetails[goalId] = true;
+      final response = await _goalRepository.getGoalById(goalId);
+
+      if (response.success && response.data != null) {
+        goalDetails[goalId] = response.data!;
+        // Update the goal in the list if it exists
+        final index = goals.indexWhere((g) => g.id == goalId);
+        if (index != -1) {
+          goals[index] = response.data!;
+        }
+      } else {
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Failed to load goal details',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Failed to load goal details. Please try again.',
+        type: ToastType.error,
+      );
+    } finally {
+      isLoadingGoalDetails[goalId] = false;
+    }
+  }
+
+  // Get goal details (from cache or return goal from list)
+  GoalModel? getGoalDetails(String goalId) {
+    if (goalDetails.containsKey(goalId)) {
+      return goalDetails[goalId];
+    }
+    // Fallback to goal from list
+    try {
+      return goals.firstWhere((g) => g.id == goalId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // Complete a goal
+  Future<void> completeGoal(String goalId) async {
+    try {
+      isCompletingGoal[goalId] = true;
+      final response = await _goalRepository.completeGoal(goalId);
+
+      if (response.success) {
+        // Update goal in list
+        final index = goals.indexWhere((g) => g.id == goalId);
+        if (index != -1 && response.data != null) {
+          goals[index] = response.data!;
+        }
+        // Update in details cache
+        if (response.data != null) {
+          goalDetails[goalId] = response.data!;
+        }
+        // Collapse the card
+        expandedGoalIds.remove(goalId);
+
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Goal completed successfully',
+          type: ToastType.success,
+        );
+
+        // Refresh goals list
+        await fetchGoals(showLoader: false);
+      } else {
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Failed to complete goal',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Failed to complete goal. Please try again.',
+        type: ToastType.error,
+      );
+    } finally {
+      isCompletingGoal[goalId] = false;
+    }
+  }
+
+  // Delete a goal
+  Future<void> deleteGoal(String goalId) async {
+    try {
+      isDeletingGoal[goalId] = true;
+      final response = await _goalRepository.deleteGoal(goalId);
+
+      if (response.success) {
+        // Remove from list
+        goals.removeWhere((g) => g.id == goalId);
+        // Remove from details cache
+        goalDetails.remove(goalId);
+        // Remove from expanded set
+        expandedGoalIds.remove(goalId);
+
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Goal deleted successfully',
+          type: ToastType.success,
+        );
+
+        // Refresh goals list
+        await fetchGoals(showLoader: false);
+      } else {
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Failed to delete goal',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Failed to delete goal. Please try again.',
+        type: ToastType.error,
+      );
+    } finally {
+      isDeletingGoal[goalId] = false;
+    }
+  }
   
   // Get chart segments from current goals (max 3 segments)
   List<Map<String, dynamic>> get chartSegments {
@@ -294,7 +455,7 @@ class GoalController extends GetxController {
     characterCount.value = 0;
     startDate.value = '';
     endDate.value = '';
-    selectedGoalType.value = 'Personal';
+    selectedGoalType.value = 'Self';
   }
 
   @override

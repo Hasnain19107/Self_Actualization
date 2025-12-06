@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../../../core/const/app_exports.dart';
 import '../../../data/models/subscription/create_subscription_request_model.dart';
+import '../../../data/models/subscription/subscription_response_model.dart';
 import '../../../data/repository/subscription_repository.dart';
 
 class SubscriptionController extends GetxController {
@@ -8,6 +9,15 @@ class SubscriptionController extends GetxController {
   
   // Store selected plan
   final RxString selectedPlanId = ''.obs;
+  
+  // Current subscription from API
+  final Rx<SubscriptionResponseModel?> currentSubscription = Rx<SubscriptionResponseModel?>(null);
+  final RxBool isLoadingCurrentSubscription = false.obs;
+  
+  // Available categories for selected plan
+  final RxList<String> availableCategories = <String>[].obs;
+  final RxBool isLoadingAvailableCategories = false.obs;
+  final RxString errorMessage = ''.obs;
   
   // Subscription plans data
   final List<Map<String, dynamic>> subscriptionPlans = [
@@ -19,6 +29,153 @@ class SubscriptionController extends GetxController {
   // Loading states
   final RxBool isProcessingPayment = false.obs;
   final RxBool isCreatingSubscription = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchCurrentSubscription();
+  }
+
+  /// Fetch current subscription from API (includes availableCategories in response)
+  Future<void> fetchCurrentSubscription() async {
+    try {
+      isLoadingCurrentSubscription.value = true;
+      isLoadingAvailableCategories.value = true;
+      errorMessage.value = '';
+      final response = await _subscriptionRepository.getCurrentSubscription();
+      
+      isLoadingCurrentSubscription.value = false;
+      isLoadingAvailableCategories.value = false;
+      
+      if (response.success && response.data != null) {
+        currentSubscription.value = response.data;
+        // Extract available categories from the response
+        availableCategories.assignAll(response.data!.availableCategories);
+      } else {
+        // No subscription found or error - set to null
+        currentSubscription.value = null;
+        availableCategories.clear();
+        errorMessage.value = response.message.isNotEmpty
+            ? response.message
+            : 'No active subscription found';
+      }
+    } catch (e) {
+      isLoadingCurrentSubscription.value = false;
+      isLoadingAvailableCategories.value = false;
+      DebugUtils.logError(
+        'Error fetching current subscription',
+        tag: 'SubscriptionController.fetchCurrentSubscription',
+        error: e,
+      );
+      currentSubscription.value = null;
+      availableCategories.clear();
+      errorMessage.value = 'Failed to load subscription. Please try again.';
+    }
+  }
+
+  /// Fetch available categories by subscription type
+  Future<void> fetchAvailableCategoriesByType(String subscriptionType) async {
+    try {
+      isLoadingAvailableCategories.value = true;
+      errorMessage.value = '';
+      
+      final response = await _subscriptionRepository.getAvailableCategories(subscriptionType);
+      
+      isLoadingAvailableCategories.value = false;
+      
+      if (response.success && response.data != null) {
+        availableCategories.assignAll(response.data!.availableCategories);
+      } else {
+        errorMessage.value = response.message.isNotEmpty
+            ? response.message
+            : 'Failed to load available categories';
+        availableCategories.clear();
+      }
+    } catch (e) {
+      isLoadingAvailableCategories.value = false;
+      errorMessage.value = 'An error occurred. Please try again.';
+      availableCategories.clear();
+      DebugUtils.logError(
+        'Error fetching available categories',
+        tag: 'SubscriptionController.fetchAvailableCategoriesByType',
+        error: e,
+      );
+    }
+  }
+
+  /// Get current active plan ID from subscription API
+  String? get currentActivePlanId {
+    final subscription = currentSubscription.value;
+    if (subscription == null) return null;
+    
+    final subscriptionType = subscription.subscriptionType;
+    if (subscriptionType == null || subscriptionType.isEmpty) {
+      return null;
+    }
+    
+    // Map subscription type to planId
+    final typeLower = subscriptionType.toLowerCase();
+    if (typeLower == 'free') {
+      return 'free';
+    } else if (typeLower == 'premium') {
+      return 'premium';
+    } else if (typeLower == 'coach') {
+      return 'coach';
+    }
+    
+    return null;
+  }
+
+  /// Get current active plan data
+  Map<String, dynamic>? get currentActivePlan {
+    final planId = currentActivePlanId;
+    if (planId == null) return null;
+    
+    return subscriptionPlans.firstWhereOrNull(
+      (plan) => plan['planId'] == planId,
+    );
+  }
+
+  /// Check if a plan is the current active plan
+  bool isCurrentPlan(String planId) {
+    return currentActivePlanId == planId;
+  }
+
+  /// Fetch available categories for a plan ID (used in select plan screen)
+  Future<void> fetchAvailableCategories(String planId) async {
+    try {
+      isLoadingAvailableCategories.value = true;
+      errorMessage.value = '';
+      
+      // Map planId to subscriptionType
+      final plan = subscriptionPlans.firstWhereOrNull(
+        (p) => p['planId'] == planId,
+      );
+      
+      if (plan == null) {
+        availableCategories.clear();
+        isLoadingAvailableCategories.value = false;
+        return;
+      }
+      
+      final subscriptionType = plan['subscriptionType'] as String;
+      await fetchAvailableCategoriesByType(subscriptionType);
+    } catch (e) {
+      isLoadingAvailableCategories.value = false;
+      errorMessage.value = 'An error occurred. Please try again.';
+      availableCategories.clear();
+      DebugUtils.logError(
+        'Error fetching available categories',
+        tag: 'SubscriptionController.fetchAvailableCategories',
+        error: e,
+      );
+    }
+  }
+
+  /// Refresh current subscription data
+  Future<void> refreshCurrentSubscription() async {
+    await fetchCurrentSubscription();
+  }
 
   // Initialize plan ID from arguments
   void initializePlan(Map<String, dynamic>? planData) {
@@ -101,6 +258,9 @@ class SubscriptionController extends GetxController {
       final response = await _subscriptionRepository.createSubscription(subscriptionRequest);
 
       if (response.success && response.data != null) {
+        // Refresh current subscription after creating new one
+        await fetchCurrentSubscription();
+        
         Get.toNamed(
           AppRoutes.categoryLevelScreen,
           arguments: planData,
@@ -149,6 +309,9 @@ class SubscriptionController extends GetxController {
       final response = await _subscriptionRepository.createSubscription(subscriptionRequest);
 
       if (response.success && response.data != null) {
+        // Refresh current subscription after creating new one
+        await fetchCurrentSubscription();
+        
         Get.toNamed(
           AppRoutes.categoryLevelScreen,
           arguments: planData,

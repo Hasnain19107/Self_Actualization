@@ -7,12 +7,15 @@ import 'package:pixsa_petrol_pump/faetures/self_assessment/binding/review_result
 import 'package:pixsa_petrol_pump/faetures/subscription/bindings/onBoarding_binding.dart';
 import 'package:pixsa_petrol_pump/faetures/self_assessment/view/selectCategory_level.dart';
 import 'package:pixsa_petrol_pump/faetures/subscription/view/select_plan.dart';
+import 'package:pixsa_petrol_pump/faetures/subscription/view/subscription_screen.dart';
 
 
 import '../../faetures/self_assessment/view/self_assessment.dart';
 import '../../faetures/self_assessment/binding/self_assessment_binding.dart';
 import '../../faetures/self_assessment/view/review_result_screen.dart';
 import '../../faetures/profile/view/profileSetup_screen.dart';
+import '../../faetures/profile/view/profile_screen.dart';
+import '../../faetures/profile/view/profile_detail_screen.dart';
 import '../../faetures/profile/binding/profile_binding.dart';
 import '../../faetures/splash/bindings/splash_binding.dart';
 import '../../faetures/splash/view/splash_screen.dart';
@@ -80,9 +83,9 @@ class AppPages {
 
     GetPage(
       name: AppRoutes.selectPlanScreen,
-      page: () => const SelectPlanScreen(),
+      page: () =>  SelectPlanScreen(),
       binding: SubscriptionBinding(),
-      transition: Transition.downToUp,
+      transition: Transition.rightToLeft,
       transitionDuration: const Duration(microseconds: 300),
     ),
 
@@ -94,7 +97,13 @@ class AppPages {
       transitionDuration: const Duration(microseconds: 300),
     ),
 
-   
+   GetPage(
+      name: AppRoutes.subscriptionScreen,
+      page: () => SubscriptionScreen(),
+      binding: SubscriptionBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(microseconds: 300),
+    ),
 
     GetPage(
       name: AppRoutes.selfAssessmentScreen,
@@ -118,6 +127,21 @@ class AppPages {
       binding: ProfileBinding(),
       transition: Transition.downToUp,
       transitionDuration: const Duration(microseconds: 300),
+    ),
+
+    GetPage(
+      name: AppRoutes.profileScreen,
+      page: () => const ProfileScreen(),
+      binding: ProfileBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+
+    GetPage(
+      name: AppRoutes.profileDetailScreen,
+      page: () => const ProfileDetailScreen(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
     ),
 
     GetPage(

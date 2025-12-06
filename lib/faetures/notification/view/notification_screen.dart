@@ -21,7 +21,8 @@ class NotificationScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with back button and title
+            const Gap(12),
+            // Header with title
             const NotificationHeaderWidget(),
             const Gap(24),
 

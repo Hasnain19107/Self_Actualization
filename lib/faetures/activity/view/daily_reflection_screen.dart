@@ -91,7 +91,7 @@ class DailyReflectionScreen extends StatelessWidget {
 
                     // Show in a row (max 7 days)
                     return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      
                       children: moodsWithReflections.map((mood) {
                         return MoodEmojiWidget(
                           day: mood['day'] as String? ?? '',

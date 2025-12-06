@@ -50,8 +50,8 @@ class CustomBottomNavBar extends StatelessWidget {
               _buildNavItem(
                 controller: controller,
                 index: 3,
-                activeIcon: Icons.list_outlined,
-                inactiveIcon: Icons.list_outlined,
+                activeIcon: Icons.person,
+                inactiveIcon: Icons.person_outline,
               ),
             ],
           ),

@@ -39,7 +39,7 @@ class AppHeaderWidget extends StatelessWidget {
 
                 return GestureDetector(
                   onTap: () {
-                    Get.toNamed(AppRoutes.profileSetupScreen);
+                   
                   },
                   child: Container(
                     width: 50,

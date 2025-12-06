@@ -14,6 +14,13 @@ class ProfileSetupScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     ProfileBinding().dependencies();
     final controller = Get.find<ProfileController>();
+    
+    // Get flag from arguments
+    final arguments = Get.arguments as Map<String, dynamic>?;
+    final fromWelcome = arguments?['fromWelcome'] as bool? ?? false;
+    
+    // Pass flag to controller
+    controller.setFromWelcomeFlag(fromWelcome);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
@@ -312,9 +319,11 @@ class ProfileSetupScreen extends StatelessWidget {
                       Gap(32),
                       Obx(
                         () => CustomElevatedButton(
-                          text: controller.hasExistingProfile.value
-                              ? 'Update Profile'
-                              : 'Finish Setup',
+                          text: controller.fromWelcome.value
+                              ? 'Continue'
+                              : (controller.hasExistingProfile.value
+                                  ? 'Update Profile'
+                                  : 'Finish Setup'),
                           backgroundColor: AppColors.blue,
                           textColor: AppColors.white,
                           onPress: controller.submitProfileSetup,
