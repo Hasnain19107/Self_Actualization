@@ -17,6 +17,7 @@ class ApiConstants {
   static const String reflectionsEndpoint = '/api/reflections';
   static const String goalsEndpoint = '/api/goals';
   static const String profileEndpoint = '/api/auth/profile';
+  static const String avatarUploadEndpoint = '/api/auth/profile/avatar';
   static const String audiosEndpoint = '/api/audios';
   static const String videosEndpoint = '/api/videos';
   static const String articlesEndpoint = '/api/articles';

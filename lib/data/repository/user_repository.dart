@@ -1,3 +1,4 @@
+import 'dart:io';
 import '../../core/const/api_constants.dart';
 import '../../core/const/pref_consts.dart';
 import '../../core/utils/debug_utils.dart';
@@ -345,6 +346,50 @@ class UserRepository {
       return ApiResponseModel<UserModel>(
         success: false,
         message: 'Failed to fetch user data: ${e.toString()}',
+      );
+    }
+  }
+
+  /// Upload user avatar image
+  Future<ApiResponseModel<Map<String, dynamic>>> uploadAvatar(File imageFile) async {
+    try {
+      DebugUtils.logInfo(
+        'Starting avatar upload',
+        tag: 'UserRepository.uploadAvatar',
+      );
+
+      final response = await _apiService.uploadFile<Map<String, dynamic>>(
+        endpoint: ApiConstants.avatarUploadEndpoint,
+        file: imageFile,
+        fieldName: 'avatar',
+        includeAuth: true,
+        fromJsonT: (data) => data as Map<String, dynamic>,
+      );
+
+      if (response.success) {
+        DebugUtils.logInfo(
+          'Avatar uploaded successfully',
+          tag: 'UserRepository.uploadAvatar',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Avatar upload failed: ${response.message}',
+          tag: 'UserRepository.uploadAvatar',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Avatar upload error',
+        tag: 'UserRepository.uploadAvatar',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<Map<String, dynamic>>(
+        success: false,
+        message: 'Failed to upload avatar: ${e.toString()}',
       );
     }
   }

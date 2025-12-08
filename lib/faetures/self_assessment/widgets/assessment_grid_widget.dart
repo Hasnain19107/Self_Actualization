@@ -154,7 +154,7 @@ class AssessmentGridWidget extends StatelessWidget {
                                             ),
                                             child: CustomTextWidget(
                                               text: word,
-                                              fontSize: 3,
+                                              fontSize: 5,
                                               fontWeight: FontWeight.w400,
                                               textColor: AppColors.black,
                                               textAlign: TextAlign.center,
@@ -244,7 +244,7 @@ class AssessmentGridWidget extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: CustomTextWidget(
               text: categoryName,
-              fontSize: 6,
+              fontSize: 10,
               fontWeight: FontWeight.w700,
               textColor: Color(category['color'] as int? ?? 0xFF2196F3),
               textAlign: TextAlign.left,
@@ -283,7 +283,7 @@ class AssessmentGridWidget extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: CustomTextWidget(
                     text: word.trim(),
-                    fontSize: 4,
+                    fontSize: 8,
                     fontWeight: FontWeight.w400,
                     textColor: AppColors.black,
                     textAlign: TextAlign.left,

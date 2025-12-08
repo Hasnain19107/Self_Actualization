@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/const/app_exports.dart';
 
 import '../../../core/controllers/user_controller.dart';
@@ -11,6 +13,7 @@ import '../widgets/logout_dialog_widget.dart';
 
 class ProfileController extends GetxController {
   final UserRepository _userRepository = UserRepository();
+  final ImagePicker _imagePicker = ImagePicker();
 
   // Profile form controllers
   final TextEditingController fullNameController = TextEditingController();
@@ -23,6 +26,11 @@ class ProfileController extends GetxController {
   final RxBool isLoggingOut = false.obs;
   final RxBool fromWelcome = false.obs;
   final RxString errorMessage = ''.obs;
+  
+  // Custom avatar photo
+  final Rx<File?> customAvatarFile = Rx<File?>(null);
+  final RxString customAvatarUrl = ''.obs;
+  final RxBool isUploadingAvatar = false.obs;
 
   // Available focus areas
   final List<String> focusAreas = [
@@ -82,9 +90,16 @@ class ProfileController extends GetxController {
         
         // Map avatar path back to avatar key
         if (user.avatar != null && user.avatar!.isNotEmpty) {
-          final avatarKey = _mapAvatarPathToKey(user.avatar!);
-          if (avatarKey.isNotEmpty) {
-            selectedAvatar.value = avatarKey;
+          // Check if it's a custom URL (starts with http) or a preset avatar
+          if (user.avatar!.startsWith('http')) {
+            customAvatarUrl.value = user.avatar!;
+            selectedAvatar.value = ''; // Clear preset selection
+          } else {
+            final avatarKey = _mapAvatarPathToKey(user.avatar!);
+            if (avatarKey.isNotEmpty) {
+              selectedAvatar.value = avatarKey;
+            }
+            customAvatarUrl.value = ''; // Clear custom URL
           }
         }
         
@@ -161,11 +176,211 @@ class ProfileController extends GetxController {
   // Select avatar
   void selectAvatar(String avatar) {
     selectedAvatar.value = avatar;
+    // Clear custom avatar when preset is selected
+    customAvatarFile.value = null;
+    customAvatarUrl.value = '';
   }
 
   // Check if avatar is selected
   bool isAvatarSelected(String avatar) {
     return selectedAvatar.value == avatar;
+  }
+
+  // Check if user has custom avatar
+  bool get hasCustomAvatar => customAvatarFile.value != null || customAvatarUrl.value.isNotEmpty;
+
+  // Pick image from gallery
+  Future<void> pickAvatarFromGallery() async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        // Check file size (max 5MB)
+        final file = File(pickedFile.path);
+        final fileSize = await file.length();
+        if (fileSize > 5 * 1024 * 1024) {
+          ToastClass.showCustomToast(
+            'Image size must be less than 5MB',
+            type: ToastType.error,
+          );
+          return;
+        }
+
+        customAvatarFile.value = file;
+        selectedAvatar.value = ''; // Clear preset avatar selection
+      }
+    } catch (e) {
+      DebugUtils.logError(
+        'Error picking image from gallery',
+        tag: 'ProfileController.pickAvatarFromGallery',
+        error: e,
+      );
+      ToastClass.showCustomToast(
+        'Failed to pick image',
+        type: ToastType.error,
+      );
+    }
+  }
+
+  // Pick image from camera
+  Future<void> pickAvatarFromCamera() async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        // Check file size (max 5MB)
+        final file = File(pickedFile.path);
+        final fileSize = await file.length();
+        if (fileSize > 5 * 1024 * 1024) {
+          ToastClass.showCustomToast(
+            'Image size must be less than 5MB',
+            type: ToastType.error,
+          );
+          return;
+        }
+
+        customAvatarFile.value = file;
+        selectedAvatar.value = ''; // Clear preset avatar selection
+      }
+    } catch (e) {
+      DebugUtils.logError(
+        'Error picking image from camera',
+        tag: 'ProfileController.pickAvatarFromCamera',
+        error: e,
+      );
+      ToastClass.showCustomToast(
+        'Failed to capture image',
+        type: ToastType.error,
+      );
+    }
+  }
+
+  // Show image source picker dialog
+  void showImageSourcePicker() {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomTextWidget(
+              text: 'Choose Photo',
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              textColor: AppColors.black,
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: AppColors.blue),
+              title: CustomTextWidget(
+                text: 'Choose from Gallery',
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                textColor: AppColors.black,
+              ),
+              onTap: () {
+                Get.back();
+                pickAvatarFromGallery();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: AppColors.blue),
+              title: CustomTextWidget(
+                text: 'Take a Photo',
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                textColor: AppColors.black,
+              ),
+              onTap: () {
+                Get.back();
+                pickAvatarFromCamera();
+              },
+            ),
+            if (hasCustomAvatar) ...[
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: CustomTextWidget(
+                  text: 'Remove Custom Photo',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  textColor: Colors.red,
+                ),
+                onTap: () {
+                  Get.back();
+                  removeCustomAvatar();
+                },
+              ),
+            ],
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Remove custom avatar
+  void removeCustomAvatar() {
+    customAvatarFile.value = null;
+    customAvatarUrl.value = '';
+  }
+
+  // Upload avatar to server
+  Future<bool> _uploadAvatarIfNeeded() async {
+    if (customAvatarFile.value == null) {
+      return true; // No file to upload
+    }
+
+    try {
+      isUploadingAvatar.value = true;
+      
+      final response = await _userRepository.uploadAvatar(customAvatarFile.value!);
+      
+      isUploadingAvatar.value = false;
+
+      if (response.success && response.data != null) {
+        // Extract avatar URL from response
+        final avatarUrl = response.data!['avatarUrl'] as String?;
+        if (avatarUrl != null) {
+          customAvatarUrl.value = avatarUrl;
+        }
+        return true;
+      } else {
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty ? response.message : 'Failed to upload photo',
+          type: ToastType.error,
+        );
+        return false;
+      }
+    } catch (e) {
+      isUploadingAvatar.value = false;
+      DebugUtils.logError(
+        'Error uploading avatar',
+        tag: 'ProfileController._uploadAvatarIfNeeded',
+        error: e,
+      );
+      ToastClass.showCustomToast(
+        'Failed to upload photo',
+        type: ToastType.error,
+      );
+      return false;
+    }
   }
 
   // Set flag for navigation from welcome screen
@@ -206,20 +421,42 @@ class ProfileController extends GetxController {
       return;
     }
 
-    if (selectedAvatar.value.isEmpty) {
+    // Validate avatar: either preset or custom
+    if (selectedAvatar.value.isEmpty && !hasCustomAvatar) {
       ToastClass.showCustomToast(
-        'Please select an avatar',
+        'Please select an avatar or upload a photo',
         type: ToastType.error,
       );
       return;
     }
 
     try {
+      isProfileSubmitting.value = true;
+
+      // Upload custom avatar first if selected
+      if (customAvatarFile.value != null) {
+        final uploadSuccess = await _uploadAvatarIfNeeded();
+        if (!uploadSuccess) {
+          isProfileSubmitting.value = false;
+          return;
+        }
+      }
+
+      // Determine avatar value to send
+      String avatarValue;
+      if (customAvatarUrl.value.isNotEmpty) {
+        avatarValue = customAvatarUrl.value;
+      } else if (selectedAvatar.value.isNotEmpty) {
+        avatarValue = getAvatarImagePath(selectedAvatar.value);
+      } else {
+        avatarValue = '';
+      }
+
       final request = ProfileUpdateRequestModel(
         name: fullName,
         age: age.value,
         focusAreas: selectedFocusAreas.toList(),
-        avatar: getAvatarImagePath(selectedAvatar.value),
+        avatar: avatarValue,
       );
 
       isProfileSubmitting.value = true;

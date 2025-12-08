@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '../../core/const/api_constants.dart';
 import '../../core/const/pref_consts.dart';
 import '../../core/utils/debug_utils.dart';
@@ -300,6 +301,42 @@ class ApiService {
     }
   }
 
+  /// PATCH Request
+  Future<ApiResponseModel<T>> patch<T>({
+    required String endpoint,
+    Map<String, dynamic>? body,
+    bool includeAuth = true,
+    T Function(dynamic)? fromJsonT,
+    Map<String, String>? additionalHeaders,
+  }) async {
+    try {
+      final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final headers = await _getHeaders(
+        includeAuth: includeAuth,
+        additionalHeaders: additionalHeaders,
+      );
+
+      DebugUtils.logApiRequest(
+        method: 'PATCH',
+        url: uri.toString(),
+        body: body,
+        headers: headers,
+      );
+
+      final response = await http
+          .patch(
+            uri,
+            headers: headers,
+            body: body != null ? json.encode(body) : null,
+          )
+          .timeout(ApiConstants.connectionTimeout);
+
+      return _handleResponse<T>(response, fromJsonT, uri.toString(), 'PATCH');
+    } catch (e, stackTrace) {
+      return _handleError<T>(e, '${ApiConstants.baseUrl}$endpoint', 'PATCH', stackTrace);
+    }
+  }
+
   /// DELETE Request
   Future<ApiResponseModel<T>> delete<T>({
     required String endpoint,
@@ -397,6 +434,87 @@ class ApiService {
         'GET',
         stackTrace,
       );
+    }
+  }
+
+  /// Upload file using multipart/form-data
+  Future<ApiResponseModel<T>> uploadFile<T>({
+    required String endpoint,
+    required File file,
+    required String fieldName,
+    bool includeAuth = true,
+    T Function(dynamic)? fromJsonT,
+    Map<String, String>? additionalFields,
+  }) async {
+    try {
+      final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      
+      final request = http.MultipartRequest('POST', uri);
+      
+      // Add authorization header if needed
+      if (includeAuth) {
+        final token = await _getToken();
+        if (token != null && token.isNotEmpty) {
+          request.headers[ApiConstants.authorizationHeader] =
+              '${ApiConstants.bearerPrefix} $token';
+        }
+      }
+      
+      // Add file with proper content type
+      final fileStream = http.ByteStream(file.openRead());
+      final fileLength = await file.length();
+      final fileName = file.path.split('/').last.split('\\').last;
+      final fileExtension = fileName.split('.').last.toLowerCase();
+      
+      // Determine MIME type based on file extension
+      MediaType? contentType;
+      switch (fileExtension) {
+        case 'jpg':
+        case 'jpeg':
+          contentType = MediaType('image', 'jpeg');
+          break;
+        case 'png':
+          contentType = MediaType('image', 'png');
+          break;
+        case 'gif':
+          contentType = MediaType('image', 'gif');
+          break;
+        case 'webp':
+          contentType = MediaType('image', 'webp');
+          break;
+        default:
+          // Default to jpeg for unknown image types
+          contentType = MediaType('image', 'jpeg');
+      }
+      
+      final multipartFile = http.MultipartFile(
+        fieldName,
+        fileStream,
+        fileLength,
+        filename: fileName,
+        contentType: contentType,
+      );
+      request.files.add(multipartFile);
+      
+      // Add additional fields if any
+      if (additionalFields != null) {
+        request.fields.addAll(additionalFields);
+      }
+      
+      DebugUtils.logApiRequest(
+        method: 'POST (Multipart)',
+        url: uri.toString(),
+        headers: request.headers,
+        body: {'file': file.path, ...?additionalFields},
+      );
+      
+      final streamedResponse = await request.send()
+          .timeout(ApiConstants.connectionTimeout);
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      return _handleResponse<T>(response, fromJsonT, uri.toString(), 'POST (Multipart)');
+    } catch (e, stackTrace) {
+      return _handleError<T>(e, '${ApiConstants.baseUrl}$endpoint', 'POST (Multipart)', stackTrace);
     }
   }
 }

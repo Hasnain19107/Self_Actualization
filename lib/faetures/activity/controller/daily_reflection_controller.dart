@@ -37,13 +37,13 @@ class DailyReflectionController extends GetxController {
     {
       'imagePath': AppImages.wonderEmoji,
       
-      'mood': 'anxious',
-    }, // Light Pink - angry/frustrated
+      'mood': 'neutral',
+    }, // Light Pink - neutral/wondering
     {
       'imagePath': AppImages.hardEmoji,
       
       'mood': 'angry',
-    }, // Dark Blue - neutral
+    }, // Dark Blue - angry
     {
       'imagePath': AppImages.happyEmoji,
      
@@ -76,9 +76,13 @@ class DailyReflectionController extends GetxController {
     try {
       isLoadingReflections.value = true;
 
-      // Get start and end dates (last 7 days to today)
+      // Get start and end dates (from last Monday to today)
       final now = DateTime.now();
-      final startDate = DateTime(now.year, now.month, now.day - 7); // Last 7 days
+      final today = DateTime(now.year, now.month, now.day);
+      
+      // Calculate last Monday (weekday: 1 = Monday, 7 = Sunday)
+      final daysSinceMonday = (today.weekday - 1) % 7; // 0 for Monday, 6 for Sunday
+      final startDate = today.subtract(Duration(days: daysSinceMonday)); // Last Monday
       final endDate = DateTime(now.year, now.month, now.day + 1); // Today + 1 day
 
       // Format dates as ISO 8601 strings
@@ -140,9 +144,13 @@ class DailyReflectionController extends GetxController {
   List<Map<String, dynamic>> get last7DaysReflections {
     if (reflections.isEmpty) return [];
 
-    // Get current date
+    // Get current date and find last Monday
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    
+    // Calculate last Monday (weekday: 1 = Monday, 7 = Sunday)
+    final daysSinceMonday = (today.weekday - 1) % 7; // 0 for Monday, 6 for Sunday
+    final lastMonday = today.subtract(Duration(days: daysSinceMonday));
     
     // Create a map to store the most recent reflection for each day
     final Map<String, Map<String, dynamic>> dayReflectionsMap = {};
@@ -177,9 +185,8 @@ class DailyReflectionController extends GetxController {
       // Normalize to date only (remove time)
       final reflectionDay = DateTime(reflectionDate.year, reflectionDate.month, reflectionDate.day);
       
-      // Check if within last 7 days
-      final daysDifference = today.difference(reflectionDay).inDays;
-      if (daysDifference < 0 || daysDifference > 6) continue;
+      // Check if within current week (from last Monday to today)
+      if (reflectionDay.isBefore(lastMonday) || reflectionDay.isAfter(today)) continue;
       
       // Use date as key (YYYY-MM-DD format for uniqueness)
       final dateKey = '${reflectionDay.year}-${reflectionDay.month.toString().padLeft(2, '0')}-${reflectionDay.day.toString().padLeft(2, '0')}';
@@ -203,13 +210,13 @@ class DailyReflectionController extends GetxController {
       }
     }
     
-    // Convert to list and sort by date (oldest first, then next day)
+    // Convert to list and sort by date (newest first)
     final sortedReflections = dayReflectionsMap.values.toList()
       ..sort((a, b) {
         final dateA = a['dateTime'] as DateTime?;
         final dateB = b['dateTime'] as DateTime?;
         if (dateA == null || dateB == null) return 0;
-        return dateA.compareTo(dateB); // Oldest first (first day first, then next)
+        return dateB.compareTo(dateA); // Newest first
       });
     
     // Take only last 7 days

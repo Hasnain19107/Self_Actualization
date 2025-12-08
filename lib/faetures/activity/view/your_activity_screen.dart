@@ -159,27 +159,24 @@ class YourActivityScreen extends StatelessWidget {
                     const Gap(32),
           
                     // Goals Tracker Section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const CustomTextWidget(
-                          text: 'Goals Tracker',
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          textColor: AppColors.black,
-                          textAlign: TextAlign.left,
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            Get.toNamed(AppRoutes.goalScreen);
-                          },
-                          icon: const Icon(
-                            Icons.arrow_forward,
-                            color: AppColors.black,
-                            size: 24,
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        Get.toNamed(AppRoutes.goalScreen);
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const CustomTextWidget(
+                            text: 'Goals Tracker',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            textColor: AppColors.black,
+                            textAlign: TextAlign.left,
                           ),
-                        ),
-                      ],
+                          const Icon(Icons.arrow_forward_ios, color: AppColors.black, size: 16),
+                        ],
+                      ),
                     ),
                     const Gap(16),
           

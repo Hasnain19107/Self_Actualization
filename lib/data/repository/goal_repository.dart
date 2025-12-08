@@ -158,7 +158,7 @@ class GoalRepository {
         tag: 'GoalRepository.completeGoal',
       );
 
-      final response = await _apiService.post<GoalModel>(
+      final response = await _apiService.patch<GoalModel>(
         endpoint: '${ApiConstants.goalsEndpoint}/$goalId',
         body: {'isCompleted': true},
         includeAuth: true,

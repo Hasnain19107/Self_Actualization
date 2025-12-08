@@ -27,29 +27,7 @@ class ProfileAvatarSectionWidget extends StatelessWidget {
               ),
             ),
             child: ClipOval(
-              child: user.avatar != null && user.avatar!.isNotEmpty
-                  ? Image.asset(
-                      user.avatar!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: AppColors.lightGray,
-                          child: const Icon(
-                            Icons.person,
-                            size: 60,
-                            color: AppColors.mediumGray,
-                          ),
-                        );
-                      },
-                    )
-                  : Container(
-                      color: AppColors.lightGray,
-                      child: const Icon(
-                        Icons.person,
-                        size: 60,
-                        color: AppColors.mediumGray,
-                      ),
-                    ),
+              child: _buildAvatarImage(),
             ),
           ),
           const Gap(16),
@@ -74,5 +52,62 @@ class ProfileAvatarSectionWidget extends StatelessWidget {
       ),
     );
   }
-}
 
+  /// Build avatar image based on the avatar type (URL or asset path)
+  Widget _buildAvatarImage() {
+    final avatar = user.avatar;
+    
+    // No avatar set - show default icon
+    if (avatar == null || avatar.isEmpty) {
+      return _buildDefaultAvatar();
+    }
+    
+    // Check if it's a URL (uploaded custom avatar)
+    if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+      return Image.network(
+        avatar,
+        fit: BoxFit.cover,
+        width: 120,
+        height: 120,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: AppColors.lightGray,
+            child: const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.blue,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return _buildDefaultAvatar();
+        },
+      );
+    }
+    
+    // Asset path (preset avatar)
+    return Image.asset(
+      avatar,
+      fit: BoxFit.cover,
+      width: 120,
+      height: 120,
+      errorBuilder: (context, error, stackTrace) {
+        return _buildDefaultAvatar();
+      },
+    );
+  }
+
+  /// Build default avatar with person icon
+  Widget _buildDefaultAvatar() {
+    return Container(
+      color: AppColors.lightGray,
+      child: const Icon(
+        Icons.person,
+        size: 60,
+        color: AppColors.mediumGray,
+      ),
+    );
+  }
+}

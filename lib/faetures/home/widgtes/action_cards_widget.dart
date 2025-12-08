@@ -35,50 +35,64 @@ class ActionCardsWidget extends StatelessWidget {
           children: actionCards.asMap().entries.map((entry) {
             final card = entry.value;
             final isLast = entry.key == actionCards.length - 1;
-            return GestureDetector(
-              onTap: () => onTap(card['title']),
-              child: Container(
-                margin: EdgeInsets.only(right: isLast ? 0 : 6),
-                padding: const EdgeInsets.only(
-                  top: 8,
-                  bottom: 8,
-                  left: 10,
-                  right: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.lightBlue,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Emoji icon in white circle at top
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: const BoxDecoration(
-                        color: AppColors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          card['emoji'] ?? '',
-                          style: const TextStyle(fontSize: 14),
+            return Flexible(
+              child: GestureDetector(
+                onTap: () => onTap(card['title']),
+                child: Container(
+                  margin: EdgeInsets.only(right: isLast ? 0 : 6),
+                  padding: const EdgeInsets.only(
+                    top: 8,
+                    bottom: 8,
+                    left: 10,
+                    right: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBlue,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Emoji icon in white circle at top
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: const BoxDecoration(
+                          color: AppColors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            card['emoji'] ?? '',
+                            style: const TextStyle(fontSize: 14),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Text - will expand container width
-                    CustomTextWidget(
-                      text: card['title'],
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      textColor: AppColors.black,
-                      textAlign: TextAlign.left,
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      // Text - will expand container width
+                      CustomTextWidget(
+                        text: card['title'],
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        textColor: AppColors.black,
+                        textAlign: TextAlign.left,
+                      ),
+                      if (card['subtitle'] != null) ...[                    
+                        const SizedBox(height: 4),
+                        CustomTextWidget(
+                          text: card['subtitle'],
+                          fontSize: 8,
+                          fontWeight: FontWeight.w400,
+                          textColor: AppColors.black.withOpacity(0.8),
+                          textAlign: TextAlign.left,
+                          maxLines: 2,
+                          textOverflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             );

@@ -113,6 +113,39 @@ class SelfAssessmentScreen extends StatelessWidget {
                                     );
                                   }),
                                   Gap(Get.height * 0.015),
+                      // Rating Legend (moved before question)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ...controller.ratingDescriptions.entries.map(
+                            (entry) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomTextWidget(
+                                    text: '${entry.key}:',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    textColor: AppColors.blue,
+                                  ),
+                                  Gap(8),
+                                  Expanded(
+                                    child: CustomTextWidget(
+                                      text: entry.value,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w400,
+                                      textColor: AppColors.black,
+                                      textAlign: TextAlign.left,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Gap(Get.height * 0.02),
                                   // Question
                                   Obx(
                                     () => CustomTextWidget(
@@ -233,39 +266,6 @@ class SelfAssessmentScreen extends StatelessWidget {
                             ),
                           );
                         },
-                      ),
-                      Gap(Get.height * 0.02),
-                      // Rating Legend
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ...controller.ratingDescriptions.entries.map(
-                            (entry) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CustomTextWidget(
-                                    text: '${entry.key}:',
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    textColor: AppColors.blue,
-                                  ),
-                                  Gap(8),
-                                  Expanded(
-                                    child: CustomTextWidget(
-                                      text: entry.value,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w400,
-                                      textColor: AppColors.black,
-                                      textAlign: TextAlign.left,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                       Gap(12),
                       Obx(

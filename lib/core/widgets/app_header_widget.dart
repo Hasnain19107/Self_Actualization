@@ -35,7 +35,7 @@ class AppHeaderWidget extends StatelessWidget {
                     ? Get.find<UserController>()
                     : null;
                 final avatarPath = profileImagePath ??
-                    (userController?.currentUser.value?.avatar ?? AppImages.avatar1);
+                    userController?.currentUser.value?.avatar;
 
                 return GestureDetector(
                   onTap: () {
@@ -44,24 +44,15 @@ class AppHeaderWidget extends StatelessWidget {
                   child: Container(
                     width: 50,
                     height: 50,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.inputBorderGrey,
+                        width: 1,
+                      ),
                     ),
                     child: ClipOval(
-                      child: Image.asset(
-                        avatarPath,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: AppColors.lightGray,
-                            child: const Icon(
-                              Icons.person,
-                              size: 30,
-                              color: AppColors.white,
-                            ),
-                          );
-                        },
-                      ),
+                      child: _buildAvatarImage(avatarPath),
                     ),
                   ),
                 );
@@ -103,6 +94,59 @@ class AppHeaderWidget extends StatelessWidget {
             textColor: AppColors.black,
           ),
       ],
+    );
+  }
+
+  /// Build avatar image based on the avatar type (URL or asset path)
+  Widget _buildAvatarImage(String? avatar) {
+    // No avatar set - show default icon
+    if (avatar == null || avatar.isEmpty) {
+      return Container(
+        color: AppColors.lightGray,
+        child: const Icon(
+          Icons.person,
+          size: 30,
+          color: AppColors.white,
+        ),
+      );
+    }
+
+    // Check if it's a URL (uploaded custom avatar)
+    if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+      return Image.network(
+        avatar,
+        fit: BoxFit.cover,
+        width: 50,
+        height: 50,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: AppColors.lightGray,
+            child: const Icon(
+              Icons.person,
+              size: 30,
+              color: AppColors.white,
+            ),
+          );
+        },
+      );
+    }
+
+    // Asset path (preset avatar)
+    return Image.asset(
+      avatar,
+      fit: BoxFit.cover,
+      width: 50,
+      height: 50,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: AppColors.lightGray,
+          child: const Icon(
+            Icons.person,
+            size: 30,
+            color: AppColors.white,
+          ),
+        );
+      },
     );
   }
 }

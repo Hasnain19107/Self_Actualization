@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
@@ -48,6 +49,193 @@ class ProfileSetupScreen extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           textColor: AppColors.black,
                           textAlign: TextAlign.left,
+                        ),
+                      ),
+                      Gap(32),
+                        CustomTextWidget(
+                        text: 'Select Avatar',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        textColor: AppColors.black,
+                        textAlign: TextAlign.left,
+                      ),
+                      Gap(16),
+                      // Upload Photo Option
+                      Obx(
+                        () => GestureDetector(
+                          onTap: controller.showImageSourcePicker,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: controller.hasCustomAvatar
+                                    ? AppColors.blue
+                                    : AppColors.inputBorderGrey,
+                                width: controller.hasCustomAvatar ? 2 : 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                // Avatar preview or upload icon
+                                Container(
+                                  width: 50,
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.lightGray,
+                                    borderRadius: BorderRadius.circular(25),
+                                    border: Border.all(
+                                      color: AppColors.inputBorderGrey,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(25),
+                                    child: controller.customAvatarFile.value != null
+                                        ? Image.file(
+                                            controller.customAvatarFile.value!,
+                                            width: 50,
+                                            height: 50,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : controller.customAvatarUrl.value.isNotEmpty
+                                            ? Image.network(
+                                                controller.customAvatarUrl.value,
+                                                width: 50,
+                                                height: 50,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error, stackTrace) {
+                                                  return const Icon(
+                                                    Icons.camera_alt,
+                                                    color: AppColors.grey,
+                                                    size: 24,
+                                                  );
+                                                },
+                                              )
+                                            : const Icon(
+                                                Icons.camera_alt,
+                                                color: AppColors.grey,
+                                                size: 24,
+                                              ),
+                                  ),
+                                ),
+                                Gap(16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      CustomTextWidget(
+                                        text: controller.hasCustomAvatar
+                                            ? 'Change Photo'
+                                            : 'Upload Your Photo',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        textColor: AppColors.black,
+                                        textAlign: TextAlign.left,
+                                      ),
+                                      Gap(4),
+                                      CustomTextWidget(
+                                        text: 'Take a photo or choose from gallery',
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                        textColor: AppColors.grey,
+                                        textAlign: TextAlign.left,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.chevron_right,
+                                  color: AppColors.grey,
+                                  size: 24,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Gap(16),
+                      // Or divider
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 1,
+                              color: AppColors.inputBorderGrey,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: CustomTextWidget(
+                              text: 'or choose preset',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              textColor: AppColors.grey,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              height: 1,
+                              color: AppColors.inputBorderGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Gap(16),
+                      // Preset Avatars
+                      Obx(
+                        () => Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: controller.avatarOptions.map((avatar) {
+                            final isSelected = controller.isAvatarSelected(
+                              avatar,
+                            );
+                            return GestureDetector(
+                              onTap: () => controller.selectAvatar(avatar),
+                              child: Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? AppColors.blue
+                                        : AppColors.inputBorderGrey,
+                                    width: isSelected ? 2 : 1,
+                                  ),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.asset(
+                                    controller.getAvatarImagePath(avatar),
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: AppColors.lightGray,
+                                        child: Center(
+                                          child: CustomTextWidget(
+                                            text: avatar.replaceAll('avatar', ''),
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w600,
+                                            textColor: AppColors.black,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ),
                       Gap(32),
@@ -259,64 +447,7 @@ class ProfileSetupScreen extends StatelessWidget {
                       ),
                       Gap(24),
                       // Select Avatar Section
-                      CustomTextWidget(
-                        text: 'Select Avatar',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        textColor: AppColors.black,
-                        textAlign: TextAlign.left,
-                      ),
-                      Gap(16),
-                      Obx(
-                        () => Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: controller.avatarOptions.map((avatar) {
-                            final isSelected = controller.isAvatarSelected(
-                              avatar,
-                            );
-                            return GestureDetector(
-                              onTap: () => controller.selectAvatar(avatar),
-                              child: Container(
-                                width: 60,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  color: AppColors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? AppColors.blue
-                                        : AppColors.inputBorderGrey,
-                                    width: isSelected ? 2 : 1,
-                                  ),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.asset(
-                                    controller.getAvatarImagePath(avatar),
-                                    width: 60,
-                                    height: 60,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        color: AppColors.lightGray,
-                                        child: Center(
-                                          child: CustomTextWidget(
-                                            text: avatar.replaceAll('avatar', ''),
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w600,
-                                            textColor: AppColors.black,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                      Gap(32),
+                    
                       Obx(
                         () => CustomElevatedButton(
                           text: controller.fromWelcome.value
