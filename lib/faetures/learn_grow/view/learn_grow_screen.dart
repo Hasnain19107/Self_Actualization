@@ -57,13 +57,19 @@ class LearnGrowScreen extends StatelessWidget {
                 ),
               ),
               const Gap(24),
-              // Title
-              const CustomTextWidget(
-                text: 'Learn & Grow',
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                textColor: AppColors.black,
-                textAlign: TextAlign.left,
+              // Title - show API title if available, otherwise default
+              Obx(
+                () => CustomTextWidget(
+                  text: controller.learningTitle.value.isNotEmpty
+                      ? controller.learningTitle.value
+                      : 'Learn & Grow',
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  textColor: AppColors.black,
+                  textAlign: TextAlign.left,
+                  maxLines: 3,
+                  textOverflow: TextOverflow.ellipsis,
+                ),
               ),
 
               const SizedBox(height: 20),

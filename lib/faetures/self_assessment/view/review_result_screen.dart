@@ -13,56 +13,65 @@ class ReviewResultScreen extends StatelessWidget {
     ReviewResultBinding().dependencies();
     final AppSizes appSizes = AppSizes();
     final screenHeight = MediaQuery.of(context).size.height;
-    final reviewResultController = Get.find<ReviewResultController>();
+    Get.find<ReviewResultController>();
 
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: appSizes.getWidthPercentage(3),
-              vertical: appSizes.getHeightPercentage(2),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                CustomTextWidget(
-                  text: 'Review Results',
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  textColor: AppColors.black,
-                  textAlign: TextAlign.left,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header section with padding
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: appSizes.getWidthPercentage(3),
+                  vertical: appSizes.getHeightPercentage(2),
                 ),
-                const Gap(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    CustomTextWidget(
+                      text: 'Review Results',
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      textColor: AppColors.black,
+                      textAlign: TextAlign.left,
+                    ),
+                    const Gap(24),
 
-                // Title and Subtitle
-                Center(
-                  child: Column(
-                    children: [
-                      CustomTextWidget(
-                        text: 'Self-Actualization Assessment Scale',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        textColor: AppColors.black,
-                        textAlign: TextAlign.center,
+                    // Title and Subtitle
+                    Center(
+                      child: Column(
+                        children: [
+                          CustomTextWidget(
+                            text: 'Self-Actualization Assessment Scale',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            textColor: AppColors.black,
+                            textAlign: TextAlign.center,
+                          ),
+                          const Gap(4),
+                          CustomTextWidget(
+                            text: '©The Coaching Centre',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            textColor: AppColors.black,
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                      const Gap(4),
-                      CustomTextWidget(
-                        text: '©The Coaching Centre',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        textColor: AppColors.black,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
+                    ),
+                    const Gap(24),
+                  ],
                 ),
-                const Gap(24),
+              ),
 
-                // Assessment Grid - with calculated height
-                GetBuilder<ReviewResultController>(
+              // Assessment Grid - small left padding (10px)
+              Padding(
+                padding: const EdgeInsets.only(left: 2),
+                child: GetBuilder<ReviewResultController>(
                   builder: (controller) {
                     return Obx(() {
                       if (controller.isLoading.value) {
@@ -74,50 +83,31 @@ class ReviewResultScreen extends StatelessWidget {
                         );
                       }
                       return SizedBox(
-                        height: screenHeight * 0.6, // Use 60% of screen height
-                        child: AssessmentGridWidget(),
+                        height: screenHeight * 0.75, // Use 75% of screen height to fit all categories and sub-needs
+                        child: AssessmentGridWidget(
+                          repaintBoundaryKey: controller.repaintBoundaryKey,
+                        ),
                       );
                     });
                   },
                 ),
-               
+              ),
 
-                // Needs sliders under the chart
-                Obx(() {
-                  final needs = reviewResultController.sliderNeeds;
-                  if (needs.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomTextWidget(
-                        text: 'Needs Breakdown',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        textColor: AppColors.black,
-                        textAlign: TextAlign.left,
-                      ),
-                      const Gap(12),
-                      ...needs
-                          .map(
-                            (need) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: NeedsSliderWidget(need: need),
-                            ),
-                          )
-                          .toList(),
-                    ],
-                  );
-                }),
-                const Gap(24),
-
-                // Action Buttons
-                const ReviewResultActionButtonsWidget(),
-                const Gap(20),
-              ],
-            ),
+              // Action Buttons section with padding
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: appSizes.getWidthPercentage(3),
+                  vertical: appSizes.getHeightPercentage(2),
+                ),
+                child: const Column(
+                  children: [
+                    Gap(24),
+                    ReviewResultActionButtonsWidget(),
+                    Gap(20),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

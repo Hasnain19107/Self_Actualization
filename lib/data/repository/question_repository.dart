@@ -5,6 +5,9 @@ import '../models/api_response_model.dart';
 import '../models/question/question_model.dart';
 import '../models/question/assessment_submission_model.dart';
 import '../models/question/assessment_result_model.dart';
+import '../models/question/needs_report_model.dart';
+import '../models/question/recommendations_model.dart';
+import '../models/question/question_learning_model.dart';
 import '../services/api_service.dart';
 
 /// Question Repository
@@ -16,11 +19,16 @@ class QuestionRepository {
       : _apiService = apiService ?? ApiService();
 
   /// Get questions, optionally filtered by category or categories
+  /// Also supports filtering by section, sectionType, parentQuestionId, needKey
   Future<ApiResponseModel<List<QuestionModel>>> getQuestions({
     String? category,
     List<String>? categories,
     int? limit,
     int? page,
+    int? section,
+    String? sectionType,
+    String? parentQuestionId,
+    String? needKey,
   }) async {
     try {
       DebugUtils.logInfo(
@@ -36,6 +44,22 @@ class QuestionRepository {
         queryParameters['category'] = category;
       } else if (categories != null && categories.isNotEmpty) {
         queryParameters['categories'] = categories.join(',');
+      }
+      
+      if (section != null) {
+        queryParameters['section'] = section.toString();
+      }
+      
+      if (sectionType != null) {
+        queryParameters['sectionType'] = sectionType;
+      }
+      
+      if (parentQuestionId != null) {
+        queryParameters['parentQuestionId'] = parentQuestionId;
+      }
+      
+      if (needKey != null) {
+        queryParameters['needKey'] = needKey;
       }
       
       if (limit != null) {
@@ -247,6 +271,206 @@ class QuestionRepository {
       return ApiResponseModel<Uint8List>(
         success: false,
         message: 'Failed to download assessment PDF: ${e.toString()}',
+      );
+    }
+  }
+
+  /// Get needs report (need-level scores)
+  Future<ApiResponseModel<NeedsReportModel>> getNeedsReport() async {
+    try {
+      DebugUtils.logInfo(
+        'Starting to fetch needs report',
+        tag: 'QuestionRepository.getNeedsReport',
+      );
+
+      final response = await _apiService.get<NeedsReportModel>(
+        endpoint: ApiConstants.assessmentNeedsReportEndpoint,
+        includeAuth: true,
+        fromJsonT: (data) {
+          if (data is Map<String, dynamic>) {
+            return NeedsReportModel.fromJson(data);
+          }
+          throw Exception('Invalid data format');
+        },
+      );
+
+      if (response.success && response.data != null) {
+        DebugUtils.logInfo(
+          'Needs report fetched successfully',
+          tag: 'QuestionRepository.getNeedsReport',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Failed to fetch needs report: ${response.message}',
+          tag: 'QuestionRepository.getNeedsReport',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Error fetching needs report',
+        tag: 'QuestionRepository.getNeedsReport',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<NeedsReportModel>(
+        success: false,
+        message: 'Failed to fetch needs report: ${e.toString()}',
+      );
+    }
+  }
+
+  /// Get recommendations
+  Future<ApiResponseModel<RecommendationsModel>> getRecommendations() async {
+    try {
+      DebugUtils.logInfo(
+        'Starting to fetch recommendations',
+        tag: 'QuestionRepository.getRecommendations',
+      );
+
+      final response = await _apiService.get<RecommendationsModel>(
+        endpoint: ApiConstants.assessmentRecommendationsEndpoint,
+        includeAuth: true,
+        fromJsonT: (data) {
+          if (data is Map<String, dynamic>) {
+            return RecommendationsModel.fromJson(data);
+          }
+          throw Exception('Invalid data format');
+        },
+      );
+
+      if (response.success && response.data != null) {
+        DebugUtils.logInfo(
+          'Recommendations fetched successfully',
+          tag: 'QuestionRepository.getRecommendations',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Failed to fetch recommendations: ${response.message}',
+          tag: 'QuestionRepository.getRecommendations',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Error fetching recommendations',
+        tag: 'QuestionRepository.getRecommendations',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<RecommendationsModel>(
+        success: false,
+        message: 'Failed to fetch recommendations: ${e.toString()}',
+      );
+    }
+  }
+
+  /// Get question learning content by question ID
+  Future<ApiResponseModel<QuestionLearningModel>> getQuestionLearningContent(
+    String questionId,
+  ) async {
+    try {
+      DebugUtils.logInfo(
+        'Starting to fetch question learning content for question: $questionId',
+        tag: 'QuestionRepository.getQuestionLearningContent',
+      );
+
+      final response = await _apiService.get<QuestionLearningModel>(
+        endpoint: '${ApiConstants.questionLearningByQuestionEndpoint}/$questionId',
+        includeAuth: true,
+        fromJsonT: (data) {
+          if (data is Map<String, dynamic>) {
+            return QuestionLearningModel.fromJson(data);
+          }
+          throw Exception('Invalid data format');
+        },
+      );
+
+      if (response.success && response.data != null) {
+        DebugUtils.logInfo(
+          'Question learning content fetched successfully',
+          tag: 'QuestionRepository.getQuestionLearningContent',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Failed to fetch question learning content: ${response.message}',
+          tag: 'QuestionRepository.getQuestionLearningContent',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Error fetching question learning content',
+        tag: 'QuestionRepository.getQuestionLearningContent',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<QuestionLearningModel>(
+        success: false,
+        message: 'Failed to fetch question learning content: ${e.toString()}',
+      );
+    }
+  }
+
+  /// Get question learning content by need key
+  Future<ApiResponseModel<List<QuestionLearningModel>>> getQuestionLearningByNeed(
+    String needKey,
+  ) async {
+    try {
+      DebugUtils.logInfo(
+        'Starting to fetch question learning content for need: $needKey',
+        tag: 'QuestionRepository.getQuestionLearningByNeed',
+      );
+
+      final queryParameters = <String, String>{
+        'needKey': needKey,
+      };
+
+      final response = await _apiService.get<List<QuestionLearningModel>>(
+        endpoint: ApiConstants.questionLearningEndpoint,
+        queryParameters: queryParameters,
+        includeAuth: true,
+        fromJsonT: (data) {
+          if (data is List) {
+            return data
+                .map((item) => QuestionLearningModel.fromJson(
+                    item as Map<String, dynamic>))
+                .toList();
+          }
+          return <QuestionLearningModel>[];
+        },
+      );
+
+      if (response.success && response.data != null) {
+        DebugUtils.logInfo(
+          'Question learning content fetched successfully. Total: ${response.data!.length}',
+          tag: 'QuestionRepository.getQuestionLearningByNeed',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Failed to fetch question learning content: ${response.message}',
+          tag: 'QuestionRepository.getQuestionLearningByNeed',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Error fetching question learning content',
+        tag: 'QuestionRepository.getQuestionLearningByNeed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<List<QuestionLearningModel>>(
+        success: false,
+        message: 'Failed to fetch question learning content: ${e.toString()}',
       );
     }
   }

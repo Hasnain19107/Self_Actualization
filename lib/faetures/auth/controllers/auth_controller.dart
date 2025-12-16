@@ -5,6 +5,7 @@ import '../../../core/controllers/user_controller.dart';
 import '../../../data/repository/user_repository.dart';
 import '../../../data/models/user/register_request_model.dart';
 import '../../../data/models/user/login_request_model.dart';
+import '../../../data/services/fcm_service.dart';
 
 class AuthController extends GetxController {
   // Sign in controllers
@@ -115,6 +116,20 @@ class AuthController extends GetxController {
           // Refresh user data if already registered
           final userController = Get.find<UserController>();
           await userController.refreshUserData();
+        }
+
+        // Save FCM token to backend after successful login
+        try {
+          final fcmService = FcmService();
+          if (fcmService.currentToken != null) {
+            await fcmService.saveTokenToBackend(fcmService.currentToken!);
+          } else {
+            // Initialize FCM if not already done
+            await fcmService.initialize();
+          }
+        } catch (e) {
+          // FCM token save failed, but login should still succeed
+          debugPrint('Failed to save FCM token after login: $e');
         }
 
         // Show success message

@@ -19,8 +19,12 @@ class SelfAssessmentController extends GetxController {
   final QuestionRepository _questionRepository = QuestionRepository();
   final SubscriptionRepository _subscriptionRepository = SubscriptionRepository();
 
-  // Questions list
-  final RxList<QuestionModel> questions = <QuestionModel>[].obs;
+  // Regular questions list
+  final RxList<QuestionModel> regularQuestions = <QuestionModel>[].obs;
+  
+  // V and Q questions mapped by parent question ID
+  final RxMap<String, QuestionModel> vQuestions = <String, QuestionModel>{}.obs;
+  final RxMap<String, QuestionModel> qQuestions = <String, QuestionModel>{}.obs;
   
   // Selected categories for fetching questions
   final RxList<String> selectedCategories = <String>[].obs;
@@ -31,8 +35,11 @@ class SelfAssessmentController extends GetxController {
   // Loading state for categories
   final RxBool isLoadingCategories = false.obs;
   
-  // Current question index
-  final RxInt currentQuestionIndex = 0.obs;
+  // Current regular question index
+  final RxInt currentRegularQuestionIndex = 0.obs;
+  
+  // Current question type: 'regular', 'quality', 'volume'
+  final RxString currentQuestionType = 'regular'.obs;
   
   // Selected rating for current question
   final RxInt selectedRating = 5.obs;
@@ -84,19 +91,24 @@ class SelfAssessmentController extends GetxController {
   }
 
   /// Fetch questions from API using selected categories
+  /// Implements Regular → V → Q flow
   Future<void> fetchQuestions() async {
     isLoading.value = true;
     try {
-      // If categories are provided, use them; otherwise fall back to old behavior
+      // Step 1: Fetch Regular questions (Section 1, sectionType=regular)
+      final List<QuestionModel> regularQuestionsList = [];
+      
       if (selectedCategories.isNotEmpty) {
         final response = await _questionRepository.getQuestions(
           categories: selectedCategories.toList(),
+          section: 1,
+          sectionType: 'regular',
           limit: 100,
           page: 1,
         );
 
         if (response.success && response.data != null) {
-          questions.value = response.data!;
+          regularQuestionsList.addAll(response.data!);
         } else {
           final message = response.message.isNotEmpty
               ? response.message
@@ -105,14 +117,15 @@ class SelfAssessmentController extends GetxController {
         }
       } else {
         // Fallback: fetch all categories (old behavior)
-        final List<QuestionModel> fetchedQuestions = [];
-
         for (final category in _questionCategoryOrder) {
-          final response =
-              await _questionRepository.getQuestions(category: category);
+          final response = await _questionRepository.getQuestions(
+            category: category,
+            section: 1,
+            sectionType: 'regular',
+          );
 
           if (response.success && response.data != null) {
-            fetchedQuestions.addAll(response.data!);
+            regularQuestionsList.addAll(response.data!);
           } else {
             final message = response.message.isNotEmpty
                 ? response.message
@@ -120,11 +133,36 @@ class SelfAssessmentController extends GetxController {
             throw Exception(message);
           }
         }
-
-        questions.value = fetchedQuestions;
       }
 
-      currentQuestionIndex.value = 0;
+      // Step 2: For each Regular question, fetch V and Q questions
+      // Store them separately for navigation
+      regularQuestions.value = regularQuestionsList;
+      
+      for (final regularQuestion in regularQuestionsList) {
+        // Fetch V question (Volume/Quantity)
+        final vResponse = await _questionRepository.getQuestions(
+          sectionType: 'V',
+          parentQuestionId: regularQuestion.id,
+        );
+
+        if (vResponse.success && vResponse.data != null && vResponse.data!.isNotEmpty) {
+          vQuestions[regularQuestion.id] = vResponse.data!.first;
+        }
+
+        // Fetch Q question (Quality)
+        final qResponse = await _questionRepository.getQuestions(
+          sectionType: 'Q',
+          parentQuestionId: regularQuestion.id,
+        );
+
+        if (qResponse.success && qResponse.data != null && qResponse.data!.isNotEmpty) {
+          qQuestions[regularQuestion.id] = qResponse.data!.first;
+        }
+      }
+
+      currentRegularQuestionIndex.value = 0;
+      currentQuestionType.value = 'regular';
       loadAnswerForCurrentQuestion();
     } catch (e) {
       ToastClass.showCustomToast(
@@ -136,11 +174,26 @@ class SelfAssessmentController extends GetxController {
     }
   }
 
-  /// Get current question
+  /// Get current regular question
+  QuestionModel? get currentRegularQuestion {
+    if (currentRegularQuestionIndex.value >= 0 &&
+        currentRegularQuestionIndex.value < regularQuestions.length) {
+      return regularQuestions[currentRegularQuestionIndex.value];
+    }
+    return null;
+  }
+
+  /// Get current question based on type
   QuestionModel? get currentQuestion {
-    if (currentQuestionIndex.value >= 0 &&
-        currentQuestionIndex.value < questions.length) {
-      return questions[currentQuestionIndex.value];
+    final regular = currentRegularQuestion;
+    if (regular == null) return null;
+
+    if (currentQuestionType.value == 'regular') {
+      return regular;
+    } else if (currentQuestionType.value == 'quality') {
+      return qQuestions[regular.id];
+    } else if (currentQuestionType.value == 'volume') {
+      return vQuestions[regular.id];
     }
     return null;
   }
@@ -152,16 +205,22 @@ class SelfAssessmentController extends GetxController {
 
   /// Current question category
   String get currentQuestionCategory {
-    return currentQuestion?.category ?? '';
+    return currentRegularQuestion?.category ?? '';
   }
 
-  /// Get total questions count
-  int get totalQuestions => questions.length;
+  /// Get total regular questions count
+  int get totalRegularQuestions => regularQuestions.length;
 
   /// Get progress text
   String get progressText {
-    if (totalQuestions == 0) return '0 of 0';
-    return '${currentQuestionIndex.value + 1} of $totalQuestions';
+    if (totalRegularQuestions == 0) return '0 of 0';
+    final regularNum = currentRegularQuestionIndex.value + 1;
+    final typeLabel = currentQuestionType.value == 'regular' 
+        ? 'General' 
+        : currentQuestionType.value == 'quality' 
+            ? 'Quality' 
+            : 'Volume';
+    return '$regularNum of $totalRegularQuestions - $typeLabel';
   }
 
   /// Select rating for current question
@@ -197,17 +256,55 @@ class SelfAssessmentController extends GetxController {
     }
   }
 
-  /// Move to next question
+  /// Move to next question/step
   Future<void> nextQuestion() async {
     // Save current question's answer before moving
     saveAnswer();
     
-    if (currentQuestionIndex.value < questions.length - 1) {
-      currentQuestionIndex.value++;
+    final regular = currentRegularQuestion;
+    if (regular == null) {
+      await submitAssessment();
+      return;
+    }
+
+    // Flow: Regular → Quality → Volume → Next Regular
+    if (currentQuestionType.value == 'regular') {
+      // Move to Quality question
+      if (qQuestions.containsKey(regular.id)) {
+        currentQuestionType.value = 'quality';
+        loadAnswerForCurrentQuestion();
+      } else if (vQuestions.containsKey(regular.id)) {
+        // Skip Quality if not available, go to Volume
+        currentQuestionType.value = 'volume';
+        loadAnswerForCurrentQuestion();
+      } else {
+        // No Q or V questions, move to next Regular
+        moveToNextRegularQuestion();
+      }
+    } else if (currentQuestionType.value == 'quality') {
+      // Move to Volume question
+      if (vQuestions.containsKey(regular.id)) {
+        currentQuestionType.value = 'volume';
+        loadAnswerForCurrentQuestion();
+      } else {
+        // No Volume question, move to next Regular
+        moveToNextRegularQuestion();
+      }
+    } else if (currentQuestionType.value == 'volume') {
+      // Move to next Regular question
+      moveToNextRegularQuestion();
+    }
+  }
+
+  /// Move to next regular question
+  void moveToNextRegularQuestion() {
+    if (currentRegularQuestionIndex.value < regularQuestions.length - 1) {
+      currentRegularQuestionIndex.value++;
+      currentQuestionType.value = 'regular';
       loadAnswerForCurrentQuestion();
     } else {
       // All questions answered, submit assessment
-      await submitAssessment();
+      submitAssessment();
     }
   }
 
@@ -220,10 +317,24 @@ class SelfAssessmentController extends GetxController {
       saveAnswer();
 
       // Ensure all questions have answers (use default 5 if not answered)
-      for (var question in questions) {
-        if (!answers.containsKey(question.id)) {
-          // Save default answer for unanswered questions
-          answers[question.id] = 5;
+      for (var regularQuestion in regularQuestions) {
+        // Regular question
+        if (!answers.containsKey(regularQuestion.id)) {
+          answers[regularQuestion.id] = 5;
+        }
+        // Q question
+        if (qQuestions.containsKey(regularQuestion.id)) {
+          final qQuestion = qQuestions[regularQuestion.id]!;
+          if (!answers.containsKey(qQuestion.id)) {
+            answers[qQuestion.id] = 5;
+          }
+        }
+        // V question
+        if (vQuestions.containsKey(regularQuestion.id)) {
+          final vQuestion = vQuestions[regularQuestion.id]!;
+          if (!answers.containsKey(vQuestion.id)) {
+            answers[vQuestion.id] = 5;
+          }
         }
       }
 
@@ -241,8 +352,11 @@ class SelfAssessmentController extends GetxController {
       final submission = AssessmentSubmissionModel.fromAnswerMap(answers);
 
       // Debug: Log the submission data
+      final totalQuestions = regularQuestions.length + 
+          qQuestions.length + 
+          vQuestions.length;
       DebugUtils.logInfo(
-        'Submitting assessment with ${answers.length} answers out of ${questions.length} questions',
+        'Submitting assessment with ${answers.length} answers out of $totalQuestions questions',
         tag: 'SelfAssessmentController.submitAssessment',
       );
 
@@ -280,11 +394,38 @@ class SelfAssessmentController extends GetxController {
     }
   }
 
-  /// Move to previous question
+  /// Move to previous question/step
   void previousQuestion() {
-    if (currentQuestionIndex.value > 0) {
-      currentQuestionIndex.value--;
+    if (currentQuestionType.value == 'volume') {
+      // Go back to Quality
+      if (qQuestions.containsKey(currentRegularQuestion?.id)) {
+        currentQuestionType.value = 'quality';
+        loadAnswerForCurrentQuestion();
+      } else {
+        // No Quality, go back to Regular
+        currentQuestionType.value = 'regular';
+        loadAnswerForCurrentQuestion();
+      }
+    } else if (currentQuestionType.value == 'quality') {
+      // Go back to Regular
+      currentQuestionType.value = 'regular';
       loadAnswerForCurrentQuestion();
+    } else if (currentQuestionType.value == 'regular') {
+      // Go to previous Regular question's Volume (or Quality if no Volume)
+      if (currentRegularQuestionIndex.value > 0) {
+        currentRegularQuestionIndex.value--;
+        final prevRegular = currentRegularQuestion;
+        if (prevRegular != null) {
+          if (vQuestions.containsKey(prevRegular.id)) {
+            currentQuestionType.value = 'volume';
+          } else if (qQuestions.containsKey(prevRegular.id)) {
+            currentQuestionType.value = 'quality';
+          } else {
+            currentQuestionType.value = 'regular';
+          }
+          loadAnswerForCurrentQuestion();
+        }
+      }
     }
   }
 

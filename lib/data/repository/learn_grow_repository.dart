@@ -193,4 +193,53 @@ class LearnGrowRepository {
       );
     }
   }
+
+  /// Get all content (audios, videos, articles) by questionId
+  Future<ApiResponseModel<Map<String, dynamic>>> getAllContentByQuestionId(
+    String questionId,
+  ) async {
+    try {
+      DebugUtils.logInfo(
+        'Fetching all content for questionId: $questionId',
+        tag: 'LearnGrowRepository.getAllContentByQuestionId',
+      );
+
+      final response = await _apiService.get<Map<String, dynamic>>(
+        endpoint: '${ApiConstants.questionLearningByQuestionEndpoint}/$questionId',
+        includeAuth: true,
+        fromJsonT: (data) {
+          if (data is Map<String, dynamic>) {
+            return data;
+          }
+          return <String, dynamic>{};
+        },
+      );
+
+      if (response.success && response.data != null) {
+        DebugUtils.logInfo(
+          'Content fetched successfully for questionId: $questionId',
+          tag: 'LearnGrowRepository.getAllContentByQuestionId',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Failed to fetch content: ${response.message}',
+          tag: 'LearnGrowRepository.getAllContentByQuestionId',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Error fetching content by questionId',
+        tag: 'LearnGrowRepository.getAllContentByQuestionId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<Map<String, dynamic>>(
+        success: false,
+        message: 'Failed to fetch content: ${e.toString()}',
+      );
+    }
+  }
 }

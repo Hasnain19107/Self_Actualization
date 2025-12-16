@@ -22,28 +22,25 @@ class GoalCardWidget extends StatelessWidget {
     final controller = Get.find<GoalController>();
     
     return Obx(() {
-      final isExpanded = controller.expandedGoalIds.contains(goal.id);
+      // Always show expanded - no need for expansion state
       final goalDetails = controller.getGoalDetails(goal.id) ?? goal;
       final isLoadingDetails = controller.isLoadingGoalDetails[goal.id] ?? false;
       final isCompleting = controller.isCompletingGoal[goal.id] ?? false;
-      final isDeleting = controller.isDeletingGoal[goal.id] ?? false;
 
-      return GestureDetector(
-        onTap: () => controller.toggleGoalExpansion(goal.id),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.darkwhite,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.darkwhite,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -97,18 +94,11 @@ class GoalCardWidget extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  const Gap(8),
-                  // Expand/collapse icon
-                  Icon(
-                    isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: AppColors.black,
-                    size: 20,
-                  ),
                 ],
               ),
               
-              // Expanded content
-              if (isExpanded) ...[
+              // Always show content (no expansion needed)
+              ...[
                 const Gap(16),
                 if (isLoadingDetails)
                   const Center(
@@ -132,17 +122,17 @@ class GoalCardWidget extends StatelessWidget {
                   // Action buttons
                   Row(
                     children: [
-                      // Complete button (only if not completed)
-                      if (!goalDetails.isCompleted)
+                      // Complete button (only if not completed and end date has arrived)
+                      if (!goalDetails.isCompleted && _isEndDateReached(goalDetails))
                         Expanded(
                           child: GestureDetector(
-                            onTap: (isCompleting || isDeleting)
+                            onTap: isCompleting
                                 ? null
                                 : () => controller.completeGoal(goal.id),
                             child: Container(
                               height: 40,
                               decoration: BoxDecoration(
-                                color: (isCompleting || isDeleting)
+                                color: isCompleting
                                     ? AppColors.blue.withOpacity(0.5)
                                     : AppColors.blue,
                                 borderRadius: BorderRadius.circular(1000),
@@ -154,50 +144,77 @@ class GoalCardWidget extends StatelessWidget {
                                         width: 20,
                                         child: CustomProgressIndicator(),
                                       )
-                                    : const CustomTextWidget(
-                                        text: 'Complete',
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        textColor: AppColors.white,
-                                        textAlign: TextAlign.center,
-                                      ),
+                                    : Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.check_circle, color: AppColors.white, size: 20),
+                                        const CustomTextWidget(
+                                            text: 'Complete',
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            textColor: AppColors.white,
+                                            textAlign: TextAlign.center,
+                                          ),
+                                      ],
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      // Show message button if end date hasn't arrived yet
+                      if (!goalDetails.isCompleted && !_isEndDateReached(goalDetails))
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => controller.showGoalCompletionMessage(goalDetails),
+                            child: Container(
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(1000),
+                                border: Border.all(
+                                  color: AppColors.mediumGray,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: CustomTextWidget(
+                                  text: 'Complete',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  textColor: AppColors.mediumGray,
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
                             ),
                           ),
                         ),
                       if (!goalDetails.isCompleted) const Gap(12),
-                      // Delete button
+                      // Learn and Grow button
                       Expanded(
                         child: GestureDetector(
-                          onTap: (isCompleting || isDeleting)
+                          onTap: isCompleting
                               ? null
-                              : () => controller.deleteGoal(goal.id),
+                              : () => controller.navigateToLearnAndGrow(goalDetails.questionId),
                           child: Container(
                             height: 40,
                             decoration: BoxDecoration(
                               color: Colors.transparent,
                               borderRadius: BorderRadius.circular(1000),
                               border: Border.all(
-                                color: (isCompleting || isDeleting)
-                                    ? AppColors.red.withOpacity(0.5)
-                                    : AppColors.red,
+                                color: isCompleting
+                                    ? AppColors.blue.withOpacity(0.5)
+                                    : AppColors.blue,
                                 width: 1,
                               ),
                             ),
-                            child: Center(
-                              child: isDeleting
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CustomProgressIndicator(),
-                                    )
-                                  : const CustomTextWidget(
-                                      text: 'Delete',
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      textColor: AppColors.red,
-                                      textAlign: TextAlign.center,
-                                    ),
+                            child: const Center(
+                              child: CustomTextWidget(
+                                text: 'Learn and Grow',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                textColor: AppColors.blue,
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                         ),
@@ -208,8 +225,23 @@ class GoalCardWidget extends StatelessWidget {
               ],
             ],
           ),
-        ),
       );
     });
+  }
+
+  /// Check if goal end date has been reached (today or past)
+  bool _isEndDateReached(GoalModel goal) {
+    final today = DateTime.now();
+    final endDate = DateTime(
+      goal.endDate.year,
+      goal.endDate.month,
+      goal.endDate.day,
+    );
+    final todayDate = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    );
+    return endDate.isBefore(todayDate) || endDate.isAtSameMomentAs(todayDate);
   }
 }

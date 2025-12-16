@@ -59,7 +59,7 @@ class YourActivityScreen extends StatelessWidget {
                     AppHeaderWidget(
                       title: 'Your Activity',
                       onNotificationTap: () {
-                        // Handle notification tap
+                        Get.toNamed(AppRoutes.notificationScreen);
                       },
                     ),
                     const Gap(12),

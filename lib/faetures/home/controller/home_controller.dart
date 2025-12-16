@@ -206,18 +206,18 @@ class HomeController extends GetxController {
 
   // Action cards
   final List<Map<String, dynamic>> actionCards = [
-    {'title': 'Learn & Grow', 'emoji': '🧘', 'subtitle': 'Videos, articles & audios'},
+    {'title': 'Report', 'emoji': '📊', 'subtitle': 'View your assessment report'},
     {'title': 'Goal Tracker', 'emoji': '📓', 'subtitle': 'Track yours Goals'},
-    {'title': 'Self Assessment', 'emoji': '💬', 'subtitle': 'Continue self assessment'},
+    {'title': 'Self Actualization Assessment', 'emoji': '💬', 'subtitle': 'Continue self assessment'},
 
   ];
 
   void onActionCardTap(String title) {
     // Handle action card tap
-    if (title == 'Learn & Grow') {
-      Get.toNamed(AppRoutes.learnGrowScreen);
+    if (title == 'Assessment Report') {
+      Get.toNamed(AppRoutes.needsReportScreen);
     }
-      else if (title == 'Self Assessment') {
+      else if (title == 'Self Actualization Assessment') {
       Get.toNamed(AppRoutes.categoryLevelScreen);
     }
      else {

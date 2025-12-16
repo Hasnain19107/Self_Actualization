@@ -11,6 +11,7 @@ class GoalModel {
   final bool isCompleted;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? questionId;
 
   GoalModel({
     required this.id,
@@ -23,6 +24,7 @@ class GoalModel {
     required this.isCompleted,
     required this.createdAt,
     required this.updatedAt,
+    this.questionId,
   });
 
   factory GoalModel.fromJson(Map<String, dynamic> json) {
@@ -45,6 +47,7 @@ class GoalModel {
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
+      questionId: json['questionId'] as String?,
     );
   }
 
@@ -60,6 +63,7 @@ class GoalModel {
       'isCompleted': isCompleted,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      if (questionId != null) 'questionId': questionId,
     };
   }
 }

@@ -13,6 +13,8 @@ import 'package:pixsa_petrol_pump/faetures/subscription/view/subscription_screen
 import '../../faetures/self_assessment/view/self_assessment.dart';
 import '../../faetures/self_assessment/binding/self_assessment_binding.dart';
 import '../../faetures/self_assessment/view/review_result_screen.dart';
+import '../../faetures/self_assessment/view/needs_report_screen.dart';
+import '../../faetures/self_assessment/binding/needs_report_binding.dart';
 import '../../faetures/profile/view/profileSetup_screen.dart';
 import '../../faetures/profile/view/profile_screen.dart';
 import '../../faetures/profile/view/profile_detail_screen.dart';
@@ -117,6 +119,14 @@ class AppPages {
       name: AppRoutes.reviewResultScreen,
       page: () => ReviewResultScreen(),
       binding: ReviewResultBinding(),
+      transition: Transition.downToUp,
+      transitionDuration: const Duration(microseconds: 300),
+    ),
+
+    GetPage(
+      name: AppRoutes.needsReportScreen,
+      page: () => const NeedsReportScreen(),
+      binding: NeedsReportBinding(),
       transition: Transition.downToUp,
       transitionDuration: const Duration(microseconds: 300),
     ),

@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
 import '../../../core/const/app_exports.dart';
+import '../../../core/const/pref_consts.dart';
+import '../../../core/controllers/user_controller.dart';
 import '../../../data/models/goal/goal_model.dart';
 import '../../../data/models/goal/goal_request_model.dart';
+import '../../../data/models/goal/goal_need_model.dart';
 import '../../../data/repository/goal_repository.dart';
+import '../../../data/services/shared_preference_services.dart';
 
 class GoalController extends GetxController {
   final TextEditingController searchController = TextEditingController();
@@ -16,17 +21,23 @@ class GoalController extends GetxController {
   final TextEditingController endDateController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
-  final RxString selectedGoalType = 'Self'.obs;
+  final RxString selectedGoalType = 'Survival'.obs; // Default to Survival
+  final RxString selectedNeedLabel = ''.obs; // Selected need label for goal title
+  final Rx<GoalNeedModel?> selectedNeed = Rx<GoalNeedModel?>(null); // Selected need model
   final RxString startDate = ''.obs;
   final RxString endDate = ''.obs;
   final RxInt characterCount = 0.obs;
   final int maxCharacters = 300;
   final RxBool isSaving = false.obs;
+  final RxBool isLoadingNeeds = false.obs;
 
   final GoalRepository _goalRepository = GoalRepository();
 
   // Self-actualization categories (Survival at bottom)
   final List<String> goalTypes = ['Meta-Needs', 'Self', 'Social', 'Safety', 'Survival'];
+  
+  // Needs list for selected category
+  final RxList<GoalNeedModel> needsList = <GoalNeedModel>[].obs;
 
   final RxList<GoalModel> goals = <GoalModel>[].obs;
   final RxBool isLoadingGoals = false.obs;
@@ -38,6 +49,12 @@ class GoalController extends GetxController {
   final RxMap<String, bool> isLoadingGoalDetails = <String, bool>{}.obs;
   final RxMap<String, bool> isCompletingGoal = <String, bool>{}.obs;
   final RxMap<String, bool> isDeletingGoal = <String, bool>{}.obs;
+  
+  // Coaching offer dismissed state
+  final RxBool isCoachingOfferDismissed = false.obs;
+  
+  // Share to coach loading state
+  final RxBool isSharingGoals = false.obs;
 
   @override
   void onInit() {
@@ -45,6 +62,67 @@ class GoalController extends GetxController {
     searchController.addListener(_onSearchChanged);
     descriptionController.addListener(_updateCharacterCount);
     fetchGoals();
+    
+    // Check for arguments from recommendations (pre-fill form)
+    final arguments = Get.arguments;
+    if (arguments != null && arguments is Map<String, dynamic>) {
+      final category = arguments['category'] as String?;
+      final needLabel = arguments['needLabel'] as String?;
+      
+      if (category != null && category.isNotEmpty) {
+        selectedGoalType.value = category;
+        fetchNeedsByCategory(category);
+        
+        // If needLabel is provided, select it after needs are loaded
+        if (needLabel != null && needLabel.isNotEmpty) {
+          // Wait a bit for needs to load, then select the need
+          Future.delayed(const Duration(milliseconds: 500), () {
+            final need = needsList.firstWhereOrNull((n) => n.needLabel == needLabel);
+            if (need != null) {
+              selectNeed(need);
+            } else {
+              // If exact match not found, set the label directly
+              selectedNeedLabel.value = needLabel;
+              goalTitleController.text = needLabel;
+            }
+          });
+        }
+      } else {
+        // Fetch needs for default category (Survival)
+        fetchNeedsByCategory(selectedGoalType.value);
+      }
+    } else {
+      // Fetch needs for default category (Survival)
+      fetchNeedsByCategory(selectedGoalType.value);
+    }
+    
+    // Refresh user data to check coaching offer eligibility
+    _refreshUserDataForCoachingOffer();
+    // Load coaching offer dismissed state
+    _loadCoachingOfferDismissedState();
+  }
+  
+  /// Load coaching offer dismissed state from SharedPreferences
+  Future<void> _loadCoachingOfferDismissedState() async {
+    try {
+      final dismissed = await PreferenceHelper.getBool(PrefConstants.coachingOfferDismissed);
+      if (dismissed != null) {
+        isCoachingOfferDismissed.value = dismissed;
+      }
+    } catch (e) {
+      DebugUtils.logError(
+        'Error loading coaching offer dismissed state',
+        tag: 'GoalController._loadCoachingOfferDismissedState',
+        error: e,
+      );
+    }
+  }
+
+  Future<void> _refreshUserDataForCoachingOffer() async {
+    if (Get.isRegistered<UserController>()) {
+      final userController = Get.find<UserController>();
+      await userController.refreshUserData();
+    }
   }
 
   Future<void> fetchGoals({bool showLoader = true}) async {
@@ -102,7 +180,65 @@ class GoalController extends GetxController {
   }
 
   void selectGoalType(String type) {
+    if (selectedGoalType.value == type) return;
     selectedGoalType.value = type;
+    selectedNeedLabel.value = ''; // Clear selected need when category changes
+    selectedNeed.value = null; // Clear selected need model
+    goalTitleController.clear(); // Clear goal title
+    fetchNeedsByCategory(type);
+  }
+
+  /// Fetch needs by category from API
+  Future<void> fetchNeedsByCategory(String category) async {
+    try {
+      isLoadingNeeds.value = true;
+      final response = await _goalRepository.getNeedsByCategory(category);
+      
+      if (response.success && response.data != null) {
+        needsList.assignAll(response.data!.data);
+        // Sort by needOrder
+        needsList.sort((a, b) => a.needOrder.compareTo(b.needOrder));
+        // Auto-select first need if available
+        if (needsList.isNotEmpty) {
+          selectNeed(needsList.first);
+        }
+      } else {
+        needsList.clear();
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Failed to fetch needs',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      needsList.clear();
+      ToastClass.showCustomToast(
+        'Failed to fetch needs. Please try again.',
+        type: ToastType.error,
+      );
+    } finally {
+      isLoadingNeeds.value = false;
+    }
+  }
+
+  /// Select a need (for goal title)
+  void selectNeed(GoalNeedModel need) {
+    selectedNeed.value = need;
+    selectedNeedLabel.value = need.needLabel;
+    goalTitleController.text = need.needLabel;
+  }
+
+  /// Select a need label (for goal title) - kept for backward compatibility
+  void selectNeedLabel(String needLabel) {
+    // Find the need model by label
+    final need = needsList.firstWhereOrNull((n) => n.needLabel == needLabel);
+    if (need != null) {
+      selectNeed(need);
+    } else {
+      selectedNeedLabel.value = needLabel;
+      goalTitleController.text = needLabel;
+    }
   }
 
   Future<void> selectStartDate(BuildContext context) async {
@@ -134,8 +270,8 @@ class GoalController extends GetxController {
   }
 
   Future<void> saveGoal() async {
-    if (goalTitleController.text.trim().isEmpty) {
-      ToastClass.showCustomToast('Please enter goal title', type: ToastType.error);
+    if (selectedNeedLabel.value.isEmpty) {
+      ToastClass.showCustomToast('Please select a need for goal title', type: ToastType.error);
       return;
     }
     if (startDateController.text.trim().isEmpty) {
@@ -167,11 +303,17 @@ class GoalController extends GetxController {
     }
 
     final request = GoalRequestModel(
-      title: goalTitleController.text.trim(),
+      title: selectedNeedLabel.value.isNotEmpty 
+          ? selectedNeedLabel.value 
+          : goalTitleController.text.trim(),
       description: descriptionController.text.trim(),
       startDate: startIso,
       endDate: endIso,
       type: selectedGoalType.value,
+      needKey: selectedNeed.value?.needKey,
+      needLabel: selectedNeed.value?.needLabel,
+      needOrder: selectedNeed.value?.needOrder,
+      questionId: selectedNeed.value?.questionId,
     );
 
     try {
@@ -351,6 +493,9 @@ class GoalController extends GetxController {
 
         // Refresh goals list
         await fetchGoals(showLoader: false);
+        
+        // Check if this was the 3rd goal completion
+        await _checkCoachingOfferEligibility();
       } else {
         ToastClass.showCustomToast(
           response.message.isNotEmpty
@@ -455,12 +600,245 @@ class GoalController extends GetxController {
     characterCount.value = 0;
     startDate.value = '';
     endDate.value = '';
-    selectedGoalType.value = 'Self';
+    selectedGoalType.value = 'Survival';
+    selectedNeedLabel.value = '';
+    selectedNeed.value = null;
+    fetchNeedsByCategory(selectedGoalType.value);
+  }
+
+  /// Check if user is eligible for coaching offer (completed 3 goals)
+  bool get isCoachingOfferEligible {
+    // Don't show if dismissed
+    if (isCoachingOfferDismissed.value) {
+      return false;
+    }
+    
+    if (Get.isRegistered<UserController>()) {
+      final userController = Get.find<UserController>();
+      final user = userController.currentUser.value;
+      
+      // Check from user model first
+      if (user?.coachingOfferEligible == true) {
+        return true;
+      }
+      
+      // Fallback: count completed goals
+      final completedCount = user?.completedGoalsCount ?? 0;
+      if (completedCount >= 3) {
+        return true;
+      }
+      
+      // Also check from goals list
+      final completedGoals = goals.where((g) => g.isCompleted).length;
+      return completedGoals >= 3;
+    }
+    
+    // Fallback: count from goals list
+    final completedGoals = goals.where((g) => g.isCompleted).length;
+    return completedGoals >= 3;
+  }
+  
+  /// Dismiss the coaching offer banner permanently
+  Future<void> dismissCoachingOffer() async {
+    try {
+      isCoachingOfferDismissed.value = true;
+      await PreferenceHelper.setBool(PrefConstants.coachingOfferDismissed, true);
+    } catch (e) {
+      DebugUtils.logError(
+        'Error saving coaching offer dismissed state',
+        tag: 'GoalController.dismissCoachingOffer',
+        error: e,
+      );
+    }
+  }
+
+  /// Check coaching offer eligibility after goal completion
+  Future<void> _checkCoachingOfferEligibility() async {
+    // Refresh user data to get latest coachingOfferEligible status
+    await _refreshUserDataForCoachingOffer();
+  }
+
+  /// Send coaching request email
+  Future<void> requestCoachingSession() async {
+    try {
+      // Dismiss the banner when user taps on it
+      await dismissCoachingOffer();
+      
+      final Email email = Email(
+        body: 'Please provide my free coaching session valued at \$500 at 1pm. I will attend coaching session through zoom that you will be provide',
+        subject: 'Free coaching value \$500',
+        recipients: ['info@thecoachingcentre.com.au'],
+        isHTML: false,
+      );
+
+      await FlutterEmailSender.send(email);
+      
+      ToastClass.showCustomToast(
+        'Email opened successfully. Please send your request.',
+        type: ToastType.success,
+      );
+    } catch (e) {
+      DebugUtils.logError(
+        'Error sending coaching request email: $e',
+        tag: 'GoalController.requestCoachingSession',
+        error: e,
+      );
+      
+      ToastClass.showCustomToast(
+        'Could not open email app. Please ensure an email account is set up.',
+        type: ToastType.error,
+      );
+    }
+  }
+
+  /// Navigate to Learn and Grow screen with questionId
+  void navigateToLearnAndGrow(String? questionId) {
+    if (questionId == null || questionId.isEmpty) {
+      ToastClass.showCustomToast(
+        'No learning content available for this goal',
+        type: ToastType.error,
+      );
+      return;
+    }
+    
+    Get.toNamed(
+      AppRoutes.learnGrowScreen,
+      arguments: {'questionId': questionId},
+    );
+  }
+
+  /// Show message when user tries to complete goal before end date
+  void showGoalCompletionMessage(GoalModel goal) {
+    final today = DateTime.now();
+    final endDate = DateTime(
+      goal.endDate.year,
+      goal.endDate.month,
+      goal.endDate.day,
+    );
+    final todayDate = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    );
+    
+    if (endDate.isAfter(todayDate)) {
+      final daysRemaining = endDate.difference(todayDate).inDays;
+      final endDateFormatted = DateFormat('dd/MM/yyyy').format(goal.endDate);
+      
+      ToastClass.showCustomToast(
+        'This goal can only be completed on or after $endDateFormatted. $daysRemaining day${daysRemaining == 1 ? '' : 's'} remaining.',
+        type: ToastType.warning,
+      );
+    }
+  }
+
+  /// Share goals to coach via email
+  Future<void> shareGoalsToCoach() async {
+    if (isSharingGoals.value) return;
+
+    try {
+      isSharingGoals.value = true;
+
+      if (goals.isEmpty) {
+        ToastClass.showCustomToast(
+          'No goals to share',
+          type: ToastType.warning,
+        );
+        return;
+      }
+
+      // Format goals data for email body
+      final emailBody = _formatGoalsForEmail();
+
+      final Email email = Email(
+        body: emailBody,
+        subject: 'My Goals - Self-Actualization App',
+        recipients: ['info@thecoachingcentre.com.au'],
+        isHTML: false,
+      );
+
+      await FlutterEmailSender.send(email);
+
+      ToastClass.showCustomToast(
+        'Email opened successfully. Please send your goals.',
+        type: ToastType.success,
+      );
+    } catch (e) {
+      DebugUtils.logError(
+        'Error sharing goals to coach: $e',
+        tag: 'GoalController.shareGoalsToCoach',
+        error: e,
+      );
+
+      ToastClass.showCustomToast(
+        'Could not open email app. Please ensure an email account is set up.',
+        type: ToastType.error,
+      );
+    } finally {
+      isSharingGoals.value = false;
+    }
+  }
+
+  /// Format goals data for email body
+  String _formatGoalsForEmail() {
+    final buffer = StringBuffer();
+    buffer.writeln('Hi Coach,');
+    buffer.writeln('');
+    buffer.writeln('Please find my goals below:');
+    buffer.writeln('');
+    buffer.writeln('═══════════════════════════════════════');
+    buffer.writeln('');
+
+    // Group goals by status
+    final activeGoals = goals.where((g) => !g.isCompleted).toList();
+    final completedGoals = goals.where((g) => g.isCompleted).toList();
+
+    if (activeGoals.isNotEmpty) {
+      buffer.writeln('ACTIVE GOALS:');
+      buffer.writeln('');
+      for (int i = 0; i < activeGoals.length; i++) {
+        final goal = activeGoals[i];
+        buffer.writeln('${i + 1}. ${goal.title}');
+        buffer.writeln('   Type: ${goal.type}');
+        buffer.writeln('   Description: ${goal.description}');
+        buffer.writeln('   Start Date: ${_formatDate(goal.startDate)}');
+        buffer.writeln('   End Date: ${_formatDate(goal.endDate)}');
+        buffer.writeln('   Status: Active');
+        buffer.writeln('');
+      }
+      buffer.writeln('');
+    }
+
+    if (completedGoals.isNotEmpty) {
+      buffer.writeln('COMPLETED GOALS:');
+      buffer.writeln('');
+      for (int i = 0; i < completedGoals.length; i++) {
+        final goal = completedGoals[i];
+        buffer.writeln('${i + 1}. ${goal.title}');
+        buffer.writeln('   Type: ${goal.type}');
+        buffer.writeln('   Description: ${goal.description}');
+        buffer.writeln('   Start Date: ${_formatDate(goal.startDate)}');
+        buffer.writeln('   End Date: ${_formatDate(goal.endDate)}');
+        buffer.writeln('   Status: Completed');
+        buffer.writeln('');
+      }
+      buffer.writeln('');
+    }
+
+    buffer.writeln('═══════════════════════════════════════');
+    buffer.writeln('');
+    buffer.writeln('Total Goals: ${goals.length}');
+    buffer.writeln('Active: ${activeGoals.length}');
+    buffer.writeln('Completed: ${completedGoals.length}');
+    buffer.writeln('');
+    buffer.writeln('Regards,');
+
+    return buffer.toString();
   }
 
   @override
   void onClose() {
-    searchController.dispose();
+    searchController.clear();
    
     super.onClose();
   }

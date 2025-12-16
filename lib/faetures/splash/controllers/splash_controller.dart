@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../../../core/const/app_exports.dart';
 import '../../../core/controllers/user_controller.dart';
 import '../../../data/repository/user_repository.dart';
+import '../../../data/services/fcm_service.dart';
 
 class SplashController extends GetxController {
   final UserRepository _userRepository = UserRepository();
@@ -23,6 +24,18 @@ class SplashController extends GetxController {
       // User is not logged in, navigate to login screen
       Get.offNamed(AppRoutes.loginScreen);
       return;
+    }
+
+    // Initialize FCM service if user is logged in
+    try {
+      await FcmService().initialize();
+    } catch (e) {
+      // FCM initialization failed, but app should still continue
+      DebugUtils.logError(
+        'FCM initialization failed in splash',
+        tag: 'SplashController.goNext',
+        error: e,
+      );
     }
 
     // User is logged in, check if they have completed assessment

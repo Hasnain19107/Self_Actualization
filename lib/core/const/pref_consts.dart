@@ -4,4 +4,5 @@ class PrefConstants{
   static  get isProfileSetupCompleted => 'isProfileSetupCompleted';
   static  get subscriptionPlan => 'subscriptionPlan';
   static  get hasCompletedAssessment => 'hasCompletedAssessment';
+  static  get coachingOfferDismissed => 'coachingOfferDismissed';
 }
