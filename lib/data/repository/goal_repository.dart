@@ -1,9 +1,14 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../../core/const/api_constants.dart';
+import '../../core/const/pref_consts.dart';
 import '../../core/utils/debug_utils.dart';
 import '../models/api_response_model.dart';
 import '../models/goal/goal_model.dart';
 import '../models/goal/goal_request_model.dart';
+import '../models/goal/goal_need_model.dart';
 import '../services/api_service.dart';
+import '../services/shared_preference_services.dart';
 
 /// Goal Repository
 /// Handles goal related API operations
@@ -234,5 +239,81 @@ class GoalRepository {
       );
     }
   }
+
+  /// Get needs by category
+  Future<ApiResponseModel<GoalNeedsResponseModel>> getNeedsByCategory(
+    String category,
+  ) async {
+    try {
+      DebugUtils.logInfo(
+        'Fetching needs for category: $category',
+        tag: 'GoalRepository.getNeedsByCategory',
+      );
+
+      // This API returns the response directly (not wrapped in ApiResponseModel format)
+      // The response body is: {"success":true,"category":"Safety","total":5,"data":[...]}
+      // ApiService.get() will try to extract json['data'] which is a List, causing a type error
+      // So we need to make a direct HTTP call to parse the entire response body correctly
+      final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.goalsNeedsEndpoint}/$category');
+      final token = await PreferenceHelper.getString(PrefConstants.token);
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      };
+      
+      DebugUtils.logApiRequest(
+        method: 'GET',
+        url: uri.toString(),
+        headers: headers,
+      );
+      
+      final httpResponse = await http.get(uri, headers: headers)
+          .timeout(ApiConstants.connectionTimeout);
+      
+      if (httpResponse.statusCode == 200) {
+        final jsonData = json.decode(httpResponse.body) as Map<String, dynamic>;
+        final needsResponse = GoalNeedsResponseModel.fromJson(jsonData);
+        
+        DebugUtils.logInfo(
+          'Needs fetched successfully. Total: ${needsResponse.total}',
+          tag: 'GoalRepository.getNeedsByCategory',
+        );
+
+        return ApiResponseModel<GoalNeedsResponseModel>(
+          success: true,
+          message: '',
+          data: needsResponse,
+          statusCode: httpResponse.statusCode,
+        );
+      } else {
+        DebugUtils.logHttpError(
+          statusCode: httpResponse.statusCode,
+          url: uri.toString(),
+          method: 'GET',
+          body: httpResponse.body,
+          errorMessage: 'HTTP ${httpResponse.statusCode} Error',
+        );
+        
+        return ApiResponseModel<GoalNeedsResponseModel>(
+          success: false,
+          message: 'Failed to fetch needs: HTTP ${httpResponse.statusCode}',
+          statusCode: httpResponse.statusCode,
+        );
+      }
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Error fetching needs',
+        tag: 'GoalRepository.getNeedsByCategory',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<GoalNeedsResponseModel>(
+        success: false,
+        message: 'Failed to fetch needs: ${e.toString()}',
+      );
+    }
+  }
+  
 }
 

@@ -11,6 +11,8 @@ class AppRoutes {
   static const String categoryLevelScreen = "/categoryLevelScreen";
   static const String selfAssessmentScreen = "/selfAssessmentScreen";
   static const String reviewResultScreen = "/reviewResultScreen";
+  static const String needsReportScreen = "/needsReportScreen";
+  static const String recommendationsScreen = "/recommendationsScreen";
   static const String profileSetupScreen = "/profileSetupScreen";
 
   /// Main Navigation

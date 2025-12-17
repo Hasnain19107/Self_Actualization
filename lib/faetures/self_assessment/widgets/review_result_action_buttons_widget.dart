@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:pixsa_petrol_pump/faetures/self_assessment/view/needs_report_screen.dart';
 import '../controller/review_result_controller.dart';
 import '../../../core/const/app_exports.dart';
 
@@ -102,11 +103,13 @@ class ReviewResultActionButtonsWidget extends StatelessWidget {
             );
           },
         ),
+     
+     
         const Gap(12),
         // Continue Button
         GestureDetector(
           onTap: () {
-            Get.to(MainNavScreen(initialIndex: 0));
+            Get.toNamed(AppRoutes.needsReportScreen);
           },
           child: Container(
             width: double.infinity,

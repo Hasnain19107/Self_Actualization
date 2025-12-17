@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:pixsa_petrol_pump/core/widgets/custom_back_button.dart';
 import '../../../core/const/app_exports.dart';
 import '../../../core/controllers/user_controller.dart';
 import '../widgets/profile_info_card_widget.dart';
@@ -39,27 +40,8 @@ class ProfileDetailScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => Get.back(),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.inputBorderGrey,
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back,
-                        color: AppColors.black,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                  const Gap(16),
+                  CustomBackButton(),
+                  const Gap(12),
                   const Expanded(
                     child: CustomTextWidget(
                       text: 'Profile Details',

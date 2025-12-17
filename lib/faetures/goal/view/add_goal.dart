@@ -5,6 +5,7 @@ import '../binding/goal_binding.dart';
 import '../controller/goal_controller.dart';
 import '../widgets/date_picker_widget.dart';
 import '../../../core/const/app_exports.dart';
+import '../../../data/models/goal/goal_need_model.dart';
 
 class AddGoalScreen extends StatelessWidget {
   const AddGoalScreen({super.key});
@@ -64,7 +65,62 @@ class AddGoalScreen extends StatelessWidget {
                       const SizedBox(width: 40),
                       const Gap(32),
 
-                      // Goal Title Section
+                      // Select Category Section (replaces Select Goal Type)
+                      CustomTextWidget(
+                        text: 'Select Category',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        textColor: AppColors.black,
+                        textAlign: TextAlign.left,
+                      ),
+                      const Gap(8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.inputBorderGrey,
+                            width: 1,
+                          ),
+                        ),
+                        child: Obx(
+                          () => DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: controller.selectedGoalType.value,
+                              isExpanded: true,
+                              hint: const CustomTextWidget(
+                                text: 'Select category...',
+                                fontSize: 14,
+                                textColor: AppColors.placeholderGrey,
+                              ),
+                              icon: const Icon(
+                                Icons.arrow_drop_down,
+                                color: AppColors.black,
+                              ),
+                              onChanged: (String? value) {
+                                if (value != null) {
+                                  controller.selectGoalType(value);
+                                }
+                              },
+                              items: controller.goalTypes.map((String category) {
+                                return DropdownMenuItem<String>(
+                                  value: category,
+                                  child: CustomTextWidget(
+                                    text: category,
+                                    fontSize: 14,
+                                    textColor: AppColors.black,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const Gap(24),
+
+                      // Goal Title Section (Needs Dropdown)
                       CustomTextWidget(
                         text: 'Goal Title',
                         fontSize: 14,
@@ -73,13 +129,73 @@ class AddGoalScreen extends StatelessWidget {
                         textAlign: TextAlign.left,
                       ),
                       const Gap(8),
-                      CustomInputTextField(
-                        hintText: 'Enter title...',
-                        textEditingController: controller.goalTitleController,
-                        haveLabelText: false,
-                        labelText: null,
-                        isValidator: false,
-                        borderRadius: 12,
+                      Obx(
+                        () => controller.isLoadingNeeds.value
+                            ? Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: AppColors.inputBorderGrey,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: const Center(
+                                  child: CustomProgressIndicator(),
+                                ),
+                              )
+                            : Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: AppColors.inputBorderGrey,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: controller.selectedNeedLabel.value.isEmpty
+                                        ? null
+                                        : controller.selectedNeedLabel.value,
+                                    isExpanded: true,
+                                    hint: const CustomTextWidget(
+                                      text: 'Select need...',
+                                      fontSize: 14,
+                                      textColor: AppColors.placeholderGrey,
+                                    ),
+                                    icon: const Icon(
+                                      Icons.arrow_drop_down,
+                                      color: AppColors.black,
+                                    ),
+                                    onChanged: (String? value) {
+                                      if (value != null) {
+                                        // Find the need model by label and select it
+                                        final need = controller.needsList.firstWhereOrNull(
+                                          (n) => n.needLabel == value,
+                                        );
+                                        if (need != null) {
+                                          controller.selectNeed(need);
+                                        }
+                                      }
+                                    },
+                                    items: controller.needsList.map((GoalNeedModel need) {
+                                      return DropdownMenuItem<String>(
+                                        value: need.needLabel,
+                                        child: CustomTextWidget(
+                                          text: need.needLabel,
+                                          fontSize: 14,
+                                          textColor: AppColors.black,
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ),
                       ),
                       const Gap(24),
 
@@ -163,71 +279,6 @@ class AddGoalScreen extends StatelessWidget {
                         ),
                       ),
                       const Gap(24),
-
-                      // Select Goal Type Section
-                      CustomTextWidget(
-                        text: 'Select Goal Type',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        textColor: AppColors.black,
-                        textAlign: TextAlign.left,
-                      ),
-                      const Gap(16),
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 2.5,
-                            ),
-                        itemCount: controller.goalTypes.length,
-                        itemBuilder: (context, index) {
-                          final goalType = controller.goalTypes[index];
-                          return Obx(() {
-                            final isSelected =
-                                controller.selectedGoalType.value == goalType;
-                            return GestureDetector(
-                              onTap: () => controller.selectGoalType(goalType),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? AppColors.lightBlue.withOpacity(0.2)
-                                      : AppColors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? AppColors.blue
-                                        : AppColors.inputBorderGrey,
-                                    width: isSelected ? 2 : 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    CustomTextWidget(
-                                      text: goalType,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w400,
-                                      textColor: AppColors.black,
-                                      textAlign: TextAlign.left,
-                                    ),
-                                    CustomRadioButton(isSelected: isSelected),
-                                  ],
-                                ),
-                              ),
-                            );
-                          });
-                        },
-                      ),
-                      const Gap(32),
                       Obx(
                         () => CustomElevatedButton(
                           text: 'Save Goal',

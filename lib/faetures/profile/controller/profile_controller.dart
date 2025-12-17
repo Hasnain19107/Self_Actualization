@@ -9,6 +9,7 @@ import '../../../core/controllers/user_controller.dart';
 import '../../../data/models/user/profile_update_request_model.dart';
 import '../../../data/repository/user_repository.dart';
 import '../../../data/services/shared_preference_services.dart';
+import '../../../data/services/fcm_service.dart';
 import '../widgets/logout_dialog_widget.dart';
 
 class ProfileController extends GetxController {
@@ -492,8 +493,8 @@ class ProfileController extends GetxController {
       
       // Navigate based on where user came from
       if (fromWelcome.value) {
-        // If coming from welcome screen, navigate to select plan screen
-        Get.offNamed(AppRoutes.selectPlanScreen);
+        // If coming from welcome screen, navigate to select plan screen (onboarding flow)
+        Get.offNamed(AppRoutes.selectPlanScreen, arguments: {'isOnboarding': true});
       } else {
         // Otherwise, go back to previous screen
         Get.back();
@@ -525,6 +526,15 @@ class ProfileController extends GetxController {
       if (Get.isRegistered<UserController>()) {
         final userController = Get.find<UserController>();
         userController.currentUser.value = null;
+      }
+
+      // Remove FCM token before logout
+      try {
+        final fcmService = FcmService();
+        await fcmService.removeToken();
+      } catch (e) {
+        // FCM token removal failed, but logout should still proceed
+        debugPrint('Failed to remove FCM token on logout: $e');
       }
 
       // Logout from repository

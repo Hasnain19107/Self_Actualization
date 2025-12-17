@@ -25,96 +25,92 @@ class ProfileScreen extends StatelessWidget {
             horizontal: appSizes.getWidthPercentage(3),
             vertical: appSizes.getHeightPercentage(2),
           ),
-          child: Column(
-            children: [
-              // Content Area
-              Expanded(
-                child: Obx(() {
-                  // Show loading for content area
-                  if (controller.isLoadingUserData.value) {
-                    return const Center(
-                      child: CustomProgressIndicator(),
+          child: Obx(() {
+            // Show loading for content area
+            if (controller.isLoadingUserData.value) {
+              return const Center(
+                child: CustomProgressIndicator(),
+              );
+            }
+
+            // Show error screen in content area
+            if (controller.errorMessage.value.isNotEmpty) {
+              return ErrorScreenWidget(
+                errorMessage: controller.errorMessage.value,
+                onRetry: () => controller.refreshData(),
+              );
+            }
+
+            // Show content
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  const Gap(12),
+
+                  // Avatar and Name
+                  Obx(() {
+                    final userController = Get.isRegistered<UserController>()
+                        ? Get.find<UserController>()
+                        : null;
+                    final user = userController?.currentUser.value;
+
+                    if (user == null) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return ProfileAvatarSectionWidget(user: user);
+                  }),
+                  const Gap(40),
+
+                  // Profile Tab
+                  ProfileTabWidget(
+                    title: 'Profile',
+                    icon: Icons.person_outline,
+                    onTap: () {
+                      Get.toNamed(AppRoutes.profileDetailScreen);
+                    },
+                  ),
+                  const Gap(16),
+
+                  // Subscription Tab
+                  ProfileTabWidget(
+                    title: 'Subscription',
+                    icon: Icons.card_membership,
+                    onTap: () {
+                      Get.toNamed(AppRoutes.subscriptionScreen);
+                    },
+                  ),
+                  const Gap(16),
+
+                  // Notification Tab
+                  ProfileTabWidget(
+                    title: 'Notifications',
+                    icon: Icons.notifications_outlined,
+                    onTap: () {
+                      Get.toNamed(AppRoutes.notificationScreen);
+                    },
+                  ),
+                  const Gap(40),
+
+                  // Logout Button (scrollable with content)
+                  Obx(() {
+                    final isLoggingOut = controller.isLoggingOut.value;
+                    return CustomElevatedButton(
+                      text: 'Logout',
+                      textColor: AppColors.red,
+                      backgroundColor: AppColors.red.withOpacity(0.3),
+                      borderRadius: 10,
+                      height: 56,
+                      isLoading: isLoggingOut,
+                      onPress: () => controller.handleLogout(),
+                      width: double.infinity,
                     );
-                  }
-
-                  // Show error screen in content area (above logout button)
-                  if (controller.errorMessage.value.isNotEmpty) {
-                    return ErrorScreenWidget(
-                      errorMessage: controller.errorMessage.value,
-                      onRetry: () => controller.refreshData(),
-                    );
-                  }
-
-                  // Show content
-                  return Column(
-                    children: [
-                      const Gap(12),
-
-                      // Avatar and Name
-                      Obx(() {
-                        final userController = Get.isRegistered<UserController>()
-                            ? Get.find<UserController>()
-                            : null;
-                        final user = userController?.currentUser.value;
-
-                        if (user == null) {
-                          return const SizedBox.shrink();
-                        }
-
-                        return ProfileAvatarSectionWidget(user: user);
-                      }),
-                      const Gap(40),
-
-                      // Profile Tab
-                      ProfileTabWidget(
-                        title: 'Profile',
-                        icon: Icons.person_outline,
-                        onTap: () {
-                          Get.toNamed(AppRoutes.profileDetailScreen);
-                        },
-                      ),
-                      const Gap(16),
-
-                      // Subscription Tab
-                      ProfileTabWidget(
-                        title: 'Subscription',
-                        icon: Icons.card_membership,
-                        onTap: () {
-                          Get.toNamed(AppRoutes.subscriptionScreen);
-                        },
-                      ),
-                      const Gap(16),
-
-                      // Notification Tab
-                      ProfileTabWidget(
-                        title: 'Notifications',
-                        icon: Icons.notifications_outlined,
-                        onTap: () {
-                          Get.toNamed(AppRoutes.notificationScreen);
-                        },
-                      ),
-                    ],
-                  );
-                }),
+                  }),
+                  Gap(appSizes.getHeightPercentage(2)),
+                ],
               ),
-
-              // Logout Button (always visible, even with error)
-              Obx(() {
-                final isLoggingOut = controller.isLoggingOut.value;
-                return CustomElevatedButton(
-                  text: 'Logout',
-                  textColor: AppColors.red,
-                  backgroundColor: AppColors.red.withOpacity(0.3),
-                  borderRadius: 10,
-                  height: 56,
-                  isLoading: isLoggingOut,
-                  onPress: () => controller.handleLogout(),
-                  width: double.infinity,
-                );
-              }),
-              Gap(appSizes.getHeightPercentage(2)),
-            ],
-          ),
+            );
+          }),
         ),
       ),
     );

@@ -11,6 +11,15 @@ class QuestionModel {
   final bool isActive;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  
+  // New fields for need-level metadata
+  final String? needKey;
+  final String? needLabel;
+  final int? needOrder;
+  final int? section;
+  final String? sectionType;
+  final String? parentQuestionId;
+  final int? sectionOrder;
 
   QuestionModel({
     required this.id,
@@ -23,6 +32,13 @@ class QuestionModel {
     required this.isActive,
     this.createdAt,
     this.updatedAt,
+    this.needKey,
+    this.needLabel,
+    this.needOrder,
+    this.section,
+    this.sectionType,
+    this.parentQuestionId,
+    this.sectionOrder,
   });
 
   /// Create from JSON
@@ -45,6 +61,13 @@ class QuestionModel {
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'].toString())
           : null,
+      needKey: json['needKey']?.toString(),
+      needLabel: json['needLabel']?.toString(),
+      needOrder: json['needOrder'] as int?,
+      section: json['section'] as int?,
+      sectionType: json['sectionType']?.toString(),
+      parentQuestionId: json['parentQuestionId']?.toString(),
+      sectionOrder: json['sectionOrder'] as int?,
     );
   }
 
@@ -61,6 +84,13 @@ class QuestionModel {
       'isActive': isActive,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'needKey': needKey,
+      'needLabel': needLabel,
+      'needOrder': needOrder,
+      'section': section,
+      'sectionType': sectionType,
+      'parentQuestionId': parentQuestionId,
+      'sectionOrder': sectionOrder,
     };
   }
 }

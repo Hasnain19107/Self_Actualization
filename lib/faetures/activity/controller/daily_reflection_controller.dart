@@ -256,7 +256,8 @@ class DailyReflectionController extends GetxController {
       };
     }).whereType<Map<String, dynamic>>().toList();
 
-    return moodsList;
+    // Reverse the list so latest mood appears on the right side
+    return moodsList.reversed.toList();
   }
 
   void _initializeSpeech() async {

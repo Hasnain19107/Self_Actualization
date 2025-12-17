@@ -1,7 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../learn_grow/view/learn_grow_screen.dart';
 import '../../../core/const/app_exports.dart';
 import '../../../core/models/need_data.dart';
 import '../../../data/models/question/assessment_result_model.dart';
@@ -206,22 +204,26 @@ class HomeController extends GetxController {
 
   // Action cards
   final List<Map<String, dynamic>> actionCards = [
-    {'title': 'Learn & Grow', 'emoji': '🧘', 'subtitle': 'Videos, articles & audios'},
-    {'title': 'Goal Tracker', 'emoji': '📓', 'subtitle': 'Track yours Goals'},
-    {'title': 'Self Assessment', 'emoji': '💬', 'subtitle': 'Continue self assessment'},
+    {'title': 'Report', 'emoji': '📊', 'subtitle': 'View your assessment  \n report'},
+    {'title': 'Goal Tracker', 'emoji': '📓', 'subtitle': 'Track yours  \n Goals'},
+    {'title': 'Self Actualization', 'emoji': '💬', 'subtitle': 'Continue self  \n assessment'},
 
   ];
 
   void onActionCardTap(String title) {
-    // Handle action card tap
-    if (title == 'Learn & Grow') {
-      Get.toNamed(AppRoutes.learnGrowScreen);
-    }
-      else if (title == 'Self Assessment') {
-      Get.toNamed(AppRoutes.categoryLevelScreen);
-    }
-     else {
-      Get.toNamed(AppRoutes.goalScreen);
+    // Handle action card tap based on actual card titles
+    switch (title) {
+      case 'Report':
+        Get.toNamed(AppRoutes.needsReportScreen);
+        break;
+      case 'Goal Tracker':
+        Get.toNamed(AppRoutes.goalScreen);
+        break;
+      case 'Self Actualization':
+        Get.toNamed(AppRoutes.categoryLevelScreen);
+        break;
+      default:
+        DebugUtils.logWarning('Unknown action card tapped: $title');
     }
   }
 

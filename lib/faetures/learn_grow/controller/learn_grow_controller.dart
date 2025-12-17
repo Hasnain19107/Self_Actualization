@@ -12,6 +12,12 @@ import '../../../data/models/learn_and_grow/article_model.dart';
 class LearnGrowController extends GetxController {
   final AudioPlayer _audioPlayer = AudioPlayer();
 
+  // QuestionId for filtering content
+  final RxString questionId = ''.obs;
+  
+  // Title from API response
+  final RxString learningTitle = ''.obs;
+
   // Selected filter tab
   final RxString selectedTab = 'Audios'.obs;
 
@@ -82,10 +88,90 @@ class LearnGrowController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Get questionId from arguments if provided
+    final arguments = Get.arguments;
+    if (arguments != null && arguments is Map<String, dynamic>) {
+      final qId = arguments['questionId'] as String?;
+      if (qId != null && qId.isNotEmpty) {
+        questionId.value = qId;
+        _fetchContentByQuestionId(qId);
+        return; // Don't fetch all content if filtering by questionId
+      }
+    }
+    // If no questionId, fetch all content as before
     _initializeAudioFiles();
     _initializeVideoFiles();
     _initializeArticleFiles();
     _setupAudioPlayerListeners();
+  }
+
+  /// Fetch all content (audios, videos, articles) by questionId
+  Future<void> _fetchContentByQuestionId(String qId) async {
+    isLoadingAudios.value = true;
+    isLoadingVideos.value = true;
+    isLoadingArticles.value = true;
+    
+    try {
+      final response = await LearnGrowRepository().getAllContentByQuestionId(qId);
+      
+      if (response.success && response.data != null) {
+        final data = response.data!;
+        
+        // Extract title from API response
+        // The API returns: { "success": true, "data": { "title": "...", ... } }
+        // ApiResponseModel extracts the inner "data" object, so data is already the inner object
+        final title = data['title'] as String?;
+        if (title != null && title.isNotEmpty) {
+          learningTitle.value = title;
+        }
+        
+        // Parse audios
+        if (data['audios'] != null && data['audios'] is List) {
+          audioFiles.value = (data['audios'] as List)
+              .map((item) => AudioModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+          // Initialize UI state for each audio
+          for (var audio in audioFiles) {
+            audioCurrentTime[audio.id] = '00:00'.obs;
+            audioTotalDuration[audio.id] = '00:00'.obs;
+            audioIsPlaying[audio.id] = false.obs;
+            _fetchDurationFromUrl(audio.id, audio.audioUrl);
+          }
+        }
+        
+        // Parse videos
+        if (data['videos'] != null && data['videos'] is List) {
+          videoFiles.value = (data['videos'] as List)
+              .map((item) => VideoModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+        
+        // Parse articles
+        if (data['articles'] != null && data['articles'] is List) {
+          articleFiles.value = (data['articles'] as List)
+              .map((item) => ArticleModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+        
+        _setupAudioPlayerListeners();
+      } else {
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Failed to load content',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      ToastClass.showCustomToast(
+        'Error loading content: ${e.toString()}',
+        type: ToastType.error,
+      );
+    } finally {
+      isLoadingAudios.value = false;
+      isLoadingVideos.value = false;
+      isLoadingArticles.value = false;
+    }
   }
 
   @override

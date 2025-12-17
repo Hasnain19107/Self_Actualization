@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:pixsa_petrol_pump/core/widgets/custom_back_button.dart';
 import '../../../core/const/app_exports.dart';
-import '../controllers/onboarding_controller.dart';
+import '../controllers/subscription_controller.dart';
 import '../bindings/onBoarding_binding.dart';
 
 class SubscriptionScreen extends StatelessWidget {
@@ -55,27 +56,9 @@ class SubscriptionScreen extends StatelessWidget {
                 // Header with back button
                 Row(
                   children: [
-                    GestureDetector(
-                      onTap: () => Get.back(),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.inputBorderGrey,
-                            width: 1,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: AppColors.black,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                    const Gap(16),
+                    CustomBackButton(),
+                    
+                    const Gap(12),
                     const Expanded(
                       child: CustomTextWidget(
                         text: 'Current Subscription',

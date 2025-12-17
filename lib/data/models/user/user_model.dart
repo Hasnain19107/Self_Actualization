@@ -14,6 +14,9 @@ class UserModel {
   final String? currentSubscriptionType;
   final DateTime? assessmentCompletedAt;
   final DateTime? lastLogin;
+  final bool? coachingOfferEligible;
+  final DateTime? coachingOfferTriggeredAt;
+  final int? completedGoalsCount;
 
   UserModel({
     required this.id,
@@ -29,6 +32,9 @@ class UserModel {
     this.currentSubscriptionType,
     this.assessmentCompletedAt,
     this.lastLogin,
+    this.coachingOfferEligible,
+    this.coachingOfferTriggeredAt,
+    this.completedGoalsCount,
   });
 
   /// Create from JSON
@@ -59,6 +65,11 @@ class UserModel {
       lastLogin: json['lastLogin'] != null
           ? DateTime.tryParse(json['lastLogin'].toString())
           : null,
+      coachingOfferEligible: json['coachingOfferEligible'] as bool? ?? false,
+      coachingOfferTriggeredAt: json['coachingOfferTriggeredAt'] != null
+          ? DateTime.tryParse(json['coachingOfferTriggeredAt'].toString())
+          : null,
+      completedGoalsCount: json['completedGoalsCount'] as int? ?? 0,
     );
   }
 
@@ -78,6 +89,9 @@ class UserModel {
       'currentSubscriptionType': currentSubscriptionType,
       'assessmentCompletedAt': assessmentCompletedAt?.toIso8601String(),
       'lastLogin': lastLogin?.toIso8601String(),
+      'coachingOfferEligible': coachingOfferEligible,
+      'coachingOfferTriggeredAt': coachingOfferTriggeredAt?.toIso8601String(),
+      'completedGoalsCount': completedGoalsCount,
     };
   }
 
@@ -96,6 +110,9 @@ class UserModel {
     String? currentSubscriptionType,
     DateTime? assessmentCompletedAt,
     DateTime? lastLogin,
+    bool? coachingOfferEligible,
+    DateTime? coachingOfferTriggeredAt,
+    int? completedGoalsCount,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -111,6 +128,9 @@ class UserModel {
       currentSubscriptionType: currentSubscriptionType ?? this.currentSubscriptionType,
       assessmentCompletedAt: assessmentCompletedAt ?? this.assessmentCompletedAt,
       lastLogin: lastLogin ?? this.lastLogin,
+      coachingOfferEligible: coachingOfferEligible ?? this.coachingOfferEligible,
+      coachingOfferTriggeredAt: coachingOfferTriggeredAt ?? this.coachingOfferTriggeredAt,
+      completedGoalsCount: completedGoalsCount ?? this.completedGoalsCount,
     );
   }
 }
