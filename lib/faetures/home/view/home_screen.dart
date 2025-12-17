@@ -75,7 +75,6 @@ class HomeScreen extends StatelessWidget {
                 }),
                 const Gap(16),
                 // Action Cards
-
                 ActionCardsWidget(
                   actionCards: controller.actionCards,
                   onTap: controller.onActionCardTap,

@@ -3,17 +3,31 @@ import 'package:get/get.dart';
 import 'dart:io';
 
 import '../../../core/const/app_exports.dart';
+import '../../notification/binding/notification_binding.dart';
 import '../../profile/view/profile_screen.dart';
 
-class MainNavScreen extends StatelessWidget {
+class MainNavScreen extends StatefulWidget {
   final int? initialIndex;
 
   const MainNavScreen({super.key, this.initialIndex});
 
   @override
+  State<MainNavScreen> createState() => _MainNavScreenState();
+}
+
+class _MainNavScreenState extends State<MainNavScreen> {
+  bool _showUpgradeBanner = true;
+
+  void _dismissBanner() {
+    if (mounted) setState(() => _showUpgradeBanner = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Initialize binding when screen is first created
     BottomNavBinding().dependencies();
+    // Initialize NotificationController to track unread notifications on all screens
+    NotificationBinding().dependencies();
 
     // Set initial index if provided via arguments or parameter
     // Safely check if arguments is an int before casting
@@ -21,7 +35,7 @@ class MainNavScreen extends StatelessWidget {
     if (Get.arguments != null && Get.arguments is int) {
       indexFromArgs = Get.arguments as int;
     }
-    final index = initialIndex ?? indexFromArgs;
+    final index = widget.initialIndex ?? indexFromArgs;
 
     return PopScope(
       canPop: false,
@@ -48,7 +62,22 @@ class MainNavScreen extends StatelessWidget {
       },
       child: Scaffold(
         body: _buildBody(),
-        bottomNavigationBar: CustomBottomNavBar(initialIndex: index),
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Upgrade Banner - shows like an ad above bottom nav
+            if (_showUpgradeBanner)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: UpgradeBannerWidget(
+                  showDismiss: true,
+                  onDismiss: _dismissBanner,
+                ),
+              ),
+            // Bottom Navigation Bar
+            CustomBottomNavBar(initialIndex: index),
+          ],
+        ),
       ),
     );
   }

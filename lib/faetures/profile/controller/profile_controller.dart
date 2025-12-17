@@ -493,8 +493,8 @@ class ProfileController extends GetxController {
       
       // Navigate based on where user came from
       if (fromWelcome.value) {
-        // If coming from welcome screen, navigate to select plan screen
-        Get.offNamed(AppRoutes.selectPlanScreen);
+        // If coming from welcome screen, navigate to select plan screen (onboarding flow)
+        Get.offNamed(AppRoutes.selectPlanScreen, arguments: {'isOnboarding': true});
       } else {
         // Otherwise, go back to previous screen
         Get.back();

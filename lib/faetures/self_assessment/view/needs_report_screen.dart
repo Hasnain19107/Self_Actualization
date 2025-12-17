@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:pixsa_petrol_pump/core/widgets/custom_back_button.dart';
 import '../../../core/const/app_exports.dart';
 import '../controller/needs_report_controller.dart';
 import '../../../data/models/question/needs_report_model.dart';
@@ -28,10 +29,8 @@ class NeedsReportScreen extends StatelessWidget {
                 // Header
                 Row(
                   children: [
-                    IconButton(
-                      onPressed: () => Get.back(),
-                      icon: const Icon(Icons.arrow_back, color: AppColors.black, size: 24),
-                    ),
+                   CustomBackButton(),
+                    const Gap(12),
                     CustomTextWidget(
                       text: 'Needs Report',
                       fontSize: 20,

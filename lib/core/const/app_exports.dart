@@ -42,6 +42,7 @@ export '../widgets/exit_dialog_widget.dart';
 export '../widgets/mood_emoji_widget.dart';
 export '../widgets/plan_card_widget.dart';
 export '../widgets/search_bar_widget.dart';
+export '../widgets/upgrade_banner_widget.dart';
 
 // Feature: Auth
 export '../../faetures/auth/bindings/auth_binding.dart';

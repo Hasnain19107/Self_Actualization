@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import '../const/app_exports.dart';
 import '../controllers/user_controller.dart';
+import '../../faetures/notification/controller/notification_controller.dart';
 
 class AppHeaderWidget extends StatelessWidget {
   final String title;
@@ -60,24 +61,12 @@ class AppHeaderWidget extends StatelessWidget {
             else
               const SizedBox(width: 50),
 
-            // Bell Icon
+            // Bell Icon with unread indicator
             if (showNotification)
-              IconButton(
-                onPressed: onNotificationTap ??
+              GestureDetector(
+                onTap: onNotificationTap ??
                     () => Get.toNamed(AppRoutes.notificationScreen),
-                icon: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.white,
-                  ),
-                  child: const Icon(
-                    Icons.notifications_outlined,
-                    color: AppColors.black,
-                    size: 24,
-                  ),
-                ),
+                child: _buildNotificationIcon(),
               )
             else
               const SizedBox(width: 40),
@@ -93,6 +82,56 @@ class AppHeaderWidget extends StatelessWidget {
             fontWeight: FontWeight.w700,
             textColor: AppColors.black,
           ),
+      ],
+    );
+  }
+
+  /// Build notification icon with unread indicator
+  Widget _buildNotificationIcon() {
+    // Check if NotificationController is registered
+    final notificationController = Get.isRegistered<NotificationController>()
+        ? Get.find<NotificationController>()
+        : null;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.white,
+          ),
+          child: const Icon(
+            Icons.notifications_outlined,
+            color: AppColors.black,
+            size: 24,
+          ),
+        ),
+        // Red dot indicator for unread notifications
+        if (notificationController != null)
+          Obx(() {
+            final hasUnread = notificationController.unreadCount.value > 0;
+            if (!hasUnread) return const SizedBox.shrink();
+            
+            return Positioned(
+              right: 2,
+              top: 2,
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: AppColors.red,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.white,
+                    width: 2,
+                  ),
+                ),
+              ),
+            );
+          }),
       ],
     );
   }

@@ -8,12 +8,13 @@ import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
+import 'package:pixsa_petrol_pump/data/services/pdf_generation_service.dart';
 import '../../../core/const/app_exports.dart';
 import '../../../core/models/need_data.dart';
 import '../../../data/models/question/assessment_result_model.dart';
 import '../../../data/models/question/needs_report_model.dart';
 import '../../../data/repository/question_repository.dart';
-import '../services/pdf_generation_service.dart';
+
 
 class ReviewResultController extends GetxController {
   // Repository
@@ -165,7 +166,7 @@ class ReviewResultController extends GetxController {
     'Social': [
      'Group Acceptance',
       'Bonding with partner',
-      'Bonding with significant people',
+      'Meaningful Connections',
       'Love/Affection',
       'Social connection: friends',
     ],

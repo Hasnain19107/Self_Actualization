@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_paypal_payment/flutter_paypal_payment.dart';
 import '../../../core/const/app_exports.dart';
 import '../../../data/models/subscription/create_subscription_request_model.dart';
 import '../../../data/models/subscription/subscription_response_model.dart';
@@ -21,9 +23,9 @@ class SubscriptionController extends GetxController {
   
   // Subscription plans data
   final List<Map<String, dynamic>> subscriptionPlans = [
-    {'planName': 'Free', 'price': '\$0', 'planId': 'free', 'subscriptionType': 'Free'},
-    {'planName': 'Premium', 'price': '\$19', 'planId': 'premium', 'subscriptionType': 'Premium'},
-    {'planName': 'Coach', 'price': '\$39', 'planId': 'coach', 'subscriptionType': 'Coach'},
+    {'planName': 'Free', 'price': 'A\$0', 'planId': 'free', 'subscriptionType': 'Free'},
+    {'planName': 'Premium', 'price': 'A\$19', 'planId': 'premium', 'subscriptionType': 'Premium'},
+    {'planName': 'Coach', 'price': 'A\$39', 'planId': 'coach', 'subscriptionType': 'Coach'},
   ];
   
   // Loading states
@@ -42,13 +44,30 @@ class SubscriptionController extends GetxController {
       isLoadingCurrentSubscription.value = true;
       isLoadingAvailableCategories.value = true;
       errorMessage.value = '';
+      
+      DebugUtils.logInfo(
+        'Fetching current subscription...',
+        tag: 'SubscriptionController.fetchCurrentSubscription',
+      );
+      
       final response = await _subscriptionRepository.getCurrentSubscription();
       
       isLoadingCurrentSubscription.value = false;
       isLoadingAvailableCategories.value = false;
       
+      DebugUtils.logInfo(
+        'API Response - success: ${response.success}, data: ${response.data}, message: ${response.message}',
+        tag: 'SubscriptionController.fetchCurrentSubscription',
+      );
+      
       if (response.success && response.data != null) {
         currentSubscription.value = response.data;
+        
+        DebugUtils.logInfo(
+          'Current subscription type: ${response.data!.subscriptionType}',
+          tag: 'SubscriptionController.fetchCurrentSubscription',
+        );
+        
         // Extract available categories from the response
         availableCategories.assignAll(response.data!.availableCategories);
       } else {
@@ -283,32 +302,123 @@ class SubscriptionController extends GetxController {
     }
   }
 
-  // Process payment (hardcoded for now - Stripe not implemented)
+  // PayPal Credentials - loaded from .env file
+  // For sandbox testing, use sandbox credentials
+  // For production, use live credentials and set PAYPAL_SANDBOX_MODE=false
+  String get _paypalClientId => dotenv.env['PAYPAL_CLIENT_ID'] ?? '';
+  String get _paypalSecretKey => dotenv.env['PAYPAL_SECRET_KEY'] ?? '';
+  bool get _paypalSandboxMode => dotenv.env['PAYPAL_SANDBOX_MODE']?.toLowerCase() == 'true';
+
+  // Process payment using PayPal
   Future<void> _processPayment(Map<String, dynamic> planData) async {
+    final priceString = planData['price'] as String? ?? '\$0';
+    // Extract numeric value from price string (e.g., "$19" -> "19")
+    final priceValue = priceString.replaceAll(RegExp(r'[^\d.]'), '');
+    final planName = planData['planName'] as String? ?? 'Subscription';
+
+    // Navigate to PayPal checkout
+    Get.to(() => PaypalCheckoutView(
+      sandboxMode: _paypalSandboxMode,
+      clientId: _paypalClientId,
+      secretKey: _paypalSecretKey,
+      transactions: [
+        {
+          "amount": {
+            "total": priceValue,
+            "currency": "AUD",
+            "details": {
+              "subtotal": priceValue,
+              "shipping": '0',
+              "shipping_discount": 0,
+            }
+          },
+          "description": "Self Actualization - $planName Plan Subscription",
+          "item_list": {
+            "items": [
+              {
+                "name": "$planName Plan",
+                "quantity": 1,
+                "price": priceValue,
+                "currency": "AUD"
+              }
+            ],
+          }
+        }
+      ],
+      note: "Thank you for subscribing to Self Actualization!",
+      onSuccess: (Map params) async {
+        DebugUtils.logInfo(
+          'PayPal Payment Success: $params',
+          tag: 'SubscriptionController._processPayment',
+        );
+        
+        // Extract payment details from PayPal response
+        final paymentId = params['paymentId'] as String? ?? 
+            'paypal_${DateTime.now().millisecondsSinceEpoch}';
+        final payerId = params['payerID'] as String? ?? 
+            'payer_${DateTime.now().millisecondsSinceEpoch}';
+        
+        // Go back from PayPal view
+        Get.back();
+        
+        // Create subscription after successful payment
+        await _createSubscriptionAfterPayment(
+          planData: planData,
+          paymentId: paymentId,
+          payerId: payerId,
+        );
+      },
+      onError: (error) {
+        DebugUtils.logError(
+          'PayPal Payment Error',
+          tag: 'SubscriptionController._processPayment',
+          error: error,
+        );
+        Get.back();
+        ToastClass.showCustomToast(
+          'Payment failed. Please try again.',
+          type: ToastType.error,
+        );
+      },
+      onCancel: () {
+        DebugUtils.logInfo(
+          'PayPal Payment Cancelled',
+          tag: 'SubscriptionController._processPayment',
+        );
+        Get.back();
+        ToastClass.showCustomToast(
+          'Payment cancelled',
+          type: ToastType.warning,
+        );
+      },
+    ));
+  }
+
+  // Create subscription after successful PayPal payment
+  Future<void> _createSubscriptionAfterPayment({
+    required Map<String, dynamic> planData,
+    required String paymentId,
+    required String payerId,
+  }) async {
     try {
-      isProcessingPayment.value = true;
-      
-      // Simulate payment processing delay
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Hardcoded payment success
-      final paymentIntentId = 'pi_hardcoded_${DateTime.now().millisecondsSinceEpoch}';
-      final customerId = 'cus_hardcoded_${DateTime.now().millisecondsSinceEpoch}';
-      
-      isProcessingPayment.value = false;
       isCreatingSubscription.value = true;
 
-      // Create subscription after payment
+      // Create subscription with PayPal payment details
       final subscriptionRequest = CreateSubscriptionRequestModel(
         subscriptionType: planData['subscriptionType'] as String,
-        stripePaymentIntentId: paymentIntentId,
-        stripeCustomerId: customerId,
+        stripePaymentIntentId: paymentId, // Using PayPal payment ID
+        stripeCustomerId: payerId, // Using PayPal payer ID
         paymentStatus: 'succeeded',
       );
 
       final response = await _subscriptionRepository.createSubscription(subscriptionRequest);
 
       if (response.success && response.data != null) {
+        ToastClass.showCustomToast(
+          'Subscription activated successfully!',
+          type: ToastType.success,
+        );
+        
         // Refresh current subscription after creating new one
         await fetchCurrentSubscription();
         
@@ -320,17 +430,21 @@ class SubscriptionController extends GetxController {
         ToastClass.showCustomToast(
           response.message.isNotEmpty
               ? response.message
-              : 'Failed to create subscription. Please try again.',
+              : 'Failed to activate subscription. Please contact support.',
           type: ToastType.error,
         );
       }
     } catch (e) {
+      DebugUtils.logError(
+        'Error creating subscription after payment',
+        tag: 'SubscriptionController._createSubscriptionAfterPayment',
+        error: e,
+      );
       ToastClass.showCustomToast(
-        'Failed to process payment: ${e.toString()}',
+        'Failed to activate subscription: ${e.toString()}',
         type: ToastType.error,
       );
     } finally {
-      isProcessingPayment.value = false;
       isCreatingSubscription.value = false;
     }
   }

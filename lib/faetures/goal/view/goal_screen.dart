@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:pixsa_petrol_pump/core/widgets/custom_back_button.dart';
 import '../binding/goal_binding.dart';
 import '../controller/goal_controller.dart';
 import '../widgets/goal_card_widget.dart';
@@ -30,26 +31,7 @@ class GoalScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
               // Header with back button and title
-              GestureDetector(
-                onTap: () => Get.back(),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.inputBorderGrey,
-                      width: 1,
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.arrow_back,
-                    color: AppColors.black,
-                    size: 20,
-                  ),
-                ),
-              ),
+             CustomBackButton(),
               Gap(12),
               CustomTextWidget(
                 text: 'Goal Tracker',

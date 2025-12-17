@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import '../../../data/models/question/assessment_result_model.dart';
-import '../../../data/models/question/needs_report_model.dart';
+import '../models/question/assessment_result_model.dart';
+import '../models/question/needs_report_model.dart';
 
 class PdfGenerationService {
   /// Generate PDF with assessment grid and report data

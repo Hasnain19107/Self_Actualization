@@ -22,7 +22,7 @@ class ActionCardsWidget extends StatelessWidget {
           children: [
             CustomTextWidget(
               text: 'Actions',
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: FontWeight.w500,
               textColor: AppColors.black,
               textAlign: TextAlign.left,
@@ -30,21 +30,21 @@ class ActionCardsWidget extends StatelessWidget {
            
           ],
         ),
-        const Gap(16),
+        const Gap(8),
         Row(
           children: actionCards.asMap().entries.map((entry) {
             final card = entry.value;
             final isLast = entry.key == actionCards.length - 1;
-            return Flexible(
+            return Expanded(
               child: GestureDetector(
                 onTap: () => onTap(card['title']),
                 child: Container(
-                  margin: EdgeInsets.only(right: isLast ? 0 : 6),
+                  margin: EdgeInsets.only(right: isLast ? 0 : 4),
                   padding: const EdgeInsets.only(
                     top: 8,
                     bottom: 8,
-                    left: 10,
-                    right: 5,
+                    left: 4,
+                    right: 4,
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.lightBlue,
@@ -74,8 +74,8 @@ class ActionCardsWidget extends StatelessWidget {
                       // Text - will expand container width
                       CustomTextWidget(
                         text: card['title'],
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
                         textColor: AppColors.black,
                         textAlign: TextAlign.left,
                       ),

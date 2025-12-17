@@ -36,8 +36,10 @@ class ApiConstants {
   static const String subscriptionAvailableCategoriesEndpoint = '/api/subscriptions/available-categories';
 
   // Notification Endpoints
+  static const String notificationsEndpoint = '/api/notifications';
   static const String notificationFcmTokenEndpoint = '/api/notifications/fcm-token';
   static const String notificationTestEndpoint = '/api/notifications/test';
+  static const String notificationReadAllEndpoint = '/api/notifications/read-all';
 
   // Headers
   static const String authorizationHeader = 'Authorization';

@@ -60,6 +60,24 @@ class UserController extends GetxController {
   /// Get user focus areas
   List<String> get userFocusAreas => currentUser.value?.focusAreas ?? [];
 
+  /// Get current subscription type (Free, Premium, Coach)
+  String get subscriptionType => currentUser.value?.currentSubscriptionType ?? 'Free';
+
+  /// Check if user has Free plan
+  bool get isFreePlan => subscriptionType.toLowerCase() == 'free';
+
+  /// Check if user has Premium plan
+  bool get isPremiumPlan => subscriptionType.toLowerCase() == 'premium';
+
+  /// Check if user has Coach plan
+  bool get isCoachPlan => subscriptionType.toLowerCase() == 'coach';
+
+  /// Check if user can access meta-needs (Coach plan only)
+  bool get canAccessMetaNeeds => isCoachPlan;
+
+  /// Check if user can access Social and Self levels (Premium or Coach)
+  bool get canAccessSocialSelfLevels => isPremiumPlan || isCoachPlan;
+
   /// Refresh user data (force refetch)
   Future<void> refreshUserData() async {
     _hasFetched = false;

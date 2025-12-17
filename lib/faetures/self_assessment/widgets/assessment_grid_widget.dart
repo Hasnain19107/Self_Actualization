@@ -259,7 +259,7 @@ class AssessmentGridWidget extends StatelessWidget {
                 text: categoryName,
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
-                textColor: Color(category['color'] as int? ?? 0xFF2196F3),
+                textColor: AppColors.blue, // Dark blue color
                 textAlign: TextAlign.left,
                 maxLines: 2,
               ),

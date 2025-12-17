@@ -51,6 +51,18 @@ class _MyAppState extends State<MyApp> {
       initialRoute: AppRoutes.splashScreen,
       getPages: AppPages.routes,
       theme: AppTheme.lightTheme,
+      // Prevent system font settings from affecting app
+      builder: (context, child) {
+        return MediaQuery(
+          // Override text scale factor to always be 1.0 (ignore system settings)
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(1.0),
+            // Also disable bold text accessibility setting
+            boldText: false,
+          ),
+          child: child!,
+        );
+      },
     );
   }
 }
