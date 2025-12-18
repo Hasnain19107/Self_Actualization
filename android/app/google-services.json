@@ -12,7 +12,20 @@
           "package_name": "com.selfactualisation.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "900397271222-dh55l1ffdqt6bpqb431jl7im1karkf5u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.selfactualisation.app",
+            "certificate_hash": "06001963cc8f6babd7e28a15f52a87a255e066d3"
+          }
+        },
+        {
+          "client_id": "900397271222-b8u921v9c3hcul1hn8qtijpb3ls23pg2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDCc_Z2-0ydF32cn4VRYsY2seLpCINN36I"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "900397271222-b8u921v9c3hcul1hn8qtijpb3ls23pg2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "900397271222-g56kffhk80ga9d0co2rad1sjmv3i6e6h.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.selfactualisation.app"
+              }
+            }
+          ]
         }
       }
     }

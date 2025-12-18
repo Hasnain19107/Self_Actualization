@@ -7,6 +7,7 @@ class ApiConstants {
   // API Endpoints
   static const String registerEndpoint = '/api/auth/register';
   static const String loginEndpoint = '/api/auth/login';
+  static const String firebaseLoginEndpoint = '/api/auth/firebase-login';
   static const String forgotPasswordEndpoint = '/api/auth/forgot-password';
   static const String getUserDataEndpoint = '/api/auth/me';
   static const String questionsEndpoint = '/api/questions';

@@ -77,6 +77,107 @@ class UserRepository {
     }
   }
 
+  /// Login with Firebase ID token (for Google Sign-In)
+  Future<ApiResponseModel<UserModel>> loginWithFirebase(String firebaseIdToken) async {
+    try {
+      DebugUtils.logInfo(
+        'Starting Firebase login',
+        tag: 'UserRepository.loginWithFirebase',
+      );
+
+      final response = await _apiService.post<UserModel>(
+        endpoint: ApiConstants.firebaseLoginEndpoint,
+        body: {'idToken': firebaseIdToken},
+        includeAuth: false,
+        fromJsonT: (data) {
+          final dataMap = data as Map<String, dynamic>;
+          
+          // Extract token from response
+          final token = dataMap['token'] as String?;
+          
+          // Extract user data (could be nested in 'data' or 'user')
+          Map<String, dynamic> userData;
+          if (dataMap.containsKey('data')) {
+            final dataObj = dataMap['data'] as Map<String, dynamic>?;
+            if (dataObj != null && dataObj.containsKey('user')) {
+              userData = dataObj['user'] as Map<String, dynamic>;
+            } else if (dataObj != null) {
+              userData = dataObj;
+            } else {
+              userData = dataMap;
+            }
+          } else if (dataMap.containsKey('user')) {
+            userData = dataMap['user'] as Map<String, dynamic>;
+          } else {
+            userData = dataMap;
+          }
+          
+          // Add token to user data
+          if (token != null) {
+            userData['token'] = token;
+          }
+          
+          return UserModel.fromJson(userData);
+        },
+      );
+
+      // Save token if login is successful
+      if (response.success && response.data != null) {
+        final user = response.data!;
+        
+        if (user.token != null && user.token!.isNotEmpty) {
+          await PreferenceHelper.setString(
+            PrefConstants.token,
+            user.token!,
+          );
+        }
+
+        if (user.id.isNotEmpty) {
+          await PreferenceHelper.setString(
+            PrefConstants.userId,
+            user.id,
+          );
+        }
+
+        if (user.currentSubscriptionType != null && user.currentSubscriptionType!.isNotEmpty) {
+          await PreferenceHelper.setString(
+            PrefConstants.subscriptionPlan,
+            user.currentSubscriptionType!,
+          );
+        }
+
+        await PreferenceHelper.setBool(
+          PrefConstants.hasCompletedAssessment,
+          user.hasCompletedAssessment ?? false,
+        );
+
+        DebugUtils.logInfo(
+          'Firebase login successful. Token and user data saved.',
+          tag: 'UserRepository.loginWithFirebase',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Firebase login failed: ${response.message}',
+          tag: 'UserRepository.loginWithFirebase',
+        );
+      }
+
+      return response;
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Firebase login error',
+        tag: 'UserRepository.loginWithFirebase',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return ApiResponseModel<UserModel>(
+        success: false,
+        message: 'Firebase login failed: ${e.toString()}',
+      );
+    }
+  }
+
   /// Login user
   Future<ApiResponseModel<UserModel>> login(LoginRequestModel request) async {
     try {
