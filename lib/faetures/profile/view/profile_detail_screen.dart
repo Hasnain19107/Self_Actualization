@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:pixsa_petrol_pump/core/widgets/custom_back_button.dart';
+import 'package:self_actualisation/core/widgets/custom_back_button.dart';
 import '../../../core/const/app_exports.dart';
 import '../../../core/controllers/user_controller.dart';
 import '../widgets/profile_info_card_widget.dart';

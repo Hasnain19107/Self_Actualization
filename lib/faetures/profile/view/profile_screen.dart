@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:pixsa_petrol_pump/faetures/profile/widgets/profile_avatar_section_widget.dart';
+import 'package:self_actualisation/faetures/profile/widgets/profile_avatar_section_widget.dart';
 import '../../../core/const/app_exports.dart';
 import '../../../core/controllers/user_controller.dart';
 import '../binding/profile_binding.dart';
