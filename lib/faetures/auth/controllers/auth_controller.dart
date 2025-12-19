@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/const/app_exports.dart';
 import '../../../core/controllers/user_controller.dart';
 import '../../../data/repository/user_repository.dart';
@@ -151,7 +153,7 @@ class AuthController extends GetxController {
           Get.offAllNamed(AppRoutes.mainNavScreen);
         } else {
           // Navigate to welcome screen for onboarding
-          Get.toNamed(AppRoutes.welcomeScreen);
+          Get.offAllNamed(AppRoutes.welcomeScreen);
         }
       } else {
         // Show error message
@@ -224,7 +226,7 @@ class AuthController extends GetxController {
         );
 
         // Navigate to welcome screen on success
-        Get.toNamed(AppRoutes.welcomeScreen);
+        Get.offAllNamed(AppRoutes.welcomeScreen);
       } else {
         // Show error message
         ToastClass.showCustomToast(
@@ -238,6 +240,162 @@ class AuthController extends GetxController {
       isLoading.value = false;
       ToastClass.showCustomToast(
         'Sign up failed. Please try again.',
+        type: ToastType.error,
+      );
+    }
+  }
+
+  // Google Sign-In method using Firebase Auth
+  Future<void> signInWithGoogle() async {
+    try {
+      isLoading.value = true;
+
+      // Get GoogleSignIn instance (singleton in version 7.x)
+      final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+
+      // Initialize if not already initialized
+      try {
+        await googleSignIn.initialize();
+      } catch (e) {
+        // Already initialized, continue
+        DebugUtils.logInfo('GoogleSignIn already initialized', tag: 'AuthController.signInWithGoogle');
+      }
+
+      // Sign out first to ensure fresh sign-in
+      try {
+        await googleSignIn.signOut();
+        await FirebaseAuth.instance.signOut();
+      } catch (e) {
+        // Ignore sign out errors
+        DebugUtils.logWarning('Google/Firebase sign out error: $e', tag: 'AuthController.signInWithGoogle');
+      }
+
+      // Trigger the authentication flow (authenticate replaces signIn in 7.x)
+      final GoogleSignInAccount? googleUser = await googleSignIn.authenticate();
+
+      if (googleUser == null) {
+        // User canceled the sign-in
+        isLoading.value = false;
+        return;
+      }
+
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+
+      // Get access token from authorization client (for version 7.x)
+      String? accessToken;
+      try {
+        final authorization = await googleUser.authorizationClient.authorizeScopes(['email', 'profile']);
+        accessToken = authorization.accessToken;
+      } catch (e) {
+        DebugUtils.logWarning('Failed to get access token: $e', tag: 'AuthController.signInWithGoogle');
+      }
+
+      // Create a new credential for Firebase (idToken is required, accessToken is optional)
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+        accessToken: accessToken,
+      );
+
+      // Sign in to Firebase with the Google credential
+      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final User? firebaseUser = userCredential.user;
+
+      if (firebaseUser == null) {
+        isLoading.value = false;
+        ToastClass.showCustomToast(
+          'Google sign-in failed. Please try again.',
+          type: ToastType.error,
+        );
+        return;
+      }
+
+      // Get Firebase ID token
+      final String? firebaseIdToken = await firebaseUser.getIdToken();
+
+      if (firebaseIdToken == null || firebaseIdToken.isEmpty) {
+        isLoading.value = false;
+        ToastClass.showCustomToast(
+          'Failed to get authentication token. Please try again.',
+          type: ToastType.error,
+        );
+        return;
+      }
+
+      // Call API service for Firebase login with ID token
+      final response = await _userRepository.loginWithFirebase(firebaseIdToken);
+
+      isLoading.value = false;
+
+      if (response.success && response.data != null) {
+        final user = response.data!;
+
+        // Clear any existing form controllers
+        signinEmailController.clear();
+        signinPasswordController.clear();
+
+        // Initialize or refresh UserController
+        if (!Get.isRegistered<UserController>()) {
+          Get.put(UserController(), permanent: true);
+        } else {
+          final userController = Get.find<UserController>();
+          await userController.refreshUserData();
+        }
+
+        // Save FCM token
+        try {
+          final fcmService = FcmService();
+          if (fcmService.currentToken != null) {
+            await fcmService.saveTokenToBackend(fcmService.currentToken!);
+          } else {
+            await fcmService.initialize();
+          }
+        } catch (e) {
+          debugPrint('Failed to save FCM token after Google login: $e');
+        }
+
+        // Show success message
+        ToastClass.showCustomToast(
+          'Signed in with Google successfully',
+          type: ToastType.success,
+        );
+
+        // Navigate based on user status
+        final hasSubscription = user.currentSubscriptionType != null && 
+                               user.currentSubscriptionType!.isNotEmpty;
+        final hasCompletedAssessment = user.hasCompletedAssessment == true;
+
+        if (hasSubscription && hasCompletedAssessment) {
+          Get.offAllNamed(AppRoutes.mainNavScreen);
+        } else {
+          Get.offAllNamed(AppRoutes.welcomeScreen);
+        }
+      } else {
+        // Sign out from Google and Firebase if backend login failed
+        try {
+          await googleSignIn.signOut();
+          await FirebaseAuth.instance.signOut();
+        } catch (e) {
+          DebugUtils.logWarning('Google/Firebase sign out error: $e', tag: 'AuthController.signInWithGoogle');
+        }
+
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Google sign-in failed. Please try again.',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      isLoading.value = false;
+      DebugUtils.logError(
+        'Google sign-in error',
+        tag: 'AuthController.signInWithGoogle',
+        error: e,
+      );
+
+      ToastClass.showCustomToast(
+        'Google sign-in failed. Please try again.',
         type: ToastType.error,
       );
     }

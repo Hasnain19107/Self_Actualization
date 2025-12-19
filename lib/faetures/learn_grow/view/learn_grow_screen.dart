@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:pixsa_petrol_pump/core/widgets/custom_progress_indicator.dart';
+import 'package:self_actualisation/core/widgets/custom_progress_indicator.dart';
 import '../../../core/const/app_colors.dart';
 import '../../../core/utils/app_sizes.dart';
 import '../../../core/widgets/custom_text_widget.dart';

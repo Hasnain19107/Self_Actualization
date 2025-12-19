@@ -125,6 +125,39 @@ class PdfGenerationService {
                     fontWeight: pw.FontWeight.bold,
                   ),
                 ),
+                pw.SizedBox(height: 8),
+                pw.Container(
+                  padding: const pw.EdgeInsets.all(12),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.blue50,
+                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                    border: pw.Border.all(
+                      color: PdfColors.blue200,
+                      width: 1,
+                    ),
+                  ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'Areas for Growth are prioritised development areas where clearly articulated personal goals enable individuals to maximise life outcomes and harness their energy toward enhanced quality of life and sustained success.',
+                        style: pw.TextStyle(
+                          fontSize: 14,
+                          color: PdfColors.blue700,
+                        ),
+                      ),
+                      pw.SizedBox(height: 8),
+                      pw.Text(
+                        'Create goals for these areas using your goal tracker',
+                        style: pw.TextStyle(
+                          fontSize: 14,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.blue700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 pw.SizedBox(height: 12),
                 ...needsReport.lowestNeeds.map((need) {
                   final orangeColor = PdfColor(1.0, 0.65, 0.0); // Orange color

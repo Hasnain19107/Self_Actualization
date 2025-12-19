@@ -91,57 +91,55 @@ class SignInScreen extends StatelessWidget {
                           ),
                         ),
                         Gap(28),
+                        // Social Login Section
+                        Center(
+                          child: CustomTextWidget(
+                            text: "Or continue with",
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            textColor: AppColors.grey,
+                          ),
+                        ),
+                        Gap(16),
                         // Social Login Buttons
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Facebook Button
-                            GestureDetector(
-                              onTap: () {
-                                // Handle Facebook login
-                              },
-                              child: Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.white,
-                                  border: Border.all(
-                                    color: AppColors.grey,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Center(
-                                  child: CustomSvgIcon(
-                                    path: AppImages.facebook,
-                                    width: 24,
-                                    height: 24,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Gap(20),
                             // Google Button
-                            GestureDetector(
-                              onTap: () {
-                                // Handle Google login
-                              },
-                              child: Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.white,
-                                  border: Border.all(
-                                    color: AppColors.grey,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Center(
-                                  child: CustomSvgIcon(
-                                    path: AppImages.google,
-                                    width: 24,
-                                    height: 24,
+                            Obx(
+                              () => GestureDetector(
+                                onTap: controller.isLoading.value
+                                    ? null
+                                    : () => controller.signInWithGoogle(),
+                                child: Opacity(
+                                  opacity: controller.isLoading.value ? 0.5 : 1.0,
+                                  child: Container(
+                                    width: 56,
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.white,
+                                      border: Border.all(
+                                        color: AppColors.grey,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: controller.isLoading.value
+                                          ? const SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: AppColors.blue,
+                                              ),
+                                            )
+                                          : CustomSvgIcon(
+                                              path: AppImages.google,
+                                              width: 24,
+                                              height: 24,
+                                            ),
+                                    ),
                                   ),
                                 ),
                               ),

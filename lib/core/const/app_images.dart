@@ -1,4 +1,4 @@
-import 'package:pixsa_petrol_pump/core/utils/extensions.dart';
+import 'package:self_actualisation/core/utils/extensions.dart';
 
 class AppImages {
   /// PNG/JPG/JPEG Images

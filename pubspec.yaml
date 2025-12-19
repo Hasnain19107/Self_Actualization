@@ -1,4 +1,4 @@
-name: pixsa_petrol_pump
+name: self_actualisation
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -61,6 +61,7 @@ dependencies:
   google_sign_in: ^7.2.0
   sign_in_with_apple: ^7.0.1
   crypto: ^3.0.7
+  firebase_auth: ^5.7.0
 
 dev_dependencies:
   flutter_test:

@@ -113,9 +113,32 @@ class SelfAssessmentScreen extends StatelessWidget {
                                     );
                                   }),
                                   Gap(Get.height * 0.015),
-                      // Rating Legend (only for regular questions)
+                                  // Question
+                                  Obx(
+                                    () {
+                                      final questionText = controller.currentQuestionText;
+                                      final textWithQuestionMark = questionText.trim().endsWith('?')
+                                          ? questionText
+                                          : '$questionText?';
+                                      return CustomTextWidget(
+                                        text: textWithQuestionMark,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w700,
+                                        textColor: AppColors.black,
+                                        textAlign: TextAlign.left,
+                                        limitedCharacters: false,
+                                        textOverflow: TextOverflow.clip,
+                                        maxLines: null,
+                                      );
+                                    },
+                                  ),
+                      Gap(Get.height * 0.02),
+                      // Rating Legend
                       Obx(() {
-                        if (controller.currentQuestionType.value == 'regular') {
+                        final questionType = controller.currentQuestionType.value;
+                        
+                        if (questionType == 'regular') {
+                          // Regular question - show dynamic rating descriptions
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -148,23 +171,46 @@ class SelfAssessmentScreen extends StatelessWidget {
                               Gap(Get.height * 0.02),
                             ],
                           );
+                        } else if (questionType == 'quality' || questionType == 'volume') {
+                          // Quality or Volume question - show hard-coded rating instructions
+                          final ratingInstructions = [
+                            "1 - Not at all true",
+                            "2 - Rarely true",
+                            "3 - Sometimes true",
+                            "4 - Often true",
+                            "5 - Usually true",
+                            "6 - Almost always true",
+                            "7 - Completely true"
+                          ];
+                          
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ...ratingInstructions.map(
+                                (instruction) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: CustomTextWidget(
+                                          text: instruction,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400,
+                                          textColor: AppColors.black,
+                                          textAlign: TextAlign.left,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Gap(Get.height * 0.02),
+                            ],
+                          );
                         }
                         return const SizedBox.shrink();
                       }),
-                      Gap(Get.height * 0.02),
-                                  // Question
-                                  Obx(
-                                    () => CustomTextWidget(
-                                      text: controller.currentQuestionText,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w700,
-                                      textColor: AppColors.black,
-                                      textAlign: TextAlign.left,
-                                      limitedCharacters: false,
-                                      textOverflow: TextOverflow.clip,
-                                      maxLines: null,
-                                    ),
-                                  ),
                       Gap(Get.height * 0.02),
                       // Show different UI based on question type
                       Obx(() {

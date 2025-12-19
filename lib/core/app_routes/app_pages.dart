@@ -1,13 +1,13 @@
-import 'package:pixsa_petrol_pump/faetures/auth/bindings/auth_binding.dart';
-import 'package:pixsa_petrol_pump/faetures/auth/view/sign_in_screen.dart';
-import 'package:pixsa_petrol_pump/faetures/auth/view/sign_up_screen.dart';
-import 'package:pixsa_petrol_pump/faetures/auth/view/forgot_password_screen.dart';
-import 'package:pixsa_petrol_pump/faetures/auth/view/welcome_screen.dart';
-import 'package:pixsa_petrol_pump/faetures/self_assessment/binding/review_result_binding.dart';
-import 'package:pixsa_petrol_pump/faetures/subscription/bindings/onBoarding_binding.dart';
-import 'package:pixsa_petrol_pump/faetures/self_assessment/view/selectCategory_level.dart';
-import 'package:pixsa_petrol_pump/faetures/subscription/view/select_plan.dart';
-import 'package:pixsa_petrol_pump/faetures/subscription/view/subscription_screen.dart';
+import 'package:self_actualisation/faetures/auth/bindings/auth_binding.dart';
+import 'package:self_actualisation/faetures/auth/view/sign_in_screen.dart';
+import 'package:self_actualisation/faetures/auth/view/sign_up_screen.dart';
+import 'package:self_actualisation/faetures/auth/view/forgot_password_screen.dart';
+import 'package:self_actualisation/faetures/auth/view/welcome_screen.dart';
+import 'package:self_actualisation/faetures/self_assessment/binding/review_result_binding.dart';
+import 'package:self_actualisation/faetures/subscription/bindings/onBoarding_binding.dart';
+import 'package:self_actualisation/faetures/self_assessment/view/selectCategory_level.dart';
+import 'package:self_actualisation/faetures/subscription/view/select_plan.dart';
+import 'package:self_actualisation/faetures/subscription/view/subscription_screen.dart';
 
 
 import '../../faetures/self_assessment/view/self_assessment.dart';
