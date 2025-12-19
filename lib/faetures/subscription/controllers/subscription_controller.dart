@@ -302,7 +302,7 @@ class SubscriptionController extends GetxController {
     }
   }
 
-  // PayPal Credentials - loaded from .env file
+  // PayPal Credentials - loaded from ..env file
   // For sandbox testing, use sandbox credentials
   // For production, use live credentials and set PAYPAL_SANDBOX_MODE=false
   String get _paypalClientId => dotenv.env['PAYPAL_CLIENT_ID'] ?? '';
