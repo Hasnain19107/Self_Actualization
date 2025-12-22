@@ -5,10 +5,12 @@ import 'package:self_actualisation/faetures/auth/view/forgot_password_screen.dar
 import 'package:self_actualisation/faetures/auth/view/welcome_screen.dart';
 import 'package:self_actualisation/faetures/self_assessment/binding/review_result_binding.dart';
 import 'package:self_actualisation/faetures/subscription/bindings/onBoarding_binding.dart';
+import 'package:self_actualisation/faetures/Onboarding/view/onboarding_screen.dart';
+import 'package:self_actualisation/faetures/Onboarding/bindings/onboarding_binding.dart'
+    as intro_onboarding;
 import 'package:self_actualisation/faetures/self_assessment/view/selectCategory_level.dart';
 import 'package:self_actualisation/faetures/subscription/view/select_plan.dart';
 import 'package:self_actualisation/faetures/subscription/view/subscription_screen.dart';
-
 
 import '../../faetures/self_assessment/view/self_assessment.dart';
 import '../../faetures/self_assessment/binding/self_assessment_binding.dart';
@@ -54,6 +56,14 @@ class AppPages {
     ),
 
     GetPage(
+      name: AppRoutes.onboardingScreen,
+      page: () => OnboardingScreen(),
+      binding: intro_onboarding.OnboardingBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+
+    GetPage(
       name: AppRoutes.loginScreen,
       page: () => SignInScreen(),
       binding: AuthBinding(),
@@ -85,7 +95,7 @@ class AppPages {
 
     GetPage(
       name: AppRoutes.selectPlanScreen,
-      page: () =>  SelectPlanScreen(),
+      page: () => SelectPlanScreen(),
       binding: SubscriptionBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(microseconds: 300),
@@ -99,7 +109,7 @@ class AppPages {
       transitionDuration: const Duration(microseconds: 300),
     ),
 
-   GetPage(
+    GetPage(
       name: AppRoutes.subscriptionScreen,
       page: () => SubscriptionScreen(),
       binding: SubscriptionBinding(),
@@ -233,7 +243,5 @@ class AppPages {
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
     ),
-
-   
   ];
 }

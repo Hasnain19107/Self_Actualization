@@ -10,6 +10,7 @@ import '../../../data/models/goal/goal_request_model.dart';
 import '../../../data/models/goal/goal_need_model.dart';
 import '../../../data/repository/goal_repository.dart';
 import '../../../data/services/shared_preference_services.dart';
+import '../../subscription/controllers/subscription_controller.dart';
 
 class GoalController extends GetxController {
   final TextEditingController searchController = TextEditingController();
@@ -22,8 +23,11 @@ class GoalController extends GetxController {
   final TextEditingController descriptionController = TextEditingController();
 
   final RxString selectedGoalType = 'Survival'.obs; // Default to Survival
-  final RxString selectedNeedLabel = ''.obs; // Selected need label for goal title
-  final Rx<GoalNeedModel?> selectedNeed = Rx<GoalNeedModel?>(null); // Selected need model
+  final RxString selectedNeedLabel =
+      ''.obs; // Selected need label for goal title
+  final Rx<GoalNeedModel?> selectedNeed = Rx<GoalNeedModel?>(
+    null,
+  ); // Selected need model
   final RxString startDate = ''.obs;
   final RxString endDate = ''.obs;
   final RxInt characterCount = 0.obs;
@@ -34,25 +38,31 @@ class GoalController extends GetxController {
   final GoalRepository _goalRepository = GoalRepository();
 
   // Self-actualization categories (Survival at bottom)
-  final List<String> goalTypes = ['Meta-Needs', 'Self', 'Social', 'Safety', 'Survival'];
-  
+  final List<String> goalTypes = [
+    'Meta-Needs',
+    'Self',
+    'Social',
+    'Safety',
+    'Survival',
+  ];
+
   // Needs list for selected category
   final RxList<GoalNeedModel> needsList = <GoalNeedModel>[].obs;
 
   final RxList<GoalModel> goals = <GoalModel>[].obs;
   final RxBool isLoadingGoals = false.obs;
   final RxString selectedStatus = 'active'.obs;
-  
+
   // Expanded goal tracking
   final RxSet<String> expandedGoalIds = <String>{}.obs;
   final RxMap<String, GoalModel> goalDetails = <String, GoalModel>{}.obs;
   final RxMap<String, bool> isLoadingGoalDetails = <String, bool>{}.obs;
   final RxMap<String, bool> isCompletingGoal = <String, bool>{}.obs;
   final RxMap<String, bool> isDeletingGoal = <String, bool>{}.obs;
-  
+
   // Coaching offer dismissed state
   final RxBool isCoachingOfferDismissed = false.obs;
-  
+
   // Share to coach loading state
   final RxBool isSharingGoals = false.obs;
 
@@ -62,22 +72,24 @@ class GoalController extends GetxController {
     searchController.addListener(_onSearchChanged);
     descriptionController.addListener(_updateCharacterCount);
     fetchGoals();
-    
+
     // Check for arguments from recommendations (pre-fill form)
     final arguments = Get.arguments;
     if (arguments != null && arguments is Map<String, dynamic>) {
       final category = arguments['category'] as String?;
       final needLabel = arguments['needLabel'] as String?;
-      
+
       if (category != null && category.isNotEmpty) {
         selectedGoalType.value = category;
         fetchNeedsByCategory(category);
-        
+
         // If needLabel is provided, select it after needs are loaded
         if (needLabel != null && needLabel.isNotEmpty) {
           // Wait a bit for needs to load, then select the need
           Future.delayed(const Duration(milliseconds: 500), () {
-            final need = needsList.firstWhereOrNull((n) => n.needLabel == needLabel);
+            final need = needsList.firstWhereOrNull(
+              (n) => n.needLabel == needLabel,
+            );
             if (need != null) {
               selectNeed(need);
             } else {
@@ -95,17 +107,19 @@ class GoalController extends GetxController {
       // Fetch needs for default category (Survival)
       fetchNeedsByCategory(selectedGoalType.value);
     }
-    
+
     // Refresh user data to check coaching offer eligibility
     _refreshUserDataForCoachingOffer();
     // Load coaching offer dismissed state
     _loadCoachingOfferDismissedState();
   }
-  
+
   /// Load coaching offer dismissed state from SharedPreferences
   Future<void> _loadCoachingOfferDismissedState() async {
     try {
-      final dismissed = await PreferenceHelper.getBool(PrefConstants.coachingOfferDismissed);
+      final dismissed = await PreferenceHelper.getBool(
+        PrefConstants.coachingOfferDismissed,
+      );
       if (dismissed != null) {
         isCoachingOfferDismissed.value = dismissed;
       }
@@ -171,7 +185,10 @@ class GoalController extends GetxController {
 
   void onMicTap() {
     // Handle microphone tap for voice search
-    ToastClass.showCustomToast('Voice search functionality', type: ToastType.simple);
+    ToastClass.showCustomToast(
+      'Voice search functionality',
+      type: ToastType.simple,
+    );
   }
 
   void onAddNewGoal() {
@@ -181,6 +198,16 @@ class GoalController extends GetxController {
 
   void selectGoalType(String type) {
     if (selectedGoalType.value == type) return;
+
+    // Check if category is locked
+    if (isCategoryLocked(type)) {
+      ToastClass.showCustomToast(
+        'This category is locked. Please upgrade your subscription.',
+        type: ToastType.warning,
+      );
+      return;
+    }
+
     selectedGoalType.value = type;
     selectedNeedLabel.value = ''; // Clear selected need when category changes
     selectedNeed.value = null; // Clear selected need model
@@ -188,12 +215,32 @@ class GoalController extends GetxController {
     fetchNeedsByCategory(type);
   }
 
+  /// Check if a category is locked based on subscription
+  bool isCategoryLocked(String category) {
+    // Get subscription controller if registered
+    if (!Get.isRegistered<SubscriptionController>()) {
+      // If no subscription controller, try to register it
+      Get.put(SubscriptionController());
+    }
+
+    final subscriptionController = Get.find<SubscriptionController>();
+    final availableCategories = subscriptionController.availableCategories;
+
+    // If no categories loaded yet, don't lock anything
+    if (availableCategories.isEmpty) {
+      return false;
+    }
+
+    // Category is locked if NOT in available categories
+    return !availableCategories.contains(category);
+  }
+
   /// Fetch needs by category from API
   Future<void> fetchNeedsByCategory(String category) async {
     try {
       isLoadingNeeds.value = true;
       final response = await _goalRepository.getNeedsByCategory(category);
-      
+
       if (response.success && response.data != null) {
         needsList.assignAll(response.data!.data);
         // Sort by needOrder
@@ -271,19 +318,31 @@ class GoalController extends GetxController {
 
   Future<void> saveGoal() async {
     if (selectedNeedLabel.value.isEmpty) {
-      ToastClass.showCustomToast('Please select a need for goal title', type: ToastType.error);
+      ToastClass.showCustomToast(
+        'Please select a need for goal title',
+        type: ToastType.error,
+      );
       return;
     }
     if (startDateController.text.trim().isEmpty) {
-      ToastClass.showCustomToast('Please select start date', type: ToastType.error);
+      ToastClass.showCustomToast(
+        'Please select start date',
+        type: ToastType.error,
+      );
       return;
     }
     if (endDateController.text.trim().isEmpty) {
-      ToastClass.showCustomToast('Please select end date', type: ToastType.error);
+      ToastClass.showCustomToast(
+        'Please select end date',
+        type: ToastType.error,
+      );
       return;
     }
     if (descriptionController.text.trim().isEmpty) {
-      ToastClass.showCustomToast('Please enter description', type: ToastType.error);
+      ToastClass.showCustomToast(
+        'Please enter description',
+        type: ToastType.error,
+      );
       return;
     }
 
@@ -291,20 +350,26 @@ class GoalController extends GetxController {
     final endIso = _parseDateToIso(endDateController.text.trim());
 
     if (startIso == null || endIso == null) {
-      ToastClass.showCustomToast('Invalid date format. Please pick valid dates.', type: ToastType.error);
+      ToastClass.showCustomToast(
+        'Invalid date format. Please pick valid dates.',
+        type: ToastType.error,
+      );
       return;
     }
 
     final start = DateTime.parse(startIso);
     final end = DateTime.parse(endIso);
     if (end.isBefore(start)) {
-      ToastClass.showCustomToast('End date must be after start date', type: ToastType.error);
+      ToastClass.showCustomToast(
+        'End date must be after start date',
+        type: ToastType.error,
+      );
       return;
     }
 
     final request = GoalRequestModel(
-      title: selectedNeedLabel.value.isNotEmpty 
-          ? selectedNeedLabel.value 
+      title: selectedNeedLabel.value.isNotEmpty
+          ? selectedNeedLabel.value
           : goalTitleController.text.trim(),
       description: descriptionController.text.trim(),
       startDate: startIso,
@@ -325,7 +390,9 @@ class GoalController extends GetxController {
         _clearForm();
 
         ToastClass.showCustomToast(
-          response.message.isNotEmpty ? response.message : 'Goal saved successfully',
+          response.message.isNotEmpty
+              ? response.message
+              : 'Goal saved successfully',
           type: ToastType.success,
         );
 
@@ -333,7 +400,9 @@ class GoalController extends GetxController {
         Get.offNamed(AppRoutes.goalScreen);
       } else {
         ToastClass.showCustomToast(
-          response.message.isNotEmpty ? response.message : 'Failed to save goal',
+          response.message.isNotEmpty
+              ? response.message
+              : 'Failed to save goal',
           type: ToastType.error,
         );
       }
@@ -493,7 +562,7 @@ class GoalController extends GetxController {
 
         // Refresh goals list
         await fetchGoals(showLoader: false);
-        
+
         // Check if this was the 3rd goal completion
         await _checkCoachingOfferEligibility();
       } else {
@@ -554,30 +623,33 @@ class GoalController extends GetxController {
       isDeletingGoal[goalId] = false;
     }
   }
-  
+
   // Get chart segments from current goals (max 3 segments)
   List<Map<String, dynamic>> get chartSegments {
     final currentGoalsList = currentGoals;
     if (currentGoalsList.isEmpty) {
       return [];
     }
-    
+
     // Take up to 3 goals for the chart
     final goalsForChart = currentGoalsList.take(3).toList();
     final totalGoals = goalsForChart.length;
-    
+
     // Calculate sweep angle per segment (360 degrees total)
     final sweepAnglePerSegment = 360.0 / totalGoals;
-    
+
     return goalsForChart.asMap().entries.map((entry) {
       final index = entry.key;
       final goal = entry.value;
-      
+
       return {
         'sweepAngle': sweepAnglePerSegment,
         'color': barColorForGoal(goal),
         'goalType': goal.type, // Pass goal type so widget can determine icon
-        'angle': -90 + (index * sweepAnglePerSegment) + (sweepAnglePerSegment / 2), // Center of segment
+        'angle':
+            -90 +
+            (index * sweepAnglePerSegment) +
+            (sweepAnglePerSegment / 2), // Center of segment
       };
     }).toList();
   }
@@ -612,37 +684,40 @@ class GoalController extends GetxController {
     if (isCoachingOfferDismissed.value) {
       return false;
     }
-    
+
     if (Get.isRegistered<UserController>()) {
       final userController = Get.find<UserController>();
       final user = userController.currentUser.value;
-      
+
       // Check from user model first
       if (user?.coachingOfferEligible == true) {
         return true;
       }
-      
+
       // Fallback: count completed goals
       final completedCount = user?.completedGoalsCount ?? 0;
       if (completedCount >= 3) {
         return true;
       }
-      
+
       // Also check from goals list
       final completedGoals = goals.where((g) => g.isCompleted).length;
       return completedGoals >= 3;
     }
-    
+
     // Fallback: count from goals list
     final completedGoals = goals.where((g) => g.isCompleted).length;
     return completedGoals >= 3;
   }
-  
+
   /// Dismiss the coaching offer banner permanently
   Future<void> dismissCoachingOffer() async {
     try {
       isCoachingOfferDismissed.value = true;
-      await PreferenceHelper.setBool(PrefConstants.coachingOfferDismissed, true);
+      await PreferenceHelper.setBool(
+        PrefConstants.coachingOfferDismissed,
+        true,
+      );
     } catch (e) {
       DebugUtils.logError(
         'Error saving coaching offer dismissed state',
@@ -663,16 +738,17 @@ class GoalController extends GetxController {
     try {
       // Dismiss the banner when user taps on it
       await dismissCoachingOffer();
-      
+
       final Email email = Email(
-        body: 'Please provide my free coaching session valued at \$500 at 1pm. I will attend coaching session through zoom that you will be provide',
+        body:
+            'Please provide my free coaching session valued at \$500 at 1pm. I will attend coaching session through zoom that you will be provide',
         subject: 'Free coaching value \$500',
         recipients: ['info@thecoachingcentre.com.au'],
         isHTML: false,
       );
 
       await FlutterEmailSender.send(email);
-      
+
       ToastClass.showCustomToast(
         'Email opened successfully. Please send your request.',
         type: ToastType.success,
@@ -683,7 +759,7 @@ class GoalController extends GetxController {
         tag: 'GoalController.requestCoachingSession',
         error: e,
       );
-      
+
       ToastClass.showCustomToast(
         'Could not open email app. Please ensure an email account is set up.',
         type: ToastType.error,
@@ -700,7 +776,7 @@ class GoalController extends GetxController {
       );
       return;
     }
-    
+
     Get.toNamed(
       AppRoutes.learnGrowScreen,
       arguments: {'questionId': questionId},
@@ -715,16 +791,12 @@ class GoalController extends GetxController {
       goal.endDate.month,
       goal.endDate.day,
     );
-    final todayDate = DateTime(
-      today.year,
-      today.month,
-      today.day,
-    );
-    
+    final todayDate = DateTime(today.year, today.month, today.day);
+
     if (endDate.isAfter(todayDate)) {
       final daysRemaining = endDate.difference(todayDate).inDays;
       final endDateFormatted = DateFormat('dd/MM/yyyy').format(goal.endDate);
-      
+
       ToastClass.showCustomToast(
         'This goal can only be completed on or after $endDateFormatted. $daysRemaining day${daysRemaining == 1 ? '' : 's'} remaining.',
         type: ToastType.warning,
@@ -839,7 +911,7 @@ class GoalController extends GetxController {
   @override
   void onClose() {
     searchController.clear();
-   
+
     super.onClose();
   }
 }

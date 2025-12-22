@@ -3,6 +3,7 @@ import '../../../core/const/app_exports.dart';
 import '../../../core/controllers/user_controller.dart';
 import '../../../data/repository/user_repository.dart';
 import '../../../data/services/fcm_service.dart';
+import '../../Onboarding/controller/onboarding_controller.dart';
 
 class SplashController extends GetxController {
   final UserRepository _userRepository = UserRepository();
@@ -16,6 +17,14 @@ class SplashController extends GetxController {
   Future<void> goNext() async {
     // Wait for splash screen display
     await Future.delayed(const Duration(seconds: 3));
+
+    // Check if user has seen onboarding (first-time user check)
+    final hasSeenOnboarding = await OnboardingController.hasSeenOnboarding();
+    if (!hasSeenOnboarding) {
+      // First-time user, show onboarding screens
+      Get.offNamed(AppRoutes.onboardingScreen);
+      return;
+    }
 
     // Check if user is logged in
     final isLoggedIn = await _userRepository.isLoggedIn();
@@ -43,20 +52,20 @@ class SplashController extends GetxController {
     if (!Get.isRegistered<UserController>()) {
       Get.put(UserController(), permanent: true);
     }
-    
+
     final userController = Get.find<UserController>();
     // Wait for user data to be fetched (force fetch even if already fetched)
     await userController.refreshUserData();
-    
+
     // Wait for loading to complete
     while (userController.isLoadingUser.value) {
       await Future.delayed(const Duration(milliseconds: 50));
     }
-    
+
     // Check if user has completed assessment
     final user = userController.currentUser.value;
     final hasCompletedAssessment = user?.hasCompletedAssessment == true;
-    
+
     DebugUtils.logInfo(
       'Splash navigation check - hasCompletedAssessment: $hasCompletedAssessment, user: ${user?.name ?? "null"}, hasCompletedAssessment value: ${user?.hasCompletedAssessment}',
       tag: 'SplashController.goNext',

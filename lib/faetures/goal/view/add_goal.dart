@@ -5,7 +5,6 @@ import '../binding/goal_binding.dart';
 import '../controller/goal_controller.dart';
 import '../widgets/date_picker_widget.dart';
 import '../../../core/const/app_exports.dart';
-import '../../../data/models/goal/goal_need_model.dart';
 
 class AddGoalScreen extends StatelessWidget {
   const AddGoalScreen({super.key});
@@ -26,7 +25,6 @@ class AddGoalScreen extends StatelessWidget {
           ),
           child: Column(
             children: [
-
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -65,7 +63,7 @@ class AddGoalScreen extends StatelessWidget {
                       const SizedBox(width: 40),
                       const Gap(32),
 
-                      // Select Category Section (replaces Select Goal Type)
+                      // Select Category Section - Styled Dropdown
                       CustomTextWidget(
                         text: 'Select Category',
                         fontSize: 14,
@@ -73,54 +71,168 @@ class AddGoalScreen extends StatelessWidget {
                         textColor: AppColors.black,
                         textAlign: TextAlign.left,
                       ),
-                      const Gap(8),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.inputBorderGrey,
-                            width: 1,
+                      const Gap(12),
+                      Obx(() {
+                        final selectedType = controller.selectedGoalType.value;
+
+                        // Helper function for emoji
+                        String getEmoji(String category) {
+                          switch (category) {
+                            case 'Meta-Needs':
+                              return '🌟';
+                            case 'Self':
+                              return '✏️';
+                            case 'Social':
+                              return '💬';
+                            case 'Safety':
+                              return '💪';
+                            case 'Survival':
+                              return '😊';
+                            default:
+                              return '🎯';
+                          }
+                        }
+
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
                           ),
-                        ),
-                        child: Obx(
-                          () => DropdownButtonHideUnderline(
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
-                              value: controller.selectedGoalType.value,
+                              value: selectedType,
                               isExpanded: true,
-                              hint: const CustomTextWidget(
-                                text: 'Select category...',
-                                fontSize: 14,
-                                textColor: AppColors.placeholderGrey,
+                              icon: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  color: AppColors.primary,
+                                  size: 20,
+                                ),
                               ),
-                              icon: const Icon(
-                                Icons.arrow_drop_down,
-                                color: AppColors.black,
-                              ),
+                              dropdownColor: AppColors.white,
+                              borderRadius: BorderRadius.circular(16),
                               onChanged: (String? value) {
                                 if (value != null) {
                                   controller.selectGoalType(value);
                                 }
                               },
-                              items: controller.goalTypes.map((String category) {
+                              selectedItemBuilder: (context) {
+                                return controller.goalTypes.map((category) {
+                                  return Row(
+                                    children: [
+                                      Text(
+                                        getEmoji(category),
+                                        style: const TextStyle(fontSize: 20),
+                                      ),
+                                      const Gap(10),
+                                      CustomTextWidget(
+                                        text: category,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        textColor: AppColors.primary,
+                                      ),
+                                    ],
+                                  );
+                                }).toList();
+                              },
+                              items: controller.goalTypes.map((category) {
+                                final isLocked = controller.isCategoryLocked(
+                                  category,
+                                );
+                                final isSelected = selectedType == category;
                                 return DropdownMenuItem<String>(
                                   value: category,
-                                  child: CustomTextWidget(
-                                    text: category,
-                                    fontSize: 14,
-                                    textColor: AppColors.black,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppColors.primary.withValues(
+                                              alpha: 0.1,
+                                            )
+                                          : (isLocked ? AppColors.grey3 : null),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          getEmoji(category),
+                                          style: const TextStyle(fontSize: 18),
+                                        ),
+                                        const Gap(10),
+                                        Expanded(
+                                          child: CustomTextWidget(
+                                            text: category,
+                                            fontSize: 14,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : FontWeight.w500,
+                                            textColor: isLocked
+                                                ? AppColors.grey
+                                                : (isSelected
+                                                      ? AppColors.primary
+                                                      : AppColors.black),
+                                          ),
+                                        ),
+                                        if (isLocked)
+                                          Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.grey.withValues(
+                                                alpha: 0.2,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: const Icon(
+                                              Icons.lock_rounded,
+                                              size: 14,
+                                              color: AppColors.grey,
+                                            ),
+                                          ),
+                                        if (isSelected && !isLocked)
+                                          const Icon(
+                                            Icons.check_circle,
+                                            size: 18,
+                                            color: AppColors.primary,
+                                          ),
+                                      ],
+                                    ),
                                   ),
                                 );
                               }).toList(),
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      }),
                       const Gap(24),
 
-                      // Goal Title Section (Needs Dropdown)
+                      // Goal Title Section - Modern Chip Selector
                       CustomTextWidget(
                         text: 'Goal Title',
                         fontSize: 14,
@@ -128,75 +240,120 @@ class AddGoalScreen extends StatelessWidget {
                         textColor: AppColors.black,
                         textAlign: TextAlign.left,
                       ),
-                      const Gap(8),
-                      Obx(
-                        () => controller.isLoadingNeeds.value
-                            ? Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(16),
+                      const Gap(12),
+                      Obx(() {
+                        // Access observables at top level so GetX can track them
+                        final isLoading = controller.isLoadingNeeds.value;
+                        final needs = controller.needsList.toList();
+                        final selectedLabel =
+                            controller.selectedNeedLabel.value;
+
+                        if (isLoading) {
+                          return Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.grey3,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Center(
+                              child: CustomProgressIndicator(),
+                            ),
+                          );
+                        }
+
+                        if (needs.isEmpty) {
+                          return Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.grey3,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Center(
+                              child: CustomTextWidget(
+                                text: 'No needs available for this category',
+                                fontSize: 14,
+                                textColor: AppColors.grey,
+                              ),
+                            ),
+                          );
+                        }
+
+                        return Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: needs.map((need) {
+                            final isSelected = selectedLabel == need.needLabel;
+                            return GestureDetector(
+                              onTap: () => controller.selectNeed(need),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.white,
-                                  borderRadius: BorderRadius.circular(12),
+                                  gradient: isSelected
+                                      ? LinearGradient(
+                                          colors: [
+                                            AppColors.vibrantBlue,
+                                            AppColors.primary,
+                                          ],
+                                        )
+                                      : null,
+                                  color: isSelected ? null : AppColors.white,
+                                  borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: AppColors.inputBorderGrey,
-                                    width: 1,
+                                    color: isSelected
+                                        ? AppColors.primary
+                                        : AppColors.inputBorderGrey,
+                                    width: isSelected ? 2 : 1,
                                   ),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: AppColors.primary.withValues(
+                                              alpha: 0.25,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
                                 ),
-                                child: const Center(
-                                  child: CustomProgressIndicator(),
-                                ),
-                              )
-                            : Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                decoration: BoxDecoration(
-                                  color: AppColors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: AppColors.inputBorderGrey,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<String>(
-                                    value: controller.selectedNeedLabel.value.isEmpty
-                                        ? null
-                                        : controller.selectedNeedLabel.value,
-                                    isExpanded: true,
-                                    hint: const CustomTextWidget(
-                                      text: 'Select need...',
-                                      fontSize: 14,
-                                      textColor: AppColors.placeholderGrey,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (isSelected) ...[
+                                      const Icon(
+                                        Icons.check_circle,
+                                        size: 16,
+                                        color: AppColors.white,
+                                      ),
+                                      const Gap(6),
+                                    ],
+                                    Flexible(
+                                      child: CustomTextWidget(
+                                        text: need.needLabel,
+                                        fontSize: 13,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                        textColor: isSelected
+                                            ? AppColors.white
+                                            : AppColors.black,
+                                        maxLines: null,
+                                        textOverflow: TextOverflow.visible,
+                                      ),
                                     ),
-                                    icon: const Icon(
-                                      Icons.arrow_drop_down,
-                                      color: AppColors.black,
-                                    ),
-                                    onChanged: (String? value) {
-                                      if (value != null) {
-                                        // Find the need model by label and select it
-                                        final need = controller.needsList.firstWhereOrNull(
-                                          (n) => n.needLabel == value,
-                                        );
-                                        if (need != null) {
-                                          controller.selectNeed(need);
-                                        }
-                                      }
-                                    },
-                                    items: controller.needsList.map((GoalNeedModel need) {
-                                      return DropdownMenuItem<String>(
-                                        value: need.needLabel,
-                                        child: CustomTextWidget(
-                                          text: need.needLabel,
-                                          fontSize: 14,
-                                          textColor: AppColors.black,
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
+                                  ],
                                 ),
                               ),
-                      ),
+                            );
+                          }).toList(),
+                        );
+                      }),
                       const Gap(24),
 
                       // Date Selection Section

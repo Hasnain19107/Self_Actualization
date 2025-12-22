@@ -7,6 +7,7 @@ class AppRoutes {
   static const String welcomeScreen = "/welcomeScreen";
 
   /// Onboarding
+  static const String onboardingScreen = "/onboardingScreen";
   static const String selectPlanScreen = "/selectPlanScreen";
   static const String categoryLevelScreen = "/categoryLevelScreen";
   static const String selfAssessmentScreen = "/selfAssessmentScreen";
