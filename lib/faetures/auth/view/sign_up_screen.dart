@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-
 import '../../../core/const/app_exports.dart';
+import '../widgets/social_login_section.dart';
 
 class SignUpScreen extends StatelessWidget {
   SignUpScreen({super.key});
@@ -98,58 +98,10 @@ class SignUpScreen extends StatelessWidget {
                     ),
                   ),
                   Gap(28),
-                   Center(
-                          child: CustomTextWidget(
-                            text: "Or continue with",
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            textColor: AppColors.grey,
-                          ),
-                        ),
-                        Gap(16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Google Button
-                      Obx(
-                        () => GestureDetector(
-                          onTap: controller.isLoading.value
-                              ? null
-                              : () => controller.signInWithGoogle(),
-                          child: Opacity(
-                            opacity: controller.isLoading.value ? 0.5 : 1.0,
-                            child: Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.white,
-                                border: Border.all(
-                                  color: AppColors.grey,
-                                  width: 1,
-                                ),
-                              ),
-                              child: Center(
-                                child: controller.isLoading.value
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: AppColors.blue,
-                                        ),
-                                      )
-                                    : CustomSvgIcon(
-                                        path: AppImages.google,
-                                        width: 24,
-                                        height: 24,
-                                      ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  SocialLoginSection(
+                    controller: controller,
+                    googleButtonText: 'Sign up with Google',
+                    appleButtonText: 'Sign up with Apple',
                   ),
                   Gap(28),
                   // Sign In Link

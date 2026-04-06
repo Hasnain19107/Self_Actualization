@@ -1,4 +1,7 @@
 import 'dart:io';
+
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+
 import '../../core/const/api_constants.dart';
 import '../../core/const/pref_consts.dart';
 import '../../core/utils/debug_utils.dart';
@@ -77,46 +80,73 @@ class UserRepository {
     }
   }
 
-  /// Login with Firebase ID token (for Google Sign-In)
-  Future<ApiResponseModel<UserModel>> loginWithFirebase(String firebaseIdToken) async {
+  /// Sync Firebase user (Google / Apple) via [registerEndpoint] (social branch: no password).
+  /// Same payload as `POST /api/auth/oauth`; server accepts it on register when `oauthProvider` + `oauthId` are set.
+  Future<ApiResponseModel<UserModel>> loginWithFirebase(
+    firebase_auth.User firebaseUser, {
+    String? nameOverride,
+    String? avatarOverride,
+  }) async {
     try {
       DebugUtils.logInfo(
-        'Starting Firebase login',
+        'Starting Firebase → API OAuth sync',
         tag: 'UserRepository.loginWithFirebase',
       );
 
+      final email = firebaseUser.email?.trim();
+      if (email == null || email.isEmpty) {
+        return ApiResponseModel<UserModel>(
+          success: false,
+          message:
+              'Your account has no email on file. Try signing in again and share your email when prompted.',
+        );
+      }
+
+      final oauthProvider = _backendOAuthProvider(firebaseUser);
+      if (oauthProvider == null) {
+        return ApiResponseModel<UserModel>(
+          success: false,
+          message: 'Unsupported sign-in provider for this app.',
+        );
+      }
+
+      final name = (nameOverride != null && nameOverride.trim().isNotEmpty)
+          ? nameOverride.trim()
+          : (firebaseUser.displayName?.trim().isNotEmpty == true
+              ? firebaseUser.displayName!.trim()
+              : email.split('@').first);
+
+      final body = <String, dynamic>{
+        'name': name,
+        'email': email,
+        'oauthProvider': oauthProvider,
+        'oauthId': firebaseUser.uid,
+        if ((avatarOverride ?? firebaseUser.photoURL) != null)
+          'avatar': avatarOverride ?? firebaseUser.photoURL,
+      };
+
       final response = await _apiService.post<UserModel>(
-        endpoint: ApiConstants.firebaseLoginEndpoint,
-        body: {'idToken': firebaseIdToken},
+        endpoint: ApiConstants.registerEndpoint,
+        body: body,
         includeAuth: false,
         fromJsonT: (data) {
           final dataMap = data as Map<String, dynamic>;
-          
-          // Extract token from response
+
           final token = dataMap['token'] as String?;
-          
-          // Extract user data (could be nested in 'data' or 'user')
-          Map<String, dynamic> userData;
-          if (dataMap.containsKey('data')) {
-            final dataObj = dataMap['data'] as Map<String, dynamic>?;
-            if (dataObj != null && dataObj.containsKey('user')) {
-              userData = dataObj['user'] as Map<String, dynamic>;
-            } else if (dataObj != null) {
-              userData = dataObj;
-            } else {
-              userData = dataMap;
-            }
-          } else if (dataMap.containsKey('user')) {
-            userData = dataMap['user'] as Map<String, dynamic>;
+
+          final Map<String, dynamic> userData;
+          if (dataMap.containsKey('user')) {
+            userData = Map<String, dynamic>.from(
+              dataMap['user'] as Map<String, dynamic>,
+            );
           } else {
             userData = dataMap;
           }
-          
-          // Add token to user data
+
           if (token != null) {
             userData['token'] = token;
           }
-          
+
           return UserModel.fromJson(userData);
         },
       );
@@ -354,6 +384,66 @@ class UserRepository {
     return token != null && token.isNotEmpty;
   }
 
+  /// Permanently delete the authenticated account (App Store 5.1.1(v)).
+  /// Send [password] when the account has a password; otherwise send [confirmationPhrase]
+  /// exactly as required by the server (`DELETE MY ACCOUNT`).
+  Future<ApiResponseModel<void>> deleteAccount({
+    String? password,
+    String? confirmationPhrase,
+  }) async {
+    try {
+      DebugUtils.logInfo(
+        'Delete account request',
+        tag: 'UserRepository.deleteAccount',
+      );
+
+      final body = <String, dynamic>{};
+      if (password != null && password.isNotEmpty) {
+        body['password'] = password;
+      }
+      if (confirmationPhrase != null && confirmationPhrase.isNotEmpty) {
+        body['confirmationPhrase'] = confirmationPhrase;
+      }
+
+      final response = await _apiService.post<dynamic>(
+        endpoint: ApiConstants.deleteAccountEndpoint,
+        body: body,
+        includeAuth: true,
+        fromJsonT: (_) => null,
+      );
+
+      if (response.success) {
+        await logout();
+        DebugUtils.logInfo(
+          'Account deleted; local session cleared.',
+          tag: 'UserRepository.deleteAccount',
+        );
+      } else {
+        DebugUtils.logWarning(
+          'Delete account failed: ${response.message}',
+          tag: 'UserRepository.deleteAccount',
+        );
+      }
+
+      return ApiResponseModel<void>(
+        success: response.success,
+        message: response.message,
+        statusCode: response.statusCode,
+      );
+    } catch (e, stackTrace) {
+      DebugUtils.logError(
+        'Delete account error',
+        tag: 'UserRepository.deleteAccount',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return ApiResponseModel<void>(
+        success: false,
+        message: 'Failed to delete account: ${e.toString()}',
+      );
+    }
+  }
+
   /// Update user profile information
   Future<ApiResponseModel<Map<String, dynamic>>> updateProfile(
     ProfileUpdateRequestModel request,
@@ -493,6 +583,21 @@ class UserRepository {
         message: 'Failed to upload avatar: ${e.toString()}',
       );
     }
+  }
+
+  /// Maps Firebase [UserInfo.providerId] to the API's `oauthProvider` string.
+  static String? _backendOAuthProvider(firebase_auth.User user) {
+    for (final info in user.providerData) {
+      switch (info.providerId) {
+        case 'google.com':
+          return 'google';
+        case 'apple.com':
+          return 'apple';
+        case 'facebook.com':
+          return 'facebook';
+      }
+    }
+    return null;
   }
 }
 

@@ -32,6 +32,10 @@ class ApiService {
       ApiConstants.contentTypeHeader: ApiConstants.applicationJson,
     };
 
+    if (ApiConstants.useNgrokTunnel) {
+      headers['ngrok-skip-browser-warning'] = 'true';
+    }
+
     if (includeAuth) {
       final token = await _getToken();
       if (token != null && token.isNotEmpty) {
@@ -78,20 +82,31 @@ class ApiService {
       if (response.body.isNotEmpty) {
         // Check if response body is valid JSON before parsing
         final trimmedBody = response.body.trim();
-        if (trimmedBody.isEmpty || 
+        if (trimmedBody.isEmpty ||
             (!trimmedBody.startsWith('{') && !trimmedBody.startsWith('['))) {
-          // Not valid JSON, return error
+          var hint = 'The server returned a non-JSON response.';
+          if (response.statusCode == 502 &&
+              trimmedBody.contains('ngrok') &&
+              trimmedBody.contains('localhost')) {
+            hint =
+                'API unreachable (502). Start your backend on the port ngrok forwards to (e.g. PORT=5005), then retry.';
+          } else if (trimmedBody.isNotEmpty) {
+            final snippet = trimmedBody.length > 280
+                ? '${trimmedBody.substring(0, 280)}…'
+                : trimmedBody;
+            hint = '$hint $snippet';
+          }
           DebugUtils.logHttpError(
             statusCode: response.statusCode,
             url: url,
             method: method,
             body: response.body,
-            errorMessage: 'Invalid JSON response',
+            errorMessage: 'Non-JSON response',
           );
-          
+
           return ApiResponseModel<T>(
             success: false,
-            message: 'Invalid response format from server',
+            message: hint,
             statusCode: response.statusCode,
           );
         }
@@ -182,7 +197,14 @@ class ApiService {
     if (error.toString().contains('TimeoutException')) {
       errorMessage = 'Request timeout. Please check your connection.';
     } else if (error.toString().contains('SocketException')) {
-      errorMessage = 'No internet connection. Please check your network.';
+      final msg = error.toString();
+      if (msg.contains('Connection refused')) {
+        errorMessage =
+            'Cannot connect to the API. Start the backend, and on a physical phone use '
+            '--dart-define=API_BASE=http://YOUR_LAN_IP:5005';
+      } else {
+        errorMessage = 'No internet connection. Please check your network.';
+      }
     } else {
       errorMessage = error.toString();
     }
@@ -458,6 +480,10 @@ class ApiService {
           request.headers[ApiConstants.authorizationHeader] =
               '${ApiConstants.bearerPrefix} $token';
         }
+      }
+
+      if (ApiConstants.useNgrokTunnel) {
+        request.headers['ngrok-skip-browser-warning'] = 'true';
       }
       
       // Add file with proper content type

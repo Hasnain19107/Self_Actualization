@@ -9,6 +9,7 @@ import '../widgets/profile_info_card_widget.dart';
 import '../widgets/profile_section_title_widget.dart';
 import '../widgets/profile_avatar_section_widget.dart';
 import '../widgets/profile_focus_areas_widget.dart';
+import '../widgets/delete_account_dialog.dart';
 
 class ProfileDetailScreen extends StatelessWidget {
   const ProfileDetailScreen({super.key});
@@ -191,6 +192,37 @@ class ProfileDetailScreen extends StatelessWidget {
                           value: _formatDate(user.assessmentCompletedAt),
                           icon: Icons.check_circle_outline,
                         ),
+                      const Gap(32),
+
+                      const ProfileSectionTitleWidget(title: 'Account'),
+                      const Gap(12),
+                      CustomTextWidget(
+                        text:
+                            'You can permanently delete your account and data stored on our servers. This cannot be undone.',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        textColor: AppColors.mediumGray,
+                        textAlign: TextAlign.left,
+                      ),
+                      const Gap(12),
+                      GestureDetector(
+                        onTap: () => DeleteAccountDialog.show(user),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.red, width: 1),
+                          ),
+                          child: const CustomTextWidget(
+                            text: 'Delete account',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            textColor: AppColors.red,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
                       const Gap(32),
                     ],
                   ),

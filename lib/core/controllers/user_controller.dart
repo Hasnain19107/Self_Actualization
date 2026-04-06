@@ -83,5 +83,11 @@ class UserController extends GetxController {
     _hasFetched = false;
     await fetchUserData();
   }
+
+  /// Clear cached user after logout or account deletion (next login must refetch).
+  void clearSession() {
+    currentUser.value = null;
+    _hasFetched = false;
+  }
 }
 

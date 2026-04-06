@@ -524,8 +524,7 @@ class ProfileController extends GetxController {
 
       // Clear user data from UserController if registered
       if (Get.isRegistered<UserController>()) {
-        final userController = Get.find<UserController>();
-        userController.currentUser.value = null;
+        Get.find<UserController>().clearSession();
       }
 
       // Remove FCM token before logout

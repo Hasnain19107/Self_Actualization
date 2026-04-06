@@ -47,6 +47,10 @@
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app needs access to your microphone to convert your speech to text for journaling.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to take a photo for your profile picture.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library so you can choose a profile picture.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>This app needs speech recognition to convert your voice to text for journaling.</string>
 	<key>UIBackgroundModes</key>

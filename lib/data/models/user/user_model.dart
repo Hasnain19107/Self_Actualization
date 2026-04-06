@@ -17,6 +17,9 @@ class UserModel {
   final bool? coachingOfferEligible;
   final DateTime? coachingOfferTriggeredAt;
   final int? completedGoalsCount;
+  /// Server indicates whether the account has a password (for account deletion UI).
+  final bool? hasPassword;
+  final bool? isOAuthUser;
 
   UserModel({
     required this.id,
@@ -35,6 +38,8 @@ class UserModel {
     this.coachingOfferEligible,
     this.coachingOfferTriggeredAt,
     this.completedGoalsCount,
+    this.hasPassword,
+    this.isOAuthUser,
   });
 
   /// Create from JSON
@@ -70,6 +75,8 @@ class UserModel {
           ? DateTime.tryParse(json['coachingOfferTriggeredAt'].toString())
           : null,
       completedGoalsCount: json['completedGoalsCount'] as int? ?? 0,
+      hasPassword: json['hasPassword'] as bool?,
+      isOAuthUser: json['isOAuthUser'] as bool?,
     );
   }
 
@@ -92,6 +99,8 @@ class UserModel {
       'coachingOfferEligible': coachingOfferEligible,
       'coachingOfferTriggeredAt': coachingOfferTriggeredAt?.toIso8601String(),
       'completedGoalsCount': completedGoalsCount,
+      'hasPassword': hasPassword,
+      'isOAuthUser': isOAuthUser,
     };
   }
 
@@ -113,6 +122,8 @@ class UserModel {
     bool? coachingOfferEligible,
     DateTime? coachingOfferTriggeredAt,
     int? completedGoalsCount,
+    bool? hasPassword,
+    bool? isOAuthUser,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -131,6 +142,8 @@ class UserModel {
       coachingOfferEligible: coachingOfferEligible ?? this.coachingOfferEligible,
       coachingOfferTriggeredAt: coachingOfferTriggeredAt ?? this.coachingOfferTriggeredAt,
       completedGoalsCount: completedGoalsCount ?? this.completedGoalsCount,
+      hasPassword: hasPassword ?? this.hasPassword,
+      isOAuthUser: isOAuthUser ?? this.isOAuthUser,
     );
   }
 }

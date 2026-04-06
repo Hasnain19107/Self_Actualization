@@ -1,7 +1,12 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../../core/const/app_exports.dart';
 import '../../../core/controllers/user_controller.dart';
 import '../../../data/repository/user_repository.dart';
@@ -271,13 +276,7 @@ class AuthController extends GetxController {
       }
 
       // Trigger the authentication flow (authenticate replaces signIn in 7.x)
-      final GoogleSignInAccount? googleUser = await googleSignIn.authenticate();
-
-      if (googleUser == null) {
-        // User canceled the sign-in
-        isLoading.value = false;
-        return;
-      }
+      final googleUser = await googleSignIn.authenticate();
 
       // Obtain the auth details from the request
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
@@ -310,20 +309,8 @@ class AuthController extends GetxController {
         return;
       }
 
-      // Get Firebase ID token
-      final String? firebaseIdToken = await firebaseUser.getIdToken();
-
-      if (firebaseIdToken == null || firebaseIdToken.isEmpty) {
-        isLoading.value = false;
-        ToastClass.showCustomToast(
-          'Failed to get authentication token. Please try again.',
-          type: ToastType.error,
-        );
-        return;
-      }
-
-      // Call API service for Firebase login with ID token
-      final response = await _userRepository.loginWithFirebase(firebaseIdToken);
+      // Sync Firebase user with our API (JWT issued by backend)
+      final response = await _userRepository.loginWithFirebase(firebaseUser);
 
       isLoading.value = false;
 
@@ -396,6 +383,151 @@ class AuthController extends GetxController {
 
       ToastClass.showCustomToast(
         'Google sign-in failed. Please try again.',
+        type: ToastType.error,
+      );
+    }
+  }
+
+  String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
+  }
+
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  /// Sign in with Apple (Firebase Auth), then sync with backend OAuth.
+  Future<void> signInWithApple() async {
+    try {
+      isLoading.value = true;
+
+      final rawNonce = _generateNonce();
+      final nonce = _sha256ofString(rawNonce);
+
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: nonce,
+      );
+
+      final idToken = appleCredential.identityToken;
+      if (idToken == null || idToken.isEmpty) {
+        isLoading.value = false;
+        ToastClass.showCustomToast(
+          'Sign in with Apple failed. Please try again.',
+          type: ToastType.error,
+        );
+        return;
+      }
+
+      final oauthCredential = OAuthProvider('apple.com').credential(
+        idToken: idToken,
+        rawNonce: rawNonce,
+        accessToken: appleCredential.authorizationCode,
+      );
+
+      final UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithCredential(oauthCredential);
+      final User? firebaseUser = userCredential.user;
+
+      if (firebaseUser == null) {
+        isLoading.value = false;
+        ToastClass.showCustomToast(
+          'Sign in with Apple failed. Please try again.',
+          type: ToastType.error,
+        );
+        return;
+      }
+
+      String? appleDisplayName;
+      final gn = appleCredential.givenName;
+      final fn = appleCredential.familyName;
+      if ((gn != null && gn.isNotEmpty) || (fn != null && fn.isNotEmpty)) {
+        appleDisplayName = '${gn ?? ''} ${fn ?? ''}'.trim();
+      }
+
+      final response = await _userRepository.loginWithFirebase(
+        firebaseUser,
+        nameOverride: appleDisplayName,
+      );
+
+      isLoading.value = false;
+
+      if (response.success && response.data != null) {
+        final user = response.data!;
+
+        signinEmailController.clear();
+        signinPasswordController.clear();
+
+        if (!Get.isRegistered<UserController>()) {
+          Get.put(UserController(), permanent: true);
+        } else {
+          final userController = Get.find<UserController>();
+          await userController.refreshUserData();
+        }
+
+        try {
+          final fcmService = FcmService();
+          if (fcmService.currentToken != null) {
+            await fcmService.saveTokenToBackend(fcmService.currentToken!);
+          } else {
+            await fcmService.initialize();
+          }
+        } catch (e) {
+          debugPrint('Failed to save FCM token after Apple login: $e');
+        }
+
+        ToastClass.showCustomToast(
+          'Signed in with Apple successfully',
+          type: ToastType.success,
+        );
+
+        final hasSubscription = user.currentSubscriptionType != null &&
+            user.currentSubscriptionType!.isNotEmpty;
+        final hasCompletedAssessment = user.hasCompletedAssessment == true;
+
+        if (hasSubscription && hasCompletedAssessment) {
+          Get.offAllNamed(AppRoutes.mainNavScreen);
+        } else {
+          Get.offAllNamed(AppRoutes.welcomeScreen);
+        }
+      } else {
+        try {
+          await FirebaseAuth.instance.signOut();
+        } catch (e) {
+          DebugUtils.logWarning(
+            'Firebase sign out error: $e',
+            tag: 'AuthController.signInWithApple',
+          );
+        }
+
+        ToastClass.showCustomToast(
+          response.message.isNotEmpty
+              ? response.message
+              : 'Sign in with Apple failed. Please try again.',
+          type: ToastType.error,
+        );
+      }
+    } catch (e) {
+      isLoading.value = false;
+      DebugUtils.logError(
+        'Apple sign-in error',
+        tag: 'AuthController.signInWithApple',
+        error: e,
+      );
+
+      ToastClass.showCustomToast(
+        'Sign in with Apple failed. Please try again.',
         type: ToastType.error,
       );
     }

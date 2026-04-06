@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
@@ -117,11 +116,28 @@ class ProfileSetupScreen extends StatelessWidget {
                                                   );
                                                 },
                                               )
-                                            : const Icon(
-                                                Icons.camera_alt,
-                                                color: AppColors.grey,
-                                                size: 24,
-                                              ),
+                                            : controller.selectedAvatar.value.isNotEmpty
+                                                ? Image.asset(
+                                                    controller.getAvatarImagePath(
+                                                      controller.selectedAvatar.value,
+                                                    ),
+                                                    width: 50,
+                                                    height: 50,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder:
+                                                        (context, error, stackTrace) {
+                                                      return const Icon(
+                                                        Icons.camera_alt,
+                                                        color: AppColors.grey,
+                                                        size: 24,
+                                                      );
+                                                    },
+                                                  )
+                                                : const Icon(
+                                                    Icons.camera_alt,
+                                                    color: AppColors.grey,
+                                                    size: 24,
+                                                  ),
                                   ),
                                 ),
                                 Gap(16),

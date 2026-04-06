@@ -160,6 +160,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.profileDetailScreen,
       page: () => const ProfileDetailScreen(),
+      binding: ProfileBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
     ),
