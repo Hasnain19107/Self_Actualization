@@ -40,12 +40,17 @@ class NeedsReportController extends GetxController {
         needScores.value = response.data!.needScores;
         lowestNeeds.value = response.data!.lowestNeeds;
       } else {
-        ToastClass.showCustomToast(
-          response.message.isNotEmpty
-              ? response.message
-              : 'Failed to load needs report',
-          type: ToastType.error,
-        );
+        // Backend may not expose this route yet — avoid noisy toast for 404 "Route not found".
+        final suppressToast = response.statusCode == 404 &&
+            response.message.toLowerCase().contains('route not found');
+        if (!suppressToast) {
+          ToastClass.showCustomToast(
+            response.message.isNotEmpty
+                ? response.message
+                : 'Failed to load needs report',
+            type: ToastType.error,
+          );
+        }
       }
     } catch (e) {
       isLoading.value = false;

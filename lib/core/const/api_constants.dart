@@ -1,12 +1,6 @@
-import 'dart:io' show Platform;
-
-import 'package:flutter/foundation.dart' show kIsWeb;
-
 /// API Constants
 /// Contains all API-related constants including base URL and endpoints
 class ApiConstants {
-  static const int _localPort = 5005;
-
   /// Optional override for local/dev (e.g. physical device):
   /// `flutter run --dart-define=API_BASE=http://192.168.1.10:5005`
   static const String _apiBaseOverride = String.fromEnvironment('API_BASE');
@@ -15,12 +9,12 @@ class ApiConstants {
   /// `flutter run --dart-define=NGROK_URL=https://abc123.ngrok-free.app`
   static const String _ngrokUrlFromEnv = String.fromEnvironment('NGROK_URL');
 
-  /// Paste your current `ngrok http 5005` HTTPS URL here for simulator/dev (no trailing slash).
-  /// When non-empty, this wins over localhost / 10.0.2.2 unless [API_BASE] or [NGROK_URL] is set via dart-define.
+  /// Paste your current `ngrok http …` HTTPS URL here for simulator/dev (no trailing slash).
+  /// When non-empty, this wins over [baseUrlProduction] unless [API_BASE] or [NGROK_URL] is set via dart-define.
   static const String devNgrokBaseUrl = '';
 
-  /// Production API host (same as backend deployment).
-  static const String baseUrlProduction = 'http://3.26.225.122:5005';
+  /// Production API host (same as backend deployment). No trailing slash.
+  static const String baseUrlProduction = 'http://32.236.30.18';
 
   static String _trimTrailingSlash(String url) {
     if (url.isEmpty) return url;
@@ -31,8 +25,8 @@ class ApiConstants {
   static bool get useNgrokTunnel =>
       baseUrl.toLowerCase().contains('ngrok');
 
-  /// API base URL. Prefers ngrok when configured (handy for iOS Simulator + tunneled backend).
-  /// Order: `API_BASE` → `NGROK_URL` → [devNgrokBaseUrl] → local loopback.
+  /// API base URL. Override for local backend: `--dart-define=API_BASE=http://127.0.0.1:5005`
+  /// Order: `API_BASE` → `NGROK_URL` → [devNgrokBaseUrl] → [baseUrlProduction].
   static String get baseUrl {
     if (_apiBaseOverride.isNotEmpty) {
       return _trimTrailingSlash(_apiBaseOverride);
@@ -43,13 +37,7 @@ class ApiConstants {
     if (devNgrokBaseUrl.isNotEmpty) {
       return _trimTrailingSlash(devNgrokBaseUrl);
     }
-    if (kIsWeb) {
-      return 'http://localhost:$_localPort';
-    }
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:$_localPort';
-    }
-    return 'http://127.0.0.1:$_localPort';
+    return _trimTrailingSlash(baseUrlProduction);
   }
 
   // API Endpoints

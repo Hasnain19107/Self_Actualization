@@ -20,5 +20,5 @@ void main() async {
     debugPrint('Firebase initialization error: $e');
   }
   
-  runApp(const MyApp());
+  runApp(MyApp());
 }

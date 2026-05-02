@@ -90,9 +90,10 @@ class _MainNavScreenState extends State<MainNavScreen> {
           return const HomeScreen();
         case 1:
           return YourActivityScreen();
+        // Achievements tab removed from bottom bar — see CustomBottomNavBar (GET /api/achievements 404).
+        // case 2:
+        //   return AchievementScreen();
         case 2:
-          return AchievementScreen();
-        case 3:
           return const ProfileScreen();
         default:
           return const HomeScreen();

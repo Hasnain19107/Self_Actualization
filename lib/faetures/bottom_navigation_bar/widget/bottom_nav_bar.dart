@@ -41,15 +41,16 @@ class CustomBottomNavBar extends StatelessWidget {
                 activeIcon: AppImages.activityIcon,
                 inactiveIcon: AppImages.activityIcon,
               ),
+              // Achievements (index 2) — disabled: GET /api/achievements returns 404 until backend implements route.
+              // _buildNavItem(
+              //   controller: controller,
+              //   index: 2,
+              //   activeIcon: Icons.emoji_events,
+              //   inactiveIcon: Icons.emoji_events_outlined,
+              // ),
               _buildNavItem(
                 controller: controller,
                 index: 2,
-                activeIcon: Icons.emoji_events,
-                inactiveIcon: Icons.emoji_events_outlined,
-              ),
-              _buildNavItem(
-                controller: controller,
-                index: 3,
                 activeIcon: Icons.person,
                 inactiveIcon: Icons.person_outline,
               ),
